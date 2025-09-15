@@ -1,0 +1,295 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Mon Tableau de Bord{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stat-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 15px;
+        padding: 1.5rem;
+        color: white;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        transition: transform 0.3s ease;
+    }
+    .stat-card:hover {
+        transform: translateY(-5px);
+    }
+    .stat-card.secondary {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+    .stat-card.success {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    }
+    .stat-card.warning {
+        background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+    }
+    .order-card {
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        transition: box-shadow 0.3s ease;
+    }
+    .order-card:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    .product-card {
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        overflow: hidden;
+        transition: transform 0.3s ease;
+    }
+    .product-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+    }
+    .status-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    .status-pending {
+        background-color: #fef3c7;
+        color: #92400e;
+    }
+    .status-delivered {
+        background-color: #d1fae5;
+        color: #065f46;
+    }
+    .status-processing {
+        background-color: #dbeafe;
+        color: #1e40af;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <div class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-6">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">
+                        Bonjour, {{ request.user.first_name|default:request.user.email }} ! 👋
+                    </h1>
+                    <p class="text-gray-600 mt-1">Voici un aperçu de votre activité</p>
+                </div>
+                <div class="flex space-x-3">
+                    <a href="{% url 'products:home' %}" class="btn btn-primary">
+                        <i class="fas fa-shopping-bag mr-2"></i>
+                        Voir les produits
+                    </a>
+                    <a href="{% url 'users:profile' %}" class="btn btn-outline">
+                        <i class="fas fa-user mr-2"></i>
+                        Mon profil
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Messages -->
+        {% if messages %}
+            <div class="mb-6">
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags|default:'info' }} mb-4">
+                        <i class="fas fa-info-circle mr-2"></i>
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <!-- Statistiques -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="stat-card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm opacity-90">Total des commandes</p>
+                        <p class="text-3xl font-bold">{{ total_orders }}</p>
+                    </div>
+                    <div class="text-4xl opacity-80">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card secondary">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm opacity-90">Commandes en attente</p>
+                        <p class="text-3xl font-bold">{{ pending_orders }}</p>
+                    </div>
+                    <div class="text-4xl opacity-80">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card success">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm opacity-90">Commandes livrées</p>
+                        <p class="text-3xl font-bold">{{ delivered_orders }}</p>
+                    </div>
+                    <div class="text-4xl opacity-80">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card warning">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm opacity-90">Total dépensé</p>
+                        <p class="text-3xl font-bold">{{ total_spent|floatformat:0 }} FG</p>
+                    </div>
+                    <div class="text-4xl opacity-80">
+                        <i class="fas fa-wallet"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Commandes récentes -->
+            <div class="bg-white rounded-lg shadow-sm border">
+                <div class="p-6 border-b">
+                    <h2 class="text-xl font-semibold text-gray-900 flex items-center">
+                        <i class="fas fa-history mr-3 text-primary"></i>
+                        Commandes récentes
+                    </h2>
+                </div>
+                <div class="p-6">
+                    {% if recent_orders %}
+                        <div class="space-y-4">
+                            {% for order in recent_orders %}
+                                <div class="order-card">
+                                    <div class="flex justify-between items-start">
+                                        <div>
+                                            <h3 class="font-medium text-gray-900">
+                                                Commande #{{ order.order_number }}
+                                            </h3>
+                                            <p class="text-sm text-gray-600">
+                                                {{ order.created_at|date:"d/m/Y à H:i" }}
+                                            </p>
+                                            <p class="text-sm font-medium text-gray-900 mt-1">
+                                                {{ order.total_amount|floatformat:0 }} FG
+                                            </p>
+                                        </div>
+                                        <span class="status-badge status-{{ order.status }}">
+                                            {% if order.status == 'pending' %}
+                                                En attente
+                                            {% elif order.status == 'processing' %}
+                                                En cours
+                                            {% elif order.status == 'delivered' %}
+                                                Livrée
+                                            {% else %}
+                                                {{ order.status|title }}
+                                            {% endif %}
+                                        </span>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <div class="mt-4 text-center">
+                            <a href="#" class="text-primary hover:text-primary-dark font-medium">
+                                Voir toutes les commandes
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-8">
+                            <i class="fas fa-shopping-cart text-4xl text-gray-300 mb-4"></i>
+                            <p class="text-gray-500">Aucune commande pour le moment</p>
+                            <a href="{% url 'products:home' %}" class="btn btn-primary mt-4">
+                                Commencer mes achats
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Produits suggérés -->
+            <div class="bg-white rounded-lg shadow-sm border">
+                <div class="p-6 border-b">
+                    <h2 class="text-xl font-semibold text-gray-900 flex items-center">
+                        <i class="fas fa-star mr-3 text-primary"></i>
+                        Produits populaires
+                    </h2>
+                </div>
+                <div class="p-6">
+                    {% if popular_products %}
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            {% for product in popular_products %}
+                                <div class="product-card">
+                                    {% if product.image %}
+                                        <img src="{{ product.image.url }}" alt="{{ product.name }}" 
+                                             class="w-full h-32 object-cover">
+                                    {% else %}
+                                        <div class="w-full h-32 bg-gray-200 flex items-center justify-center">
+                                            <i class="fas fa-image text-gray-400 text-2xl"></i>
+                                        </div>
+                                    {% endif %}
+                                    <div class="p-3">
+                                        <h3 class="font-medium text-gray-900 text-sm mb-1">
+                                            {{ product.name|truncatechars:30 }}
+                                        </h3>
+                                        <p class="text-primary font-bold">
+                                            {{ product.price|floatformat:0 }} FG
+                                        </p>
+                                        <a href="{% url 'products:product_detail' product.uid %}" 
+                                           class="btn btn-sm btn-primary w-full mt-2">
+                                            Voir le produit
+                                        </a>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <div class="mt-4 text-center">
+                            <a href="{% url 'products:home' %}" class="text-primary hover:text-primary-dark font-medium">
+                                Voir tous les produits
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-8">
+                            <i class="fas fa-box text-4xl text-gray-300 mb-4"></i>
+                            <p class="text-gray-500">Aucun produit disponible</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions rapides -->
+        <div class="mt-8 bg-white rounded-lg shadow-sm border p-6">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+                <i class="fas fa-bolt mr-3 text-primary"></i>
+                Actions rapides
+            </h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <a href="{% url 'products:home' %}" class="btn btn-outline btn-lg">
+                    <i class="fas fa-shopping-bag mr-2"></i>
+                    Nouveaux achats
+                </a>
+                <a href="{% url 'users:profile' %}" class="btn btn-outline btn-lg">
+                    <i class="fas fa-user-edit mr-2"></i>
+                    Modifier mon profil
+                </a>
+                <a href="#" class="btn btn-outline btn-lg">
+                    <i class="fas fa-history mr-2"></i>
+                    Historique des commandes
+                </a>
+                <a href="#" class="btn btn-outline btn-lg">
+                    <i class="fas fa-headset mr-2"></i>
+                    Support client
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

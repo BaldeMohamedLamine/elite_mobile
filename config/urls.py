@@ -19,28 +19,22 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 
-from debug_toolbar.toolbar import debug_toolbar_urls
-
-from users.views import CustomLoginView
-from users.views import CustomUserCreationView
-from users.views import ActivationUserView
-from users.views import ProfileUserView
-from users.views import LogoutView
-
+# from debug_toolbar.toolbar import debug_toolbar_urls
 
 urlpatterns = [
-    path('', include('products.urls')),
+    path('', include('theme.urls')),
+    path('products/', include('products.urls')),
     path('orders/', include('orders.urls')),
-    path('accounts/profile', ProfileUserView.as_view(), name='profile_user'),
-    path('accounts/login/', CustomLoginView.as_view(), name='login'),
-    path('accounts/create/', CustomUserCreationView.as_view(), name='register'),
-    path('accounts/activation/<uid>/<token>', ActivationUserView.as_view(), name='confirm_user_activation'),
-    path('accounts/logout/', LogoutView.as_view(), name='logout'),
-    path('accounts/', include('django.contrib.auth.urls')),
+    path('manager/', include('manager.urls')),
+    path('users/', include('users.urls')),
     path('admin/', admin.site.urls),
-] + debug_toolbar_urls()
+]
 
 if settings.DEBUG:
+    # Include django_browser_reload URLs only in DEBUG mode
+    urlpatterns += [
+        path("__reload__/", include("django_browser_reload.urls")),
+    ]
     urlpatterns += static(
         settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
     )

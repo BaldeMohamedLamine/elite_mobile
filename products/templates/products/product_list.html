@@ -1,109 +1,447 @@
+{% extends 'base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="fr" dir="ltr">
-  <head>
-    <meta charset="utf-8">
-    <title>Online Shop - Home page</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-      integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
-      crossorigin="anonymous">
-    <link rel="stylesheet" href="{% static 'registration/main.css' %}">
-    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/alertifyjs@1.14.0/build/css/alertify.min.css"/>
-  </head>
-  <body>
-    <div class="container container-sm container-md">
-      <nav class="navbar navbar-dark bg-dark">
-        <div class="container-fluid">
-          <a href="{% url 'home' %}" class="navbar-brand">Acceuil</a>
 
-          <div class="d-flex">
-            {% if request.user.is_authenticated %}
-            <a href="{% url 'list_cart_orders' %}" class="btn btn-primary position-relative mr-2">
-              Panier
-              <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                {{ request.user.cart.nb_cart_items }}
-                <span class="visually-hidden">unread messages</span>
-              </span>
-            </a>
-              <a href="{% url 'logout' %}" class="navbar-brand">Deconnexion ({{  request.user.first_name }})</a>
-            {% else %}
-              <a href="{% url 'login' %}" class="navbar-brand">Connexion</a>
-            {% endif %}
-          </div>
-        </div>
-      </nav>
-        <div class="container form">
-          {% if messages %}
-            <ul class="messages">
-              {% for message in messages %}
-                <li class="alert alert-success">{{ message }}</li>
-              {% endfor %}
-            </ul>
-          {% endif %}
-        </div>
-        <div class="container">
-          <div class="row">
-            {% for product in products %}
-              <div class="col-md-3">
-                <div class="card" style="width: 18rem;">
-                    <div style="max-height: 163px">
-                        <img src="{{ product.image.url }}" class="card-img-top" alt="...">
-                    </div>
-                    <div class="card-body">
-                      <h5 class="card-title">{{ product.name }} - {{ product.price }} GNF (En promo 10% - {{ product.reduce_price }})</h5>
-                      <h6>{{ product.category.name }}</h6>
-                      <p class="card-text">{{ product.description }}</p>
-                      <a href="{% url 'product_detail' product.uid %}" class="btn btn-primary">Voir plus</a>
-                      <button type="button" class="btn btn-success add-to-cart" data-product-uid="{{ product.uid }}">
-                          Ajouter au panier
-                      </button>
-                    </div>
+{% block title %}Produits - Boutique E-commerce{% endblock %}
+{% block description %}Découvrez notre sélection de produits de qualité avec des prix compétitifs{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero bg-gradient-to-r from-primary to-secondary text-primary-content py-16">
+    <div class="hero-content text-center">
+        <div class="max-w-md">
+            <h1 class="text-5xl font-bold mb-4">Nos Produits</h1>
+            <p class="text-xl mb-6">Découvrez une sélection unique de produits de qualité</p>
+            
+            <!-- Search Bar -->
+            <div class="form-control w-full max-w-md mx-auto">
+                <div class="input-group">
+                    <input type="text" placeholder="Rechercher un produit..." class="input input-bordered w-full" id="product-search">
+                    <button class="btn btn-accent" id="search-btn">
+                        <i class="fas fa-search"></i>
+                    </button>
                 </div>
-              </div>
-            {% endfor %}
-          </div>
+            </div>
         </div>
     </div>
+</section>
 
-    <script
-      src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
-      integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
-      crossorigin="anonymous"></script>
-    <script src="//cdn.jsdelivr.net/npm/alertifyjs@1.14.0/build/alertify.min.js"></script>
+<!-- Filters Section -->
+<section class="py-8 bg-base-200">
+    <div class="container mx-auto px-4">
+        <div class="flex flex-wrap gap-4 justify-center">
+            <div class="form-control">
+                <select class="select select-bordered w-full max-w-xs" id="category-filter">
+                    <option value="">Toutes les catégories</option>
+                    {% for category in categories %}
+                    <option value="{{ category.id }}">{{ category.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-control">
+                <select class="select select-bordered w-full max-w-xs" id="price-filter">
+                    <option value="">Tous les prix</option>
+                    <option value="0-50000">Moins de 50 000 GNF</option>
+                    <option value="50000-100000">50 000 - 100 000 GNF</option>
+                    <option value="100000-500000">100 000 - 500 000 GNF</option>
+                    <option value="500000+">Plus de 500 000 GNF</option>
+                </select>
+            </div>
+            <div class="form-control">
+                <select class="select select-bordered w-full max-w-xs" id="sort-filter">
+                    <option value="name">Trier par nom</option>
+                    <option value="price_asc">Prix croissant</option>
+                    <option value="price_desc">Prix décroissant</option>
+                    <option value="newest">Plus récents</option>
+                </select>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- Products Grid -->
+<section class="py-12 bg-base-100">
+    <div class="container mx-auto px-4">
+        {% if products %}
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" id="products-grid">
+            {% for product in products %}
+            <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 group product-card" 
+                 data-category="{{ product.category.id }}" 
+                 data-price="{{ product.price }}"
+                 data-name="{{ product.name|lower }}">
+                <figure class="px-4 pt-4">
+                    <div class="relative overflow-hidden rounded-lg">
+                        {% if product.image %}
+                        <img src="{{ product.image.url }}" 
+                             alt="{{ product.name }}" 
+                             class="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300">
+                        {% else %}
+                        <div class="w-full h-48 bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
+                            <i class="fas fa-image text-4xl text-primary/50"></i>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Badge pour nouveau produit -->
+                        {% if product.created_at|timesince|slice:":1" == "0" %}
+                        <div class="absolute top-2 right-2">
+                            <div class="badge badge-primary">Nouveau</div>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Overlay au survol -->
+                        <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                            <a href="{% url 'products:product_detail' product.uid %}" class="btn btn-primary">
+                                <i class="fas fa-eye"></i>
+                                Voir détails
+                            </a>
+                        </div>
+                    </div>
+                </figure>
+                
+                <div class="card-body p-4">
+                    <div class="flex items-start justify-between mb-2">
+                        <h3 class="card-title text-lg leading-tight">{{ product.name }}</h3>
+                        <div class="badge badge-outline">{{ product.category.name }}</div>
+                    </div>
+                    
+                    <p class="text-sm text-base-content/70 mb-3 line-clamp-2">
+                        {{ product.description|truncatewords:15 }}
+                    </p>
+                    
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="text-2xl font-bold text-primary">
+                            {{ product.price|floatformat:0 }} GNF
+                        </div>
+                        {% if product.stock_quantity %}
+                        <div class="text-sm text-success">
+                            <i class="fas fa-check-circle"></i>
+                            En stock
+                        </div>
+                        {% else %}
+                        <div class="text-sm text-error">
+                            <i class="fas fa-times-circle"></i>
+                            Rupture
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="card-actions justify-between">
+                        <a href="{% url 'products:product_detail' product.uid %}" 
+                           class="btn btn-outline btn-sm flex-1">
+                            <i class="fas fa-info-circle"></i>
+                            Détails
+                        </a>
+                        {% if request.user.is_authenticated and product.stock_quantity %}
+                        <button class="btn btn-primary btn-sm flex-1 add-to-cart" 
+                                data-product-uid="{{ product.uid }}"
+                                data-product-name="{{ product.name }}">
+                            <i class="fas fa-cart-plus"></i>
+                            Ajouter
+                        </button>
+                        {% elif not request.user.is_authenticated %}
+                        <a href="{% url 'users:login' %}" class="btn btn-primary btn-sm flex-1">
+                            <i class="fas fa-sign-in-alt"></i>
+                            Connectez-vous
+                        </a>
+                        {% else %}
+                        <button class="btn btn-disabled btn-sm flex-1" disabled>
+                            <i class="fas fa-times"></i>
+                            Indisponible
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Pagination -->
+        {% if is_paginated %}
+        <div class="flex justify-center mt-12">
+            <div class="btn-group">
+                {% if page_obj.has_previous %}
+                <a href="?page=1" class="btn btn-outline">«</a>
+                <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-outline">‹</a>
+                {% endif %}
+                
+                <span class="btn btn-active">{{ page_obj.number }} sur {{ page_obj.paginator.num_pages }}</span>
+                
+                {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}" class="btn btn-outline">›</a>
+                <a href="?page={{ page_obj.paginator.num_pages }}" class="btn btn-outline">»</a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+        
+        {% else %}
+        <!-- Empty State -->
+        <div class="text-center py-20">
+            <div class="text-6xl mb-4 text-base-content/30">
+                <i class="fas fa-search"></i>
+            </div>
+            <h3 class="text-2xl font-bold mb-4">Aucun produit trouvé</h3>
+            <p class="text-base-content/70 mb-6">Essayez de modifier vos critères de recherche</p>
+            <button class="btn btn-primary" onclick="clearFilters()">
+                <i class="fas fa-refresh"></i>
+                Réinitialiser les filtres
+            </button>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}
 
-    <script type="text/javascript">
-      document.addEventListener('DOMContentLoaded', function(){
-        document.querySelectorAll('.add-to-cart').forEach(button => {
-            button.addEventListener('click', function(event){
-                const productId = event.target.getAttribute('data-product-uid');
-                fetch('{% url "add_to_cart" %}', {
-                  method:'POST',
-                  headers: {
-                      'Content-Type': 'application/json',
-                      'X-CSRFToken': '{{ csrf_token }}'
-                  },
-                  body: JSON.stringify({
-                      'product_uid': productId,
-                      'quantity': 1,
-                  })
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add to cart functionality
+    document.querySelectorAll('.add-to-cart').forEach(button => {
+        button.addEventListener('click', function(event) {
+            const productId = event.target.getAttribute('data-product-uid');
+            const productName = event.target.getAttribute('data-product-name');
+            
+            // Show loading state
+            const originalText = button.innerHTML;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ajout...';
+            button.disabled = true;
+            
+            fetch('{% url "orders:add_to_cart" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({
+                    'product_uid': productId,
+                    'quantity': 1,
                 })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Show success toast
+                    showToast('success', `"${productName}" ajouté au panier !`);
+                    
+                    // Update cart count
+                    updateCartCount();
+                    
+                    // Update button state
+                    button.innerHTML = '<i class="fas fa-check"></i> Ajouté';
+                    button.classList.remove('btn-primary');
+                    button.classList.add('btn-success');
+                    
+                    setTimeout(() => {
+                        button.innerHTML = originalText;
+                        button.classList.remove('btn-success');
+                        button.classList.add('btn-primary');
+                        button.disabled = false;
+                    }, 2000);
+                } else {
+                    showToast('error', data.message || 'Erreur lors de l\'ajout au panier');
+                    button.innerHTML = originalText;
+                    button.disabled = false;
+                }
+            })
+            .catch(error => {
+                console.error('Error adding to cart:', error);
+                showToast('error', 'Erreur de connexion');
+                button.innerHTML = originalText;
+                button.disabled = false;
+            });
+        });
+    });
+
+    // Filter functionality
+    const categoryFilter = document.getElementById('category-filter');
+    const priceFilter = document.getElementById('price-filter');
+    const sortFilter = document.getElementById('sort-filter');
+    const searchInput = document.getElementById('product-search');
+
+    function filterProducts() {
+        const products = document.querySelectorAll('.product-card');
+        const categoryValue = categoryFilter.value;
+        const priceValue = priceFilter.value;
+        const sortValue = sortFilter.value;
+        const searchValue = searchInput.value.toLowerCase();
+
+        let visibleProducts = [];
+
+        products.forEach(product => {
+            const productCategory = product.getAttribute('data-category');
+            const productPrice = parseFloat(product.getAttribute('data-price'));
+            const productName = product.getAttribute('data-name');
+
+            let show = true;
+
+            // Category filter
+            if (categoryValue && productCategory !== categoryValue) {
+                show = false;
+            }
+
+            // Price filter
+            if (priceValue && show) {
+                const [min, max] = priceValue.split('-').map(p => p === '+' ? Infinity : parseFloat(p));
+                if (productPrice < min || (max !== Infinity && productPrice > max)) {
+                    show = false;
+                }
+            }
+
+            // Search filter
+            if (searchValue && show && !productName.includes(searchValue)) {
+                show = false;
+            }
+
+            if (show) {
+                product.style.display = 'block';
+                visibleProducts.push(product);
+            } else {
+                product.style.display = 'none';
+            }
+        });
+
+        // Sort products
+        if (sortValue && visibleProducts.length > 0) {
+            const productsGrid = document.getElementById('products-grid');
+            const sortedProducts = Array.from(visibleProducts).sort((a, b) => {
+                switch (sortValue) {
+                    case 'price_asc':
+                        return parseFloat(a.getAttribute('data-price')) - parseFloat(b.getAttribute('data-price'));
+                    case 'price_desc':
+                        return parseFloat(b.getAttribute('data-price')) - parseFloat(a.getAttribute('data-price'));
+                    case 'name':
+                        return a.getAttribute('data-name').localeCompare(b.getAttribute('data-name'));
+                    default:
+                        return 0;
+                }
+            });
+
+            sortedProducts.forEach(product => {
+                productsGrid.appendChild(product);
+            });
+        }
+
+        // Show/hide empty state
+        const emptyState = document.querySelector('.text-center.py-20');
+        if (visibleProducts.length === 0) {
+            if (!emptyState) {
+                showEmptyState();
+            }
+        } else if (emptyState) {
+            emptyState.remove();
+        }
+    }
+
+    // Event listeners for filters
+    [categoryFilter, priceFilter, sortFilter].forEach(filter => {
+        filter.addEventListener('change', filterProducts);
+    });
+
+    searchInput.addEventListener('input', debounce(filterProducts, 300));
+
+    // Clear filters function
+    window.clearFilters = function() {
+        categoryFilter.value = '';
+        priceFilter.value = '';
+        sortFilter.value = 'name';
+        searchInput.value = '';
+        filterProducts();
+    };
+
+    // Show toast notification
+    function showToast(type, message) {
+        const toast = document.createElement('div');
+        toast.className = `alert alert-${type} animate-fade-in`;
+        toast.innerHTML = `
+            <span>${message}</span>
+            <button class="btn btn-sm btn-circle btn-ghost" onclick="this.parentElement.remove()">✕</button>
+        `;
+        
+        const toastContainer = document.querySelector('.toast') || createToastContainer();
+        toastContainer.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+
+    function createToastContainer() {
+        const container = document.createElement('div');
+        container.className = 'toast toast-top toast-end z-50';
+        document.body.appendChild(container);
+        return container;
+    }
+
+    // Update cart count
+    function updateCartCount() {
+        const cartCount = document.getElementById('cart-count');
+        if (cartCount) {
+            fetch('{% url "orders:cart_count" %}')
                 .then(response => response.json())
                 .then(data => {
-                  if(data.success){
-                    alertify.success('Produit ajoute au panier');
-                    button.setAttribute('disabled');
-                  }else{
-                      alertify.error(data.message);
-                      button.setAttribute('disabled', '');
-                      button.innerHTML = 'Deja ajoute';
-                  }
+                    cartCount.textContent = data.count;
+                    cartCount.style.display = data.count > 0 ? 'inline' : 'none';
                 })
-                .catch(error => console.log("Error ajout panier", error))
+                .catch(error => console.error('Error updating cart count:', error));
+        }
+    }
 
-            })
-        })
-      })
-    </script>
-  </body>
-</html>
+    // Debounce function
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+
+    // Show empty state
+    function showEmptyState() {
+        const productsGrid = document.getElementById('products-grid');
+        const emptyState = document.createElement('div');
+        emptyState.className = 'text-center py-20 col-span-full';
+        emptyState.innerHTML = `
+            <div class="text-6xl mb-4 text-base-content/30">
+                <i class="fas fa-search"></i>
+            </div>
+            <h3 class="text-2xl font-bold mb-4">Aucun produit trouvé</h3>
+            <p class="text-base-content/70 mb-6">Essayez de modifier vos critères de recherche</p>
+            <button class="btn btn-primary" onclick="clearFilters()">
+                <i class="fas fa-refresh"></i>
+                Réinitialiser les filtres
+            </button>
+        `;
+        productsGrid.appendChild(emptyState);
+    }
+
+    // Intersection Observer for animations
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    }, observerOptions);
+
+    // Observe all product cards for animation
+    document.querySelectorAll('.product-card').forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        card.style.transition = `opacity 0.6s ease ${index * 0.1}s, transform 0.6s ease ${index * 0.1}s`;
+        observer.observe(card);
+    });
+    
+    // Load initial cart count
+    updateCartCount();
+});
+</script>
+{% endblock %}

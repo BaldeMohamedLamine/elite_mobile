@@ -1,0 +1,305 @@
+{% extends 'manager/base.html' %}
+{% load static %}
+
+{% block page_title %}Liste des Fournisseurs{% endblock %}
+{% block page_description %}Gestion des fournisseurs et dropshippers{% endblock %}
+
+{% block manager_content %}
+<!-- Filters -->
+<div class="card bg-base-100 shadow-xl mb-8 animate-slide-in">
+    <div class="card-body">
+        <h2 class="card-title text-2xl mb-6">
+            <i class="fas fa-filter text-primary mr-2"></i>
+            Filtres
+        </h2>
+        
+        <form method="get" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text">Statut</span>
+                </label>
+                <select name="status" class="select select-bordered">
+                    <option value="">Tous les statuts</option>
+                    {% for value, label in status_choices %}
+                    <option value="{{ value }}" {% if request.GET.status == value %}selected{% endif %}>
+                        {{ label }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text">Vérifié</span>
+                </label>
+                <select name="verified" class="select select-bordered">
+                    <option value="">Tous</option>
+                    <option value="true" {% if request.GET.verified == 'true' %}selected{% endif %}>Vérifiés</option>
+                    <option value="false" {% if request.GET.verified == 'false' %}selected{% endif %}>Non vérifiés</option>
+                </select>
+            </div>
+            
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text">Recherche</span>
+                </label>
+                <input type="text" name="search" class="input input-bordered" 
+                       placeholder="Nom, entreprise, email..." value="{{ request.GET.search }}">
+            </div>
+            
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text">&nbsp;</span>
+                </label>
+                <button type="submit" class="btn btn-primary hover-glow transition-all">
+                    <i class="fas fa-search mr-2"></i>
+                    Filtrer
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Actions -->
+<div class="card bg-base-100 shadow-xl mb-8 animate-slide-in">
+    <div class="card-body">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="card-title text-2xl">
+                <i class="fas fa-truck text-primary mr-2"></i>
+                Fournisseurs
+            </h2>
+            <div class="flex gap-2">
+                <a href="{% url 'products:suppliers:supplier_create' %}" class="btn btn-primary hover-glow transition-all">
+                    <i class="fas fa-plus mr-2"></i>
+                    Nouveau Fournisseur
+                </a>
+                <a href="{% url 'products:suppliers:dashboard' %}" class="btn btn-outline btn-secondary hover-scale transition-all">
+                    <i class="fas fa-arrow-left mr-2"></i>
+                    Dashboard
+                </a>
+            </div>
+        </div>
+
+        {% if suppliers %}
+        <div class="overflow-x-auto">
+            <table class="table table-zebra w-full">
+                <thead>
+                    <tr>
+                        <th>Fournisseur</th>
+                        <th>Contact</th>
+                        <th>Statut</th>
+                        <th>Produits</th>
+                        <th>Vérifié</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for supplier in suppliers %}
+                    <tr class="hover">
+                        <td>
+                            <div class="font-bold">{{ supplier.name }}</div>
+                            {% if supplier.company_name %}
+                            <div class="text-sm text-base-content/70">{{ supplier.company_name }}</div>
+                            {% endif %}
+                            {% if supplier.contact_person %}
+                            <div class="text-sm text-info">{{ supplier.contact_person }}</div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="flex items-center gap-2 mb-1">
+                                <i class="fas fa-envelope text-primary"></i>
+                                <span class="text-sm">{{ supplier.email }}</span>
+                            </div>
+                            {% if supplier.phone %}
+                            <div class="flex items-center gap-2 mb-1">
+                                <i class="fas fa-phone text-success"></i>
+                                <span class="text-sm">{{ supplier.phone }}</span>
+                            </div>
+                            {% endif %}
+                            {% if supplier.website %}
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-globe text-info"></i>
+                                <a href="{{ supplier.website }}" target="_blank" class="text-sm link link-hover">
+                                    Site web
+                                </a>
+                            </div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge badge-{% if supplier.status == 'active' %}success{% elif supplier.status == 'inactive' %}error{% elif supplier.status == 'suspended' %}warning{% else %}neutral{% endif %}">
+                                {{ supplier.get_status_display }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="flex flex-col gap-1">
+                                <span class="badge badge-primary">{{ supplier.total_products }}</span>
+                                <span class="text-xs text-base-content/70">{{ supplier.active_products }} actifs</span>
+                            </div>
+                        </td>
+                        <td>
+                            {% if supplier.is_verified %}
+                            <div class="flex flex-col gap-1">
+                                <span class="badge badge-success">
+                                    <i class="fas fa-check-circle mr-1"></i>Vérifié
+                                </span>
+                                {% if supplier.verified_at %}
+                                <span class="text-xs text-base-content/70">{{ supplier.verified_at|date:"d/m/Y" }}</span>
+                                {% endif %}
+                            </div>
+                            {% else %}
+                            <span class="badge badge-warning">
+                                <i class="fas fa-exclamation-triangle mr-1"></i>Non vérifié
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="flex gap-1">
+                                <a href="{% url 'products:suppliers:supplier_detail' supplier.uid %}" 
+                                   class="btn btn-ghost btn-sm hover-scale transition-all" title="Voir">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{% url 'products:suppliers:supplier_edit' supplier.uid %}" 
+                                   class="btn btn-ghost btn-sm hover-scale transition-all" title="Modifier">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <button type="button" class="btn btn-ghost btn-sm hover-scale transition-all" 
+                                        onclick="toggleVerification('{{ supplier.uid }}', {{ supplier.is_verified|yesno:'true,false' }})" 
+                                        title="{% if supplier.is_verified %}Désactiver{% else %}Vérifier{% endif %}">
+                                    <i class="fas fa-{% if supplier.is_verified %}times{% else %}check{% endif %}"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination -->
+        {% if is_paginated %}
+        <div class="flex justify-center mt-8">
+            <div class="join">
+                {% if page_obj.has_previous %}
+                <a class="join-item btn btn-outline" href="?page=1{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.verified %}&verified={{ request.GET.verified }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                    <i class="fas fa-angle-double-left"></i>
+                </a>
+                <a class="join-item btn btn-outline" href="?page={{ page_obj.previous_page_number }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.verified %}&verified={{ request.GET.verified }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                    <i class="fas fa-angle-left"></i>
+                </a>
+                {% endif %}
+                
+                <button class="join-item btn btn-active">
+                    Page {{ page_obj.number }} sur {{ page_obj.paginator.num_pages }}
+                </button>
+                
+                {% if page_obj.has_next %}
+                <a class="join-item btn btn-outline" href="?page={{ page_obj.next_page_number }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.verified %}&verified={{ request.GET.verified }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                    <i class="fas fa-angle-right"></i>
+                </a>
+                <a class="join-item btn btn-outline" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.verified %}&verified={{ request.GET.verified }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                    <i class="fas fa-angle-double-right"></i>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+        
+        {% else %}
+        <div class="text-center py-12">
+            <div class="avatar placeholder mb-6">
+                <div class="bg-base-300 text-base-content rounded-full w-24">
+                    <i class="fas fa-truck text-4xl"></i>
+                </div>
+            </div>
+            <h3 class="text-2xl font-bold text-base-content/70 mb-4">Aucun fournisseur trouvé</h3>
+            <p class="text-base-content/70 mb-6">Aucun fournisseur ne correspond à vos critères de recherche.</p>
+            <a href="{% url 'products:suppliers:supplier_create' %}" class="btn btn-primary hover-glow transition-all">
+                <i class="fas fa-plus mr-2"></i>
+                Créer le premier fournisseur
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function toggleVerification(supplierUid, isVerified) {
+    const action = isVerified ? 'Désactiver la vérification' : 'Vérifier le fournisseur';
+    
+    if (confirm(`Êtes-vous sûr de vouloir ${action.toLowerCase()} ?`)) {
+        // Add loading state
+        const button = event.target.closest('button');
+        const originalHTML = button.innerHTML;
+        button.innerHTML = '<span class="loading loading-spinner loading-sm"></span>';
+        button.disabled = true;
+        
+        fetch(`/products/suppliers/api/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: JSON.stringify({
+                action: 'toggle_verification',
+                supplier_uid: supplierUid
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Show success message
+                const alert = document.createElement('div');
+                alert.className = 'alert alert-success animate-slide-in';
+                alert.innerHTML = `
+                    <i class="fas fa-check-circle"></i>
+                    <span>${action} réussie</span>
+                `;
+                document.querySelector('.container').insertBefore(alert, document.querySelector('.container').firstChild);
+                
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                // Show error message
+                const alert = document.createElement('div');
+                alert.className = 'alert alert-error animate-shake';
+                alert.innerHTML = `
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>Erreur: ${data.error}</span>
+                `;
+                document.querySelector('.container').insertBefore(alert, document.querySelector('.container').firstChild);
+            }
+        })
+        .catch(error => {
+            console.error('Erreur:', error);
+            const alert = document.createElement('div');
+            alert.className = 'alert alert-error animate-shake';
+            alert.innerHTML = `
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>Erreur lors de la mise à jour</span>
+            `;
+            document.querySelector('.container').insertBefore(alert, document.querySelector('.container').firstChild);
+        })
+        .finally(() => {
+            // Reset button state
+            button.innerHTML = originalHTML;
+            button.disabled = false;
+        });
+    }
+}
+
+// Auto-refresh toutes les 60 secondes
+setInterval(function() {
+    location.reload();
+}, 60000);
+
+// Add ripple effect to buttons
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.btn').forEach(button => {
+        button.addEventListener('click', function(e) {
+            // createRipple(e, this);
+        });
+    });
+});
+</script>
+{% endblock %}

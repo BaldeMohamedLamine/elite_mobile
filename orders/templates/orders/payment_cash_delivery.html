@@ -1,0 +1,252 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Paiement à la Livraison - Online Shop{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 dark:from-gray-900 dark:to-gray-800 py-12">
+    <div class="container mx-auto px-4">
+        <div class="max-w-4xl mx-auto">
+            <!-- Header -->
+            <div class="text-center mb-8 animate-fade-in">
+                <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full mb-4">
+                    <i class="fas fa-money-bill-wave text-3xl text-white"></i>
+                </div>
+                <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2">Paiement à la Livraison</h1>
+                <p class="text-gray-600 dark:text-gray-300">Payez en espèces lors de la réception</p>
+            </div>
+
+            <!-- Amount Display -->
+            <div class="card bg-white dark:bg-gray-800 shadow-2xl mb-8 animate-slide-in">
+                <div class="card-body text-center">
+                    <div class="bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-2xl p-6">
+                        <h3 class="text-lg font-semibold mb-2">Montant à payer à la livraison</h3>
+                        <div class="text-4xl font-bold">{{ order.total_amount|floatformat:0 }} FCFA</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Order Information -->
+                <div class="card bg-white dark:bg-gray-800 shadow-2xl animate-slide-in">
+                    <div class="card-body">
+                        <h2 class="card-title text-2xl mb-6">
+                            <i class="fas fa-info-circle text-primary mr-2"></i>
+                            Informations de votre commande
+                        </h2>
+                        
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center p-3 bg-base-200 rounded-lg">
+                                <span class="font-semibold">Commande :</span>
+                                <span class="font-mono text-sm">{{ order.uid }}</span>
+                            </div>
+                            
+                            <div class="flex justify-between items-center p-3 bg-base-200 rounded-lg">
+                                <span class="font-semibold">Date :</span>
+                                <span>{{ order.created_at|date:"d/m/Y H:i" }}</span>
+                            </div>
+                            
+                            <div class="p-3 bg-base-200 rounded-lg">
+                                <span class="font-semibold block mb-2">Adresse de livraison :</span>
+                                <span class="text-sm">{{ order.delivery_address }}</span>
+                            </div>
+                            
+                            <div class="flex justify-between items-center p-3 bg-base-200 rounded-lg">
+                                <span class="font-semibold">Téléphone :</span>
+                                <span class="font-mono">{{ order.delivery_phone }}</span>
+                            </div>
+                            
+                            {% if order.delivery_notes %}
+                            <div class="p-3 bg-base-200 rounded-lg">
+                                <span class="font-semibold block mb-2">Notes :</span>
+                                <span class="text-sm">{{ order.delivery_notes }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Order Items -->
+                <div class="card bg-white dark:bg-gray-800 shadow-2xl animate-slide-in">
+                    <div class="card-body">
+                        <h2 class="card-title text-2xl mb-6">
+                            <i class="fas fa-shopping-cart text-primary mr-2"></i>
+                            Articles commandés
+                        </h2>
+                        
+                        <div class="overflow-x-auto">
+                            <table class="table table-zebra w-full">
+                                <thead>
+                                    <tr>
+                                        <th>Produit</th>
+                                        <th>Qté</th>
+                                        <th>Prix</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in order.items.all %}
+                                    <tr>
+                                        <td>
+                                            <div class="font-medium">{{ item.product.name }}</div>
+                                        </td>
+                                        <td>
+                                            <span class="badge badge-primary">{{ item.quantity }}</span>
+                                        </td>
+                                        <td>
+                                            <span class="font-semibold">{{ item.price_at_time|floatformat:0 }} FCFA</span>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                                <tfoot>
+                                    <tr class="border-t-2">
+                                        <th colspan="2">Sous-total :</th>
+                                        <th class="text-lg">{{ order.subtotal|floatformat:0 }} FCFA</th>
+                                    </tr>
+                                    <tr>
+                                        <th colspan="2">Frais de livraison :</th>
+                                        <th class="text-lg">{{ order.delivery_fee|floatformat:0 }} FCFA</th>
+                                    </tr>
+                                    <tr class="bg-success text-success-content">
+                                        <th colspan="2" class="text-lg">Total :</th>
+                                        <th class="text-xl font-bold">{{ order.total_amount|floatformat:0 }} FCFA</th>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Instructions -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
+                <div class="card bg-white dark:bg-gray-800 shadow-2xl animate-slide-in">
+                    <div class="card-body">
+                        <h2 class="card-title text-2xl mb-6">
+                            <i class="fas fa-truck text-primary mr-2"></i>
+                            Instructions pour la livraison
+                        </h2>
+                        
+                        <div class="space-y-3">
+                            <div class="flex items-start gap-3">
+                                <i class="fas fa-clock text-blue-500 mt-1"></i>
+                                <span class="text-sm">Votre commande sera préparée et expédiée dans les 24h</span>
+                            </div>
+                            <div class="flex items-start gap-3">
+                                <i class="fas fa-phone text-green-500 mt-1"></i>
+                                <span class="text-sm">Vous serez contacté par téléphone pour confirmer la livraison</span>
+                            </div>
+                            <div class="flex items-start gap-3">
+                                <i class="fas fa-money-bill-wave text-yellow-500 mt-1"></i>
+                                <span class="text-sm">Le paiement se fera en espèces lors de la réception</span>
+                            </div>
+                            <div class="flex items-start gap-3">
+                                <i class="fas fa-calculator text-purple-500 mt-1"></i>
+                                <span class="text-sm">Préparez le montant exact : <strong>{{ order.total_amount|floatformat:0 }} FCFA</strong></span>
+                            </div>
+                            <div class="flex items-start gap-3">
+                                <i class="fas fa-receipt text-indigo-500 mt-1"></i>
+                                <span class="text-sm">Vous recevrez un reçu après le paiement</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card bg-white dark:bg-gray-800 shadow-2xl animate-slide-in">
+                    <div class="card-body">
+                        <h2 class="card-title text-2xl mb-6">
+                            <i class="fas fa-exclamation-triangle text-warning mr-2"></i>
+                            Important
+                        </h2>
+                        
+                        <div class="space-y-3">
+                            <div class="flex items-start gap-3">
+                                <i class="fas fa-phone-alt text-red-500 mt-1"></i>
+                                <span class="text-sm">Assurez-vous d'être disponible au numéro <strong>{{ order.delivery_phone }}</strong></span>
+                            </div>
+                            <div class="flex items-start gap-3">
+                                <i class="fas fa-search text-blue-500 mt-1"></i>
+                                <span class="text-sm">Vérifiez les articles avant de payer</span>
+                            </div>
+                            <div class="flex items-start gap-3">
+                                <i class="fas fa-headset text-green-500 mt-1"></i>
+                                <span class="text-sm">En cas de problème, contactez notre service client</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex flex-col sm:flex-row gap-4 mt-8 animate-fade-in">
+                <a href="{% url 'orders:order_detail' order.uid %}" class="btn btn-success btn-lg flex-1 hover-glow transition-all">
+                    <i class="fas fa-check mr-2"></i>
+                    Confirmer la commande
+                </a>
+                <a href="{% url 'orders:checkout' %}" class="btn btn-outline btn-secondary hover-scale transition-all">
+                    <i class="fas fa-arrow-left mr-2"></i>
+                    Retour
+                </a>
+            </div>
+
+            <!-- Delivery Timeline -->
+            <div class="card bg-white dark:bg-gray-800 shadow-xl mt-8 animate-slide-in">
+                <div class="card-body">
+                    <h2 class="card-title text-2xl mb-6">
+                        <i class="fas fa-timeline text-primary mr-2"></i>
+                        Timeline de livraison
+                    </h2>
+                    
+                    <div class="steps steps-vertical lg:steps-horizontal">
+                        <div class="step step-primary">
+                            <div class="step-content">
+                                <div class="font-semibold">Commande confirmée</div>
+                                <div class="text-sm text-gray-500">Votre commande est enregistrée</div>
+                            </div>
+                        </div>
+                        <div class="step step-primary">
+                            <div class="step-content">
+                                <div class="font-semibold">Préparation</div>
+                                <div class="text-sm text-gray-500">Articles en cours de préparation</div>
+                            </div>
+                        </div>
+                        <div class="step">
+                            <div class="step-content">
+                                <div class="font-semibold">Expédition</div>
+                                <div class="text-sm text-gray-500">Envoi vers votre adresse</div>
+                            </div>
+                        </div>
+                        <div class="step">
+                            <div class="step-content">
+                                <div class="font-semibold">Livraison</div>
+                                <div class="text-sm text-gray-500">Paiement et réception</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add ripple effect to buttons
+    document.querySelectorAll('.btn').forEach(button => {
+        button.addEventListener('click', function(e) {
+            createRipple(e, this);
+        });
+    });
+
+    // Animate timeline steps
+    const steps = document.querySelectorAll('.step');
+    steps.forEach((step, index) => {
+        setTimeout(() => {
+            step.classList.add('animate-fade-in');
+        }, index * 200);
+    });
+});
+</script>
+{% endblock %}

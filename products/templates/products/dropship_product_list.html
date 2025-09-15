@@ -1,0 +1,375 @@
+{% extends 'manager/base.html' %}
+{% load static %}
+
+{% block page_title %}Produits Dropshipping{% endblock %}
+{% block page_description %}Gestion des produits fournis par les fournisseurs{% endblock %}
+
+{% block manager_content %}
+<!-- Filters -->
+<div class="card bg-base-100 shadow-xl mb-8 animate-slide-in">
+    <div class="card-body">
+        <h2 class="card-title text-2xl mb-6">
+            <i class="fas fa-filter text-primary mr-2"></i>
+            Filtres
+        </h2>
+        
+        <form method="get" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text">Fournisseur</span>
+                </label>
+                <select name="supplier" class="select select-bordered">
+                    <option value="">Tous les fournisseurs</option>
+                    {% for supplier in suppliers %}
+                    <option value="{{ supplier.id }}" {% if request.GET.supplier == supplier.id|stringformat:"s" %}selected{% endif %}>
+                        {{ supplier.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text">Statut</span>
+                </label>
+                <select name="active" class="select select-bordered">
+                    <option value="">Tous</option>
+                    <option value="true" {% if request.GET.active == 'true' %}selected{% endif %}>Actifs</option>
+                    <option value="false" {% if request.GET.active == 'false' %}selected{% endif %}>Inactifs</option>
+                </select>
+            </div>
+            
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text">Stock</span>
+                </label>
+                <select name="stock_status" class="select select-bordered">
+                    <option value="">Tous</option>
+                    <option value="out_of_stock" {% if request.GET.stock_status == 'out_of_stock' %}selected{% endif %}>Rupture</option>
+                    <option value="low_stock" {% if request.GET.stock_status == 'low_stock' %}selected{% endif %}>Stock faible</option>
+                </select>
+            </div>
+            
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text">Recherche</span>
+                </label>
+                <input type="text" name="search" class="input input-bordered" 
+                       placeholder="Nom produit, fournisseur, SKU..." value="{{ request.GET.search }}">
+            </div>
+            
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text">&nbsp;</span>
+                </label>
+                <button type="submit" class="btn btn-primary hover-glow transition-all">
+                    <i class="fas fa-search mr-2"></i>
+                    Filtrer
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Actions -->
+<div class="card bg-base-100 shadow-xl mb-8 animate-slide-in">
+    <div class="card-body">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="card-title text-2xl">
+                <i class="fas fa-boxes text-primary mr-2"></i>
+                Produits Dropshipping
+            </h2>
+            <div class="flex gap-2">
+                <a href="{% url 'products:suppliers:dropship_product_create' %}" class="btn btn-success hover-glow transition-all">
+                    <i class="fas fa-plus mr-2"></i>
+                    Nouveau Produit
+                </a>
+                <a href="{% url 'products:suppliers:dashboard' %}" class="btn btn-outline btn-secondary hover-scale transition-all">
+                    <i class="fas fa-arrow-left mr-2"></i>
+                    Dashboard
+                </a>
+            </div>
+        </div>
+
+        {% if dropship_products %}
+        <div class="overflow-x-auto">
+            <table class="table table-zebra w-full">
+                <thead>
+                    <tr>
+                        <th>Produit</th>
+                        <th>Fournisseur</th>
+                        <th>Prix</th>
+                        <th>Marge</th>
+                        <th>Stock</th>
+                        <th>Statut</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in dropship_products %}
+                    <tr class="hover">
+                        <td>
+                            <div class="font-bold">{{ product.product.name }}</div>
+                            <div class="text-sm text-base-content/70">{{ product.supplier_sku|default:"N/A" }}</div>
+                            {% if product.is_featured %}
+                            <div class="mt-1">
+                                <span class="badge badge-warning">
+                                    <i class="fas fa-star mr-1"></i>Mis en avant
+                                </span>
+                            </div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="font-bold">{{ product.supplier.name }}</div>
+                            <div class="text-sm text-base-content/70">{{ product.supplier.company_name|default:"N/A" }}</div>
+                            {% if product.supplier.is_verified %}
+                            <div class="mt-1">
+                                <span class="badge badge-success">
+                                    <i class="fas fa-check-circle mr-1"></i>Vérifié
+                                </span>
+                            </div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="font-bold text-success">{{ product.selling_price|floatformat:0 }} FCFA</div>
+                            <div class="text-sm text-base-content/70">Achat: {{ product.supplier_price|floatformat:0 }} FCFA</div>
+                        </td>
+                        <td>
+                            <div class="flex flex-col gap-1">
+                                <span class="badge badge-info">{{ product.margin_percentage|floatformat:1 }}%</span>
+                                <span class="text-sm text-base-content/70">{{ product.margin_amount|floatformat:0 }} FCFA</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="flex flex-col gap-1">
+                                <span class="badge badge-{% if product.is_out_of_stock %}error{% elif product.is_low_stock %}warning{% else %}success{% endif %}">
+                                    {{ product.virtual_stock }}
+                                </span>
+                                {% if product.is_low_stock %}
+                                <span class="text-xs text-warning">Seuil: {{ product.reorder_threshold }}</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td>
+                            <div class="flex flex-col gap-1">
+                                <span class="badge badge-{% if product.is_active %}success{% else %}error{% endif %}">
+                                    {% if product.is_active %}Actif{% else %}Inactif{% endif %}
+                                </span>
+                                <span class="text-xs text-base-content/70">{{ product.stock_status }}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="flex gap-1">
+                                <a href="{% url 'products:suppliers:dropship_product_edit' product.uid %}" 
+                                   class="btn btn-ghost btn-sm hover-scale transition-all" title="Modifier">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <button type="button" class="btn btn-ghost btn-sm hover-scale transition-all" 
+                                        onclick="toggleActive('{{ product.uid }}', {{ product.is_active|yesno:'true,false' }})" 
+                                        title="{% if product.is_active %}Désactiver{% else %}Activer{% endif %}">
+                                    <i class="fas fa-{% if product.is_active %}pause{% else %}play{% endif %}"></i>
+                                </button>
+                                <button type="button" class="btn btn-ghost btn-sm hover-scale transition-all" 
+                                        onclick="toggleFeatured('{{ product.uid }}', {{ product.is_featured|yesno:'true,false' }})" 
+                                        title="{% if product.is_featured %}Retirer{% else %}Mettre{% endif %} en avant">
+                                    <i class="fas fa-star"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination -->
+        {% if is_paginated %}
+        <div class="flex justify-center mt-8">
+            <div class="join">
+                {% if page_obj.has_previous %}
+                <a class="join-item btn btn-outline" href="?page=1{% if request.GET.supplier %}&supplier={{ request.GET.supplier }}{% endif %}{% if request.GET.active %}&active={{ request.GET.active }}{% endif %}{% if request.GET.stock_status %}&stock_status={{ request.GET.stock_status }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                    <i class="fas fa-angle-double-left"></i>
+                </a>
+                <a class="join-item btn btn-outline" href="?page={{ page_obj.previous_page_number }}{% if request.GET.supplier %}&supplier={{ request.GET.supplier }}{% endif %}{% if request.GET.active %}&active={{ request.GET.active }}{% endif %}{% if request.GET.stock_status %}&stock_status={{ request.GET.stock_status }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                    <i class="fas fa-angle-left"></i>
+                </a>
+                {% endif %}
+                
+                <button class="join-item btn btn-active">
+                    Page {{ page_obj.number }} sur {{ page_obj.paginator.num_pages }}
+                </button>
+                
+                {% if page_obj.has_next %}
+                <a class="join-item btn btn-outline" href="?page={{ page_obj.next_page_number }}{% if request.GET.supplier %}&supplier={{ request.GET.supplier }}{% endif %}{% if request.GET.active %}&active={{ request.GET.active }}{% endif %}{% if request.GET.stock_status %}&stock_status={{ request.GET.stock_status }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                    <i class="fas fa-angle-right"></i>
+                </a>
+                <a class="join-item btn btn-outline" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.supplier %}&supplier={{ request.GET.supplier }}{% endif %}{% if request.GET.active %}&active={{ request.GET.active }}{% endif %}{% if request.GET.stock_status %}&stock_status={{ request.GET.stock_status }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                    <i class="fas fa-angle-double-right"></i>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+        
+        {% else %}
+        <div class="text-center py-12">
+            <div class="avatar placeholder mb-6">
+                <div class="bg-base-300 text-base-content rounded-full w-24">
+                    <i class="fas fa-boxes text-4xl"></i>
+                </div>
+            </div>
+            <h3 class="text-2xl font-bold text-base-content/70 mb-4">Aucun produit trouvé</h3>
+            <p class="text-base-content/70 mb-6">Aucun produit dropshipping ne correspond à vos critères de recherche.</p>
+            <a href="{% url 'products:suppliers:dropship_product_create' %}" class="btn btn-success hover-glow transition-all">
+                <i class="fas fa-plus mr-2"></i>
+                Créer le premier produit
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function toggleActive(productUid, isActive) {
+    const action = isActive ? 'Désactiver' : 'Activer';
+    
+    if (confirm(`Êtes-vous sûr de vouloir ${action.toLowerCase()} ce produit ?`)) {
+        // Add loading state
+        const button = event.target.closest('button');
+        const originalHTML = button.innerHTML;
+        button.innerHTML = '<span class="loading loading-spinner loading-sm"></span>';
+        button.disabled = true;
+        
+        fetch(`/products/suppliers/api/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: JSON.stringify({
+                action: 'toggle_active',
+                product_uid: productUid
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Show success message
+                const alert = document.createElement('div');
+                alert.className = 'alert alert-success animate-slide-in';
+                alert.innerHTML = `
+                    <i class="fas fa-check-circle"></i>
+                    <span>Produit ${action.toLowerCase()} avec succès</span>
+                `;
+                document.querySelector('.container').insertBefore(alert, document.querySelector('.container').firstChild);
+                
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                // Show error message
+                const alert = document.createElement('div');
+                alert.className = 'alert alert-error animate-shake';
+                alert.innerHTML = `
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>Erreur: ${data.error}</span>
+                `;
+                document.querySelector('.container').insertBefore(alert, document.querySelector('.container').firstChild);
+            }
+        })
+        .catch(error => {
+            console.error('Erreur:', error);
+            const alert = document.createElement('div');
+            alert.className = 'alert alert-error animate-shake';
+            alert.innerHTML = `
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>Erreur lors de la mise à jour</span>
+            `;
+            document.querySelector('.container').insertBefore(alert, document.querySelector('.container').firstChild);
+        })
+        .finally(() => {
+            // Reset button state
+            button.innerHTML = originalHTML;
+            button.disabled = false;
+        });
+    }
+}
+
+function toggleFeatured(productUid, isFeatured) {
+    const action = isFeatured ? 'Retirer de la mise en avant' : 'Mettre en avant';
+    
+    if (confirm(`Êtes-vous sûr de vouloir ${action.toLowerCase()} ce produit ?`)) {
+        // Add loading state
+        const button = event.target.closest('button');
+        const originalHTML = button.innerHTML;
+        button.innerHTML = '<span class="loading loading-spinner loading-sm"></span>';
+        button.disabled = true;
+        
+        fetch(`/products/suppliers/api/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: JSON.stringify({
+                action: 'toggle_featured',
+                product_uid: productUid
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Show success message
+                const alert = document.createElement('div');
+                alert.className = 'alert alert-success animate-slide-in';
+                alert.innerHTML = `
+                    <i class="fas fa-check-circle"></i>
+                    <span>Produit ${action.toLowerCase()} avec succès</span>
+                `;
+                document.querySelector('.container').insertBefore(alert, document.querySelector('.container').firstChild);
+                
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                // Show error message
+                const alert = document.createElement('div');
+                alert.className = 'alert alert-error animate-shake';
+                alert.innerHTML = `
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>Erreur: ${data.error}</span>
+                `;
+                document.querySelector('.container').insertBefore(alert, document.querySelector('.container').firstChild);
+            }
+        })
+        .catch(error => {
+            console.error('Erreur:', error);
+            const alert = document.createElement('div');
+            alert.className = 'alert alert-error animate-shake';
+            alert.innerHTML = `
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>Erreur lors de la mise à jour</span>
+            `;
+            document.querySelector('.container').insertBefore(alert, document.querySelector('.container').firstChild);
+        })
+        .finally(() => {
+            // Reset button state
+            button.innerHTML = originalHTML;
+            button.disabled = false;
+        });
+    }
+}
+
+// Auto-refresh toutes les 60 secondes
+setInterval(function() {
+    location.reload();
+}, 60000);
+
+// Add ripple effect to buttons
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.btn').forEach(button => {
+        button.addEventListener('click', function(e) {
+            // createRipple(e, this);
+        });
+    });
+});
+</script>
+{% endblock %}

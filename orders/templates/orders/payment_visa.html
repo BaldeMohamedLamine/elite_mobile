@@ -1,0 +1,205 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Paiement par Carte - Online Shop{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 py-12">
+    <div class="container mx-auto px-4">
+        <div class="max-w-2xl mx-auto">
+            <!-- Header -->
+            <div class="text-center mb-8 animate-fade-in">
+                <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full mb-4">
+                    <i class="fas fa-credit-card text-3xl text-white"></i>
+                </div>
+                <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2">Paiement par Carte</h1>
+                <p class="text-gray-600 dark:text-gray-300">Sécurisé et rapide</p>
+            </div>
+
+            <!-- Amount Display -->
+            <div class="card bg-white dark:bg-gray-800 shadow-2xl mb-8 animate-slide-in">
+                <div class="card-body text-center">
+                    <div class="bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-2xl p-6">
+                        <h3 class="text-lg font-semibold mb-2">Montant à payer</h3>
+                        <div class="text-4xl font-bold">{{ order.total_amount|floatformat:0 }} FCFA</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Form -->
+            <div class="card bg-white dark:bg-gray-800 shadow-2xl animate-slide-in">
+                <div class="card-body p-8">
+                    <form method="post" class="space-y-6" id="payment-form">
+                        {% csrf_token %}
+                        
+                        <!-- Card Number -->
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-semibold">
+                                    <i class="fas fa-credit-card text-blue-500 mr-2"></i>
+                                    {{ payment_form.card_number.label }}
+                                </span>
+                            </label>
+                            {{ payment_form.card_number }}
+                            {% if payment_form.card_number.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ payment_form.card_number.errors.0 }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+
+                        <!-- Expiry Date -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text font-semibold">{{ payment_form.expiry_month.label }}</span>
+                                </label>
+                                {{ payment_form.expiry_month }}
+                                {% if payment_form.expiry_month.errors %}
+                                    <label class="label">
+                                        <span class="label-text-alt text-error">{{ payment_form.expiry_month.errors.0 }}</span>
+                                    </label>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text font-semibold">{{ payment_form.expiry_year.label }}</span>
+                                </label>
+                                {{ payment_form.expiry_year }}
+                                {% if payment_form.expiry_year.errors %}
+                                    <label class="label">
+                                        <span class="label-text-alt text-error">{{ payment_form.expiry_year.errors.0 }}</span>
+                                    </label>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- CVV and Cardholder Name -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text font-semibold">
+                                        <i class="fas fa-lock text-green-500 mr-2"></i>
+                                        {{ payment_form.cvv.label }}
+                                    </span>
+                                </label>
+                                {{ payment_form.cvv }}
+                                {% if payment_form.cvv.errors %}
+                                    <label class="label">
+                                        <span class="label-text-alt text-error">{{ payment_form.cvv.errors.0 }}</span>
+                                    </label>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text font-semibold">{{ payment_form.cardholder_name.label }}</span>
+                                </label>
+                                {{ payment_form.cardholder_name }}
+                                {% if payment_form.cardholder_name.errors %}
+                                    <label class="label">
+                                        <span class="label-text-alt text-error">{{ payment_form.cardholder_name.errors.0 }}</span>
+                                    </label>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Security Info -->
+                        <div class="alert alert-info">
+                            <div class="flex items-start gap-3">
+                                <i class="fas fa-shield-alt text-2xl text-blue-500 mt-1"></i>
+                                <div>
+                                    <h3 class="font-bold text-lg mb-2">Sécurité garantie</h3>
+                                    <ul class="space-y-1 text-sm">
+                                        <li class="flex items-center gap-2">
+                                            <i class="fas fa-check text-green-500"></i>
+                                            Vos informations sont cryptées et sécurisées
+                                        </li>
+                                        <li class="flex items-center gap-2">
+                                            <i class="fas fa-check text-green-500"></i>
+                                            Nous ne stockons pas vos données de carte
+                                        </li>
+                                        <li class="flex items-center gap-2">
+                                            <i class="fas fa-check text-green-500"></i>
+                                            Paiement traité par un processeur sécurisé
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="flex flex-col sm:flex-row gap-4 pt-6">
+                            <button type="submit" class="btn btn-primary btn-lg flex-1 hover-glow transition-all">
+                                <i class="fas fa-credit-card mr-2"></i>
+                                Payer par Carte
+                            </button>
+                            <a href="{% url 'orders:checkout' %}" class="btn btn-outline btn-secondary hover-scale transition-all">
+                                <i class="fas fa-arrow-left mr-2"></i>
+                                Retour
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Payment Methods -->
+            <div class="text-center mt-8 animate-fade-in">
+                <p class="text-gray-600 dark:text-gray-300 mb-4">Méthodes de paiement acceptées</p>
+                <div class="flex justify-center gap-4">
+                    <div class="bg-white dark:bg-gray-800 rounded-lg p-3 shadow-md">
+                        <i class="fab fa-cc-visa text-3xl text-blue-600"></i>
+                    </div>
+                    <div class="bg-white dark:bg-gray-800 rounded-lg p-3 shadow-md">
+                        <i class="fab fa-cc-mastercard text-3xl text-red-600"></i>
+                    </div>
+                    <div class="bg-white dark:bg-gray-800 rounded-lg p-3 shadow-md">
+                        <i class="fas fa-credit-card text-3xl text-gray-600"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Formatage automatique du numéro de carte
+    const cardNumberField = document.getElementById('{{ payment_form.card_number.id_for_label }}');
+    if (cardNumberField) {
+        cardNumberField.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\s/g, '').replace(/[^0-9]/gi, '');
+            let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
+            e.target.value = formattedValue;
+        });
+    }
+
+    // Validation en temps réel
+    const form = document.getElementById('payment-form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<span class="loading loading-spinner loading-sm mr-2"></span>Traitement...';
+            submitBtn.disabled = true;
+            
+            // Re-enable after 5 seconds as fallback
+            setTimeout(() => {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }, 5000);
+        });
+    }
+
+    // Add ripple effect to buttons
+    document.querySelectorAll('.btn').forEach(button => {
+        button.addEventListener('click', function(e) {
+            createRipple(e, this);
+        });
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,304 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load product_filters %}
+
+{% block title %}Mes Commandes - Boutique{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-primary/5 via-base-100 to-secondary/5 py-8">
+    <div class="container mx-auto px-4">
+        <!-- Breadcrumb -->
+        <div class="breadcrumbs text-sm mb-6 animate-fade-in">
+            <ul>
+                <li><a href="{% url 'products:home' %}" class="link link-hover">Accueil</a></li>
+                <li>Mes commandes</li>
+            </ul>
+        </div>
+
+        <!-- Header -->
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8 animate-slide-in">
+            <div>
+                <h1 class="text-4xl font-bold gradient-text mb-2">
+                    <i class="fas fa-shopping-bag text-primary mr-3"></i>
+                    Mes Commandes
+                </h1>
+                <p class="text-base-content/70">Retrouvez ici toutes vos commandes passées</p>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="flex flex-wrap gap-2 mt-4 lg:mt-0">
+                <a href="{% url 'orders:support_ticket_list' %}" class="btn btn-outline btn-info hover-scale transition-all">
+                    <i class="fas fa-headset mr-2"></i>
+                    Support
+                </a>
+                <a href="{% url 'orders:refund_list' %}" class="btn btn-outline btn-warning hover-scale transition-all">
+                    <i class="fas fa-undo mr-2"></i>
+                    Remboursements
+                </a>
+                <a href="{% url 'orders:list_cart_orders' %}" class="btn btn-outline btn-primary hover-scale transition-all">
+                    <i class="fas fa-shopping-cart mr-2"></i>
+                    Mon panier
+                </a>
+            </div>
+        </div>
+
+        <!-- Messages -->
+        {% if messages %}
+            <div class="max-w-6xl mx-auto mb-6">
+                <div class="space-y-2">
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags|default:'info' }} animate-slide-in" role="alert">
+                            <i class="fas fa-info-circle"></i>
+                            <span>{{ message }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+
+        {% if orders %}
+        <!-- Orders Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
+            {% for order in orders %}
+            <div class="card bg-base-100 shadow-xl hover-lift transition-all animate-fade-in" style="animation-delay: {{ forloop.counter0|mul:0.1 }}s">
+                <div class="card-body">
+                    <!-- Order Header -->
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h3 class="card-title text-lg">
+                                <i class="fas fa-receipt text-primary mr-2"></i>
+                                #{{ order.order_number|default:order.uid|truncatechars:8 }}
+                            </h3>
+                            <p class="text-sm text-base-content/70">
+                                <i class="fas fa-calendar mr-1"></i>
+                                {{ order.created_at|date:"d/m/Y à H:i" }}
+                            </p>
+                        </div>
+                        <div class="badge badge-{% if order.status == 'pending' %}warning{% elif order.status == 'paid' %}info{% elif order.status == 'shipped' %}primary{% elif order.status == 'delivered' %}success{% elif order.status == 'cancelled' %}error{% endif %} badge-lg">
+                            {{ order.get_status_display }}
+                        </div>
+                    </div>
+
+                    <!-- Order Details -->
+                    <div class="space-y-3 mb-4">
+                        <!-- Amount -->
+                        <div class="flex justify-between items-center">
+                            <span class="text-base-content/70">
+                                <i class="fas fa-money-bill-wave mr-2"></i>Montant
+                            </span>
+                            <span class="font-bold text-lg text-primary">
+                                {{ order.total_amount|floatformat:0 }} FCFA
+                            </span>
+                        </div>
+
+                        <!-- Payment Status -->
+                        <div class="flex justify-between items-center">
+                            <span class="text-base-content/70">
+                                <i class="fas fa-credit-card mr-2"></i>Paiement
+                            </span>
+                            <div class="flex items-center gap-2">
+                                <span class="badge badge-{% if order.payment_status == 'paid' %}success{% elif order.payment_status == 'pending' %}warning{% else %}error{% endif %} badge-sm">
+                                    {{ order.get_payment_status_display }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Payment Method -->
+                        <div class="flex justify-between items-center">
+                            <span class="text-base-content/70">
+                                <i class="fas fa-wallet mr-2"></i>Méthode
+                            </span>
+                            <span class="text-sm font-medium">
+                                {% if order.payment_method == 'orange_money' %}
+                                    <i class="fas fa-mobile-alt text-warning mr-1"></i>Orange Money
+                                {% elif order.payment_method == 'visa_mastercard' %}
+                                    <i class="fas fa-credit-card text-primary mr-1"></i>Carte bancaire
+                                {% else %}
+                                    <i class="fas fa-money-bill-wave text-success mr-1"></i>À la livraison
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Order Items -->
+                    <div class="mb-4">
+                        <h4 class="font-semibold text-sm mb-2">
+                            <i class="fas fa-box mr-2"></i>Articles ({{ order.items.count }})
+                        </h4>
+                        <div class="space-y-1">
+                            {% for item in order.items.all|slice:":3" %}
+                            <div class="flex justify-between items-center text-sm">
+                                <span class="text-base-content/80">{{ item.product.name }}</span>
+                                <span class="badge badge-outline badge-sm">x{{ item.quantity }}</span>
+                            </div>
+                            {% endfor %}
+                            {% if order.items.count > 3 %}
+                            <div class="text-xs text-base-content/50 italic">
+                                ... et {{ order.items.count|add:"-3" }} autre(s) article(s)
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="card-actions justify-end">
+                        <a href="{% url 'orders:order_detail' order.uid %}" class="btn btn-primary btn-sm hover-glow transition-all">
+                            <i class="fas fa-eye mr-1"></i>
+                            Détails
+                        </a>
+                        
+                        {% if order.payment_status == 'pending' and order.payment_method != 'cash_on_delivery' %}
+                        <a href="{% url 'orders:payment_process' order.uid %}" class="btn btn-warning btn-sm hover-scale transition-all">
+                            <i class="fas fa-credit-card mr-1"></i>
+                            Payer
+                        </a>
+                        {% endif %}
+                        
+                        {% if order.can_be_cancelled %}
+                        <button class="btn btn-outline btn-error btn-sm hover-scale transition-all" onclick="cancelOrder('{{ order.uid }}')">
+                            <i class="fas fa-times mr-1"></i>
+                            Annuler
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if is_paginated %}
+        <div class="flex justify-center animate-fade-in">
+            <div class="join">
+                {% if page_obj.has_previous %}
+                <a href="?page=1" class="join-item btn btn-outline hover-scale transition-all">
+                    <i class="fas fa-angle-double-left mr-1"></i>
+                    Première
+                </a>
+                <a href="?page={{ page_obj.previous_page_number }}" class="join-item btn btn-outline hover-scale transition-all">
+                    <i class="fas fa-angle-left mr-1"></i>
+                    Précédente
+                </a>
+                {% endif %}
+                
+                <span class="join-item btn btn-primary">
+                    Page {{ page_obj.number }} sur {{ page_obj.paginator.num_pages }}
+                </span>
+                
+                {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}" class="join-item btn btn-outline hover-scale transition-all">
+                    Suivante
+                    <i class="fas fa-angle-right ml-1"></i>
+                </a>
+                <a href="?page={{ page_obj.paginator.num_pages }}" class="join-item btn btn-outline hover-scale transition-all">
+                    Dernière
+                    <i class="fas fa-angle-double-right ml-1"></i>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% else %}
+        <!-- Empty State -->
+        <div class="flex flex-col items-center justify-center py-16 animate-fade-in">
+            <div class="avatar placeholder mb-6">
+                <div class="bg-base-300 text-base-content rounded-full w-24">
+                    <i class="fas fa-shopping-cart text-4xl"></i>
+                </div>
+            </div>
+            
+            <h2 class="text-2xl font-bold text-base-content/80 mb-2">Aucune commande trouvée</h2>
+            <p class="text-base-content/60 mb-6 text-center max-w-md">
+                Vous n'avez pas encore passé de commande. Découvrez nos produits et commencez vos achats !
+            </p>
+            
+            <div class="flex flex-col sm:flex-row gap-4">
+                <a href="{% url 'products:home' %}" class="btn btn-primary hover-glow transition-all">
+                    <i class="fas fa-shopping-bag mr-2"></i>
+                    Commencer mes achats
+                </a>
+                <a href="{% url 'products:home' %}" class="btn btn-outline btn-primary hover-scale transition-all">
+                    <i class="fas fa-search mr-2"></i>
+                    Parcourir les produits
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Cancel Order Modal -->
+<div id="cancel-order-modal" class="modal">
+    <div class="modal-box">
+        <h3 class="font-bold text-lg mb-4">
+            <i class="fas fa-exclamation-triangle text-warning mr-2"></i>
+            Annuler la commande
+        </h3>
+        
+        <p class="mb-4">Êtes-vous sûr de vouloir annuler cette commande ? Cette action est irréversible.</p>
+        
+        <div class="modal-action">
+            <button class="btn btn-ghost" onclick="closeCancelModal()">Annuler</button>
+            <button class="btn btn-error" id="confirm-cancel-btn">
+                <i class="fas fa-times mr-2"></i>
+                Confirmer l'annulation
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentOrderUid = null;
+
+function cancelOrder(orderUid) {
+    currentOrderUid = orderUid;
+    document.getElementById('cancel-order-modal').classList.add('modal-open');
+}
+
+function closeCancelModal() {
+    document.getElementById('cancel-order-modal').classList.remove('modal-open');
+    currentOrderUid = null;
+}
+
+// Confirm cancellation
+document.getElementById('confirm-cancel-btn').addEventListener('click', function() {
+    if (currentOrderUid) {
+        // Add loading state
+        this.innerHTML = '<span class="loading loading-spinner loading-sm mr-2"></span>Annulation...';
+        this.disabled = true;
+        
+        // TODO: Implement order cancellation API call
+        // For now, show a message
+        setTimeout(() => {
+            alert('Fonctionnalité d\'annulation en cours de développement');
+            closeCancelModal();
+            this.innerHTML = '<i class="fas fa-times mr-2"></i>Confirmer l\'annulation';
+            this.disabled = false;
+        }, 2000);
+    }
+});
+
+// Close modal when clicking outside
+document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('modal')) {
+        e.target.classList.remove('modal-open');
+    }
+});
+
+// Add ripple effect to buttons
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.btn').forEach(button => {
+        button.addEventListener('click', function(e) {
+            createRipple(e, this);
+        });
+    });
+    
+    // Add staggered animation to order cards
+    const cards = document.querySelectorAll('.card');
+    cards.forEach((card, index) => {
+        card.style.animationDelay = `${index * 0.1}s`;
+    });
+});
+</script>
+{% endblock %}

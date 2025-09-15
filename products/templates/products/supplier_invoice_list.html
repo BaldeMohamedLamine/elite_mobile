@@ -1,0 +1,242 @@
+{% extends 'manager/base.html' %}
+{% load static %}
+
+{% block page_title %}Factures fournisseurs{% endblock %}
+{% block page_description %}Gestion des factures fournisseurs{% endblock %}
+
+{% block manager_content %}
+<div class="space-y-6">
+    <!-- En-tête -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+            <h1 class="text-3xl font-bold">
+                <i class="fas fa-file-invoice text-primary mr-2"></i>
+                Factures fournisseurs
+            </h1>
+            <p class="text-base-content/70 mt-2">
+                Gestion des factures et paiements fournisseurs
+            </p>
+        </div>
+        
+        <div class="flex gap-2">
+            <button class="btn btn-outline btn-sm" onclick="refreshInvoices()">
+                <i class="fas fa-sync-alt mr-2"></i>
+                Actualiser
+            </button>
+        </div>
+    </div>
+    
+    <!-- Filtres -->
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h3 class="card-title mb-4">
+                <i class="fas fa-filter"></i>
+                Filtres
+            </h3>
+            
+            <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Statut</span>
+                    </label>
+                    <select name="status" class="select select-bordered">
+                        <option value="">Tous les statuts</option>
+                        <option value="draft" {% if request.GET.status == 'draft' %}selected{% endif %}>Brouillon</option>
+                        <option value="sent" {% if request.GET.status == 'sent' %}selected{% endif %}>Envoyée</option>
+                        <option value="paid" {% if request.GET.status == 'paid' %}selected{% endif %}>Payée</option>
+                        <option value="overdue" {% if request.GET.status == 'overdue' %}selected{% endif %}>En retard</option>
+                    </select>
+                </div>
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Fournisseur</span>
+                    </label>
+                    <select name="supplier" class="select select-bordered">
+                        <option value="">Tous les fournisseurs</option>
+                        {% for supplier in suppliers %}
+                        <option value="{{ supplier.id }}" {% if request.GET.supplier == supplier.id|stringformat:"s" %}selected{% endif %}>
+                            {{ supplier.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Date de début</span>
+                    </label>
+                    <input type="date" name="date_from" class="input input-bordered" 
+                           value="{{ request.GET.date_from }}">
+                </div>
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Date de fin</span>
+                    </label>
+                    <input type="date" name="date_to" class="input input-bordered" 
+                           value="{{ request.GET.date_to }}">
+                </div>
+                
+                <div class="form-control md:col-span-4">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search mr-2"></i>
+                        Filtrer
+                    </button>
+                    <a href="{% url 'products:suppliers:supplier_invoice_list' %}" class="btn btn-outline ml-2">
+                        <i class="fas fa-times mr-2"></i>
+                        Effacer
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Statistiques -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="stat bg-base-100 shadow rounded-lg">
+            <div class="stat-figure text-primary">
+                <i class="fas fa-file-invoice text-2xl"></i>
+            </div>
+            <div class="stat-title">Total factures</div>
+            <div class="stat-value text-primary">{{ stats.total_invoices }}</div>
+        </div>
+        
+        <div class="stat bg-base-100 shadow rounded-lg">
+            <div class="stat-figure text-success">
+                <i class="fas fa-check-circle text-2xl"></i>
+            </div>
+            <div class="stat-title">Payées</div>
+            <div class="stat-value text-success">{{ stats.paid_invoices }}</div>
+        </div>
+        
+        <div class="stat bg-base-100 shadow rounded-lg">
+            <div class="stat-figure text-warning">
+                <i class="fas fa-clock text-2xl"></i>
+            </div>
+            <div class="stat-title">En attente</div>
+            <div class="stat-value text-warning">{{ stats.pending_invoices }}</div>
+        </div>
+        
+        <div class="stat bg-base-100 shadow rounded-lg">
+            <div class="stat-figure text-error">
+                <i class="fas fa-exclamation-triangle text-2xl"></i>
+            </div>
+            <div class="stat-title">En retard</div>
+            <div class="stat-value text-error">{{ stats.overdue_invoices }}</div>
+        </div>
+    </div>
+    
+    <!-- Liste des factures -->
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h3 class="card-title mb-4">
+                <i class="fas fa-list"></i>
+                Factures ({{ invoices.count }})
+            </h3>
+            
+            {% if invoices %}
+            <div class="overflow-x-auto">
+                <table class="table table-zebra w-full">
+                    <thead>
+                        <tr>
+                            <th>Facture</th>
+                            <th>Fournisseur</th>
+                            <th>Période</th>
+                            <th>Montant</th>
+                            <th>Statut</th>
+                            <th>Date d'échéance</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for invoice in invoices %}
+                        <tr>
+                            <td>
+                                <div class="font-mono text-sm">#{{ invoice.invoice_number }}</div>
+                                <div class="text-xs text-base-content/70">{{ invoice.created_at|date:"d/m/Y" }}</div>
+                            </td>
+                            <td>
+                                <div class="font-semibold">{{ invoice.supplier.name }}</div>
+                                <div class="text-sm text-base-content/70">{{ invoice.supplier.email }}</div>
+                            </td>
+                            <td>
+                                <div class="text-sm">{{ invoice.period_start|date:"d/m/Y" }}</div>
+                                <div class="text-sm">au {{ invoice.period_end|date:"d/m/Y" }}</div>
+                            </td>
+                            <td>
+                                <div class="font-semibold">{{ invoice.total_amount }} GNF</div>
+                            </td>
+                            <td>
+                                <span class="badge badge-{{ invoice.status == 'paid' and 'success' or invoice.status == 'sent' and 'info' or invoice.status == 'overdue' and 'error' or 'warning' }}">
+                                    {{ invoice.get_status_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="text-sm">{{ invoice.due_date|date:"d/m/Y" }}</div>
+                                {% if invoice.is_overdue %}
+                                <div class="text-xs text-error">En retard</div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="flex gap-1">
+                                    <a href="{% url 'products:suppliers:supplier_invoice_detail' invoice.uid %}" 
+                                       class="btn btn-ghost btn-sm">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="#" class="btn btn-ghost btn-sm" onclick="downloadInvoice('{{ invoice.uid }}')">
+                                        <i class="fas fa-download"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Pagination -->
+            {% if invoices.has_other_pages %}
+            <div class="flex justify-center mt-6">
+                <div class="btn-group">
+                    {% if invoices.has_previous %}
+                    <a href="?page={{ invoices.previous_page_number }}" class="btn btn-outline">«</a>
+                    {% endif %}
+                    
+                    {% for num in invoices.paginator.page_range %}
+                    {% if invoices.number == num %}
+                    <span class="btn btn-active">{{ num }}</span>
+                    {% else %}
+                    <a href="?page={{ num }}" class="btn btn-outline">{{ num }}</a>
+                    {% endif %}
+                    {% endfor %}
+                    
+                    {% if invoices.has_next %}
+                    <a href="?page={{ invoices.next_page_number }}" class="btn btn-outline">»</a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+            
+            {% else %}
+            <div class="text-center py-8">
+                <i class="fas fa-file-invoice text-4xl text-base-content/30 mb-4"></i>
+                <h3 class="text-lg font-semibold mb-2">Aucune facture trouvée</h3>
+                <p class="text-base-content/70">Aucune facture ne correspond à vos critères de recherche.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+function refreshInvoices() {
+    window.location.reload();
+}
+
+function downloadInvoice(invoiceUid) {
+    // Implémenter le téléchargement de facture
+    window.open(`/products/suppliers/invoices/${invoiceUid}/download/`, '_blank');
+}
+</script>
+{% endblock %}

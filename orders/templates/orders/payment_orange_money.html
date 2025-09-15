@@ -1,0 +1,183 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Paiement Orange Money - Online Shop{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-orange-50 to-yellow-100 dark:from-gray-900 dark:to-gray-800 py-12">
+    <div class="container mx-auto px-4">
+        <div class="max-w-2xl mx-auto">
+            <!-- Header -->
+            <div class="text-center mb-8 animate-fade-in">
+                <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-orange-500 to-yellow-500 rounded-full mb-4">
+                    <i class="fas fa-mobile-alt text-3xl text-white"></i>
+                </div>
+                <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2">Paiement Orange Money</h1>
+                <p class="text-gray-600 dark:text-gray-300">Rapide et sécurisé</p>
+            </div>
+
+            <!-- Amount Display -->
+            <div class="card bg-white dark:bg-gray-800 shadow-2xl mb-8 animate-slide-in">
+                <div class="card-body text-center">
+                    <div class="bg-gradient-to-r from-orange-500 to-yellow-500 text-white rounded-2xl p-6">
+                        <h3 class="text-lg font-semibold mb-2">Montant à payer</h3>
+                        <div class="text-4xl font-bold">{{ order.total_amount|floatformat:0 }} FCFA</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Form -->
+            <div class="card bg-white dark:bg-gray-800 shadow-2xl animate-slide-in">
+                <div class="card-body p-8">
+                    <form method="post" class="space-y-6" id="payment-form">
+                        {% csrf_token %}
+                        
+                        <!-- Phone Number -->
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-semibold">
+                                    <i class="fas fa-phone text-orange-500 mr-2"></i>
+                                    {{ payment_form.phone_number.label }}
+                                </span>
+                            </label>
+                            {{ payment_form.phone_number }}
+                            {% if payment_form.phone_number.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ payment_form.phone_number.errors.0 }}</span>
+                                </label>
+                            {% endif %}
+                            {% if payment_form.phone_number.help_text %}
+                                <label class="label">
+                                    <span class="label-text-alt text-gray-500">{{ payment_form.phone_number.help_text }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+
+                        <!-- Instructions -->
+                        <div class="alert alert-warning">
+                            <div class="flex items-start gap-3">
+                                <i class="fas fa-info-circle text-2xl text-orange-500 mt-1"></i>
+                                <div>
+                                    <h3 class="font-bold text-lg mb-2">Instructions importantes</h3>
+                                    <ul class="space-y-1 text-sm">
+                                        <li class="flex items-center gap-2">
+                                            <i class="fas fa-check text-green-500"></i>
+                                            Assurez-vous d'avoir suffisamment de crédit Orange Money
+                                        </li>
+                                        <li class="flex items-center gap-2">
+                                            <i class="fas fa-check text-green-500"></i>
+                                            Vous recevrez un SMS de confirmation
+                                        </li>
+                                        <li class="flex items-center gap-2">
+                                            <i class="fas fa-check text-green-500"></i>
+                                            Le paiement sera traité instantanément
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="flex flex-col sm:flex-row gap-4 pt-6">
+                            <button type="submit" class="btn btn-warning btn-lg flex-1 hover-glow transition-all">
+                                <i class="fas fa-mobile-alt mr-2"></i>
+                                Payer avec Orange Money
+                            </button>
+                            <a href="{% url 'orders:checkout' %}" class="btn btn-outline btn-secondary hover-scale transition-all">
+                                <i class="fas fa-arrow-left mr-2"></i>
+                                Retour
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Orange Money Info -->
+            <div class="card bg-white dark:bg-gray-800 shadow-xl mt-8 animate-slide-in">
+                <div class="card-body">
+                    <div class="flex items-center gap-4">
+                        <div class="bg-gradient-to-r from-orange-500 to-yellow-500 rounded-full p-3">
+                            <i class="fas fa-mobile-alt text-2xl text-white"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-lg">Orange Money</h3>
+                            <p class="text-gray-600 dark:text-gray-300">Service de paiement mobile sécurisé</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Security Features -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
+                <div class="card bg-white dark:bg-gray-800 shadow-lg animate-fade-in">
+                    <div class="card-body text-center">
+                        <i class="fas fa-shield-alt text-3xl text-green-500 mb-3"></i>
+                        <h4 class="font-semibold">Sécurisé</h4>
+                        <p class="text-sm text-gray-600 dark:text-gray-300">Paiement protégé</p>
+                    </div>
+                </div>
+                <div class="card bg-white dark:bg-gray-800 shadow-lg animate-fade-in" style="animation-delay: 0.1s">
+                    <div class="card-body text-center">
+                        <i class="fas fa-bolt text-3xl text-yellow-500 mb-3"></i>
+                        <h4 class="font-semibold">Rapide</h4>
+                        <p class="text-sm text-gray-600 dark:text-gray-300">Traitement instantané</p>
+                    </div>
+                </div>
+                <div class="card bg-white dark:bg-gray-800 shadow-lg animate-fade-in" style="animation-delay: 0.2s">
+                    <div class="card-body text-center">
+                        <i class="fas fa-mobile-alt text-3xl text-orange-500 mb-3"></i>
+                        <h4 class="font-semibold">Mobile</h4>
+                        <p class="text-sm text-gray-600 dark:text-gray-300">Depuis votre téléphone</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Formatage automatique du numéro de téléphone
+    const phoneField = document.getElementById('{{ payment_form.phone_number.id_for_label }}');
+    if (phoneField) {
+        phoneField.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.startsWith('224')) {
+                // Format guinéen: 224 XX XX XX XX
+                value = value.replace(/(\d{3})(\d{2})(\d{2})(\d{2})(\d{2})/, '$1 $2 $3 $4 $5');
+            } else if (value.startsWith('6')) {
+                // Format local: 6XX XX XX XX
+                value = value.replace(/(\d{3})(\d{2})(\d{2})(\d{2})/, '$1 $2 $3 $4');
+            }
+            e.target.value = value;
+        });
+    }
+
+    // Validation en temps réel
+    const form = document.getElementById('payment-form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<span class="loading loading-spinner loading-sm mr-2"></span>Traitement...';
+            submitBtn.disabled = true;
+            
+            // Re-enable after 5 seconds as fallback
+            setTimeout(() => {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }, 5000);
+        });
+    }
+
+    // Add ripple effect to buttons
+    document.querySelectorAll('.btn').forEach(button => {
+        button.addEventListener('click', function(e) {
+            createRipple(e, this);
+        });
+    });
+});
+</script>
+{% endblock %}

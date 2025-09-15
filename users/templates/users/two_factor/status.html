@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Statut de l'authentification 2FA{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-shield-alt"></i> Authentification à deux facteurs</h3>
+                </div>
+                <div class="card-body">
+                    {% if user.two_factor_enabled %}
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle"></i>
+                            <strong>Authentification 2FA activée</strong><br>
+                            Votre compte est protégé par l'authentification à deux facteurs.
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h5><i class="fas fa-cog"></i> Configuration actuelle</h5>
+                                        <p><strong>Méthode :</strong> 
+                                            {% if user.two_factor_method == 'email' %}
+                                                <i class="fas fa-envelope"></i> Email
+                                            {% else %}
+                                                <i class="fas fa-sms"></i> SMS
+                                            {% endif %}
+                                        </p>
+                                        {% if user.two_factor_method == 'sms' and user.phone_number %}
+                                            <p><strong>Téléphone :</strong> {{ user.phone_number }}</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h5><i class="fas fa-key"></i> Codes de sauvegarde</h5>
+                                        <p><strong>Codes restants :</strong> {{ backup_codes_count }}</p>
+                                        {% if backup_codes_count == 0 %}
+                                            <div class="alert alert-warning">
+                                                <i class="fas fa-exclamation-triangle"></i>
+                                                Aucun code de sauvegarde disponible !
+                                            </div>
+                                        {% elif backup_codes_count <= 3 %}
+                                            <div class="alert alert-warning">
+                                                <i class="fas fa-exclamation-triangle"></i>
+                                                Peu de codes de sauvegarde restants.
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex">
+                            <a href="{% url 'users:two_factor_regenerate_backup_codes' %}" class="btn btn-warning">
+                                <i class="fas fa-sync"></i> Régénérer les codes de sauvegarde
+                            </a>
+                            <a href="{% url 'users:two_factor_disable' %}" class="btn btn-danger">
+                                <i class="fas fa-times"></i> Désactiver l'authentification 2FA
+                            </a>
+                        </div>
+                        
+                    {% else %}
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <strong>Authentification 2FA désactivée</strong><br>
+                            Votre compte n'est pas protégé par l'authentification à deux facteurs.
+                        </div>
+                        
+                        <div class="card">
+                            <div class="card-body">
+                                <h5><i class="fas fa-shield-alt"></i> Pourquoi activer l'authentification 2FA ?</h5>
+                                <ul>
+                                    <li><strong>Sécurité renforcée :</strong> Protection supplémentaire contre les accès non autorisés</li>
+                                    <li><strong>Protection des données :</strong> Vos informations personnelles et commandes sont mieux protégées</li>
+                                    <li><strong>Conformité :</strong> Respect des meilleures pratiques de sécurité</li>
+                                    <li><strong>Paix d'esprit :</strong> Vous êtes alerté en cas de tentative de connexion suspecte</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <a href="{% url 'users:two_factor_setup' %}" class="btn btn-primary btn-lg">
+                                <i class="fas fa-shield-alt"></i> Activer l'authentification 2FA
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

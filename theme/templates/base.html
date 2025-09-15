@@ -1,0 +1,1645 @@
+{% load static tailwind_tags %}
+<!DOCTYPE html>
+<html lang="fr" data-theme="light">
+<head>
+    <title>{% block title %}Boutique E-commerce{% endblock %}</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="description" content="{% block description %}Boutique e-commerce moderne avec système de dropshipping{% endblock %}">
+    
+    <!-- Tailwind CSS -->
+    {% tailwind_css %}
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .glass-effect {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Animations */
+        .animate-fade-in {
+            animation: fadeIn 0.6s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .animate-slide-in {
+            animation: slideIn 0.4s ease-out;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(-100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        .animate-bounce-in {
+            animation: bounceIn 0.6s ease-out;
+        }
+        @keyframes bounceIn {
+            0% { transform: scale(0.3); opacity: 0; }
+            50% { transform: scale(1.05); }
+            70% { transform: scale(0.9); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        .animate-pulse-slow {
+            animation: pulseSlow 2s ease-in-out infinite;
+        }
+        @keyframes pulseSlow {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        .animate-float {
+            animation: float 3s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .animate-shake {
+            animation: shake 0.5s ease-in-out;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        
+        .animate-zoom-in {
+            animation: zoomIn 0.3s ease-out;
+        }
+        @keyframes zoomIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        
+        .animate-slide-up {
+            animation: slideUp 0.5s ease-out;
+        }
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        /* Hover Effects */
+        .hover-lift {
+            transition: all 0.3s ease;
+        }
+        .hover-lift:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+        
+        .hover-glow {
+            transition: all 0.3s ease;
+        }
+        .hover-glow:hover {
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+        }
+        
+        .hover-scale {
+            transition: transform 0.3s ease;
+        }
+        .hover-scale:hover {
+            transform: scale(1.05);
+        }
+        
+        /* Smooth Transitions */
+        .transition-all {
+            transition: all 0.3s ease;
+        }
+        
+        .transition-colors {
+            transition: color 0.3s ease, background-color 0.3s ease, border-color 0.3s ease;
+        }
+        
+        .transition-transform {
+            transition: transform 0.3s ease;
+        }
+        
+        .transition-opacity {
+            transition: opacity 0.3s ease;
+        }
+        
+        /* Loading States */
+        .loading {
+            position: relative;
+            overflow: hidden;
+        }
+        .loading::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            animation: loading 1.5s infinite;
+        }
+        @keyframes loading {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+        
+        /* Scroll Animations */
+        .scroll-reveal {
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 0.6s ease;
+        }
+        .scroll-reveal.revealed {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+        
+        /* Focus States */
+        .focus-ring:focus {
+            outline: 2px solid #3b82f6;
+            outline-offset: 2px;
+        }
+        
+        /* Dark mode transitions */
+        [data-theme="dark"] {
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        
+        /* Dark mode specific styles */
+        [data-theme="dark"] .card {
+            background-color: hsl(var(--b2));
+            border: 1px solid hsl(var(--b3));
+        }
+        
+        [data-theme="dark"] .card:hover {
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+        
+        [data-theme="dark"] .input {
+            background-color: hsl(var(--b2));
+            border-color: hsl(var(--b3));
+        }
+        
+        [data-theme="dark"] .input:focus {
+            background-color: hsl(var(--b1));
+            border-color: hsl(var(--p));
+        }
+        
+        [data-theme="dark"] .btn-ghost:hover {
+            background-color: hsl(var(--b3));
+        }
+        
+        [data-theme="dark"] .dropdown-content {
+            background-color: hsl(var(--b2));
+            border: 1px solid hsl(var(--b3));
+        }
+        
+        [data-theme="dark"] .navbar {
+            background-color: hsl(var(--b1));
+            border-bottom: 1px solid hsl(var(--b3));
+        }
+        
+        [data-theme="dark"] .footer {
+            background-color: hsl(var(--b2));
+            border-top: 1px solid hsl(var(--b3));
+        }
+        
+        /* Theme toggle button animation */
+        #theme-icon {
+            transition: all 0.3s ease;
+        }
+        
+        /* Dark mode scrollbar */
+        [data-theme="dark"] ::-webkit-scrollbar-track {
+            background: hsl(var(--b2));
+        }
+        
+        [data-theme="dark"] ::-webkit-scrollbar-thumb {
+            background: hsl(var(--b3));
+        }
+        
+        [data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+            background: hsl(var(--b4));
+        }
+        
+        /* Ripple Effect */
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.6);
+            transform: scale(0);
+            animation: ripple-animation 0.6s linear;
+            pointer-events: none;
+        }
+        @keyframes ripple-animation {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+        
+        /* Keyboard Navigation */
+        .keyboard-navigation *:focus {
+            outline: 2px solid #3b82f6 !important;
+            outline-offset: 2px !important;
+        }
+        
+        /* Enhanced Button Animations */
+        .btn {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn:active {
+            transform: scale(0.98);
+        }
+        
+        /* Card Hover Effects */
+        .card {
+            transition: all 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Input Focus Effects */
+        .input:focus {
+            transform: scale(1.02);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        /* Badge Animations */
+        .badge {
+            transition: all 0.3s ease;
+        }
+        
+        .badge:hover {
+            transform: scale(1.1);
+        }
+        
+        /* Icon Animations */
+        .fas, .fab {
+            transition: transform 0.3s ease;
+        }
+        
+        .btn:hover .fas,
+        .btn:hover .fab {
+            transform: scale(1.1);
+        }
+        
+        /* Loading Spinner */
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Staggered Animation */
+        .stagger-animation > * {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: staggerFadeIn 0.6s ease forwards;
+        }
+        
+        .stagger-animation > *:nth-child(1) { animation-delay: 0.1s; }
+        .stagger-animation > *:nth-child(2) { animation-delay: 0.2s; }
+        .stagger-animation > *:nth-child(3) { animation-delay: 0.3s; }
+        .stagger-animation > *:nth-child(4) { animation-delay: 0.4s; }
+        .stagger-animation > *:nth-child(5) { animation-delay: 0.5s; }
+        
+        @keyframes staggerFadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* Mobile-First Optimizations */
+        
+        /* Touch-friendly button sizes */
+        @media (max-width: 768px) {
+            .btn {
+                min-height: 44px;
+                min-width: 44px;
+                padding: 12px 16px;
+            }
+            
+            .btn-sm {
+                min-height: 36px;
+                min-width: 36px;
+                padding: 8px 12px;
+            }
+            
+            .btn-lg {
+                min-height: 52px;
+                min-width: 52px;
+                padding: 16px 24px;
+            }
+            
+            /* Larger touch targets for navigation */
+            .navbar .btn {
+                min-height: 48px;
+                min-width: 48px;
+            }
+            
+            /* Improved spacing for mobile */
+            .container {
+                padding-left: 16px;
+                padding-right: 16px;
+            }
+            
+            /* Better text sizing for mobile */
+            .text-xs { font-size: 0.75rem; }
+            .text-sm { font-size: 0.875rem; }
+            .text-base { font-size: 1rem; }
+            .text-lg { font-size: 1.125rem; }
+            .text-xl { font-size: 1.25rem; }
+            .text-2xl { font-size: 1.5rem; }
+            .text-3xl { font-size: 1.875rem; }
+            .text-4xl { font-size: 2.25rem; }
+            .text-5xl { font-size: 3rem; }
+            
+            /* Mobile-optimized cards */
+            .card {
+                margin-bottom: 16px;
+                border-radius: 12px;
+            }
+            
+            .card-body {
+                padding: 16px;
+            }
+            
+            /* Mobile-optimized forms */
+            .input, .select, .textarea {
+                min-height: 44px;
+                font-size: 16px; /* Prevents zoom on iOS */
+                padding: 12px 16px;
+            }
+            
+            /* Mobile-optimized modals */
+            .modal-box {
+                margin: 16px;
+                max-height: calc(100vh - 32px);
+                overflow-y: auto;
+            }
+            
+            /* Mobile-optimized dropdowns */
+            .dropdown-content {
+                min-width: 200px;
+                max-width: calc(100vw - 32px);
+            }
+            
+            /* Mobile-optimized tables */
+            .table {
+                font-size: 14px;
+            }
+            
+            .table th,
+            .table td {
+                padding: 8px 4px;
+            }
+            
+            /* Mobile-optimized badges */
+            .badge {
+                min-height: 24px;
+                min-width: 24px;
+                padding: 4px 8px;
+                font-size: 12px;
+            }
+            
+            /* Mobile-optimized spacing */
+            .space-y-4 > * + * {
+                margin-top: 16px;
+            }
+            
+            .space-y-6 > * + * {
+                margin-top: 24px;
+            }
+            
+            .space-y-8 > * + * {
+                margin-top: 32px;
+            }
+            
+            /* Mobile-optimized grid */
+            .grid-cols-1 {
+                grid-template-columns: repeat(1, minmax(0, 1fr));
+            }
+            
+            .grid-cols-2 {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+            
+            /* Mobile-optimized flex */
+            .flex-col {
+                flex-direction: column;
+            }
+            
+            .flex-col-reverse {
+                flex-direction: column-reverse;
+            }
+            
+            /* Mobile-optimized text alignment */
+            .text-center {
+                text-align: center;
+            }
+            
+            /* Mobile-optimized visibility */
+            .hidden-mobile {
+                display: none;
+            }
+            
+            .visible-mobile {
+                display: block;
+            }
+            
+            /* Mobile-optimized animations */
+            .animate-fade-in {
+                animation-duration: 0.4s;
+            }
+            
+            .animate-slide-in {
+                animation-duration: 0.3s;
+            }
+            
+            /* Reduce motion for mobile if user prefers */
+            @media (prefers-reduced-motion: reduce) {
+                * {
+                    animation-duration: 0.01ms !important;
+                    animation-iteration-count: 1 !important;
+                    transition-duration: 0.01ms !important;
+                }
+            }
+        }
+        
+        /* Tablet optimizations */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .container {
+                padding-left: 24px;
+                padding-right: 24px;
+            }
+            
+            .card-body {
+                padding: 20px;
+            }
+            
+            .btn {
+                min-height: 40px;
+                min-width: 40px;
+            }
+        }
+        
+        /* Desktop optimizations */
+        @media (min-width: 1025px) {
+            .container {
+                padding-left: 32px;
+                padding-right: 32px;
+            }
+            
+            .card-body {
+                padding: 24px;
+            }
+            
+            /* Hover effects only on desktop */
+            .hover-lift:hover {
+                transform: translateY(-5px);
+            }
+            
+            .hover-scale:hover {
+                transform: scale(1.05);
+            }
+        }
+        
+        /* High DPI displays */
+        @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+            .card {
+                border-width: 0.5px;
+            }
+            
+            .btn {
+                border-width: 0.5px;
+            }
+        }
+        
+        /* Landscape mobile optimizations */
+        @media (max-width: 768px) and (orientation: landscape) {
+            .navbar {
+                padding: 8px 16px;
+            }
+            
+            .hero {
+                padding: 32px 0;
+            }
+            
+            .modal-box {
+                max-height: calc(100vh - 16px);
+            }
+        }
+        
+        /* Print styles */
+        @media print {
+            .navbar,
+            .footer,
+            .btn,
+            .dropdown {
+                display: none !important;
+            }
+            
+            .card {
+                box-shadow: none;
+                border: 1px solid #000;
+            }
+            
+            body {
+                background: white !important;
+                color: black !important;
+            }
+        }
+        
+        /* Accessibility (WCAG 2.1) Improvements */
+        
+        /* High contrast mode support */
+        @media (prefers-contrast: high) {
+            .btn {
+                border: 2px solid currentColor;
+            }
+            
+            .card {
+                border: 2px solid currentColor;
+            }
+            
+            .input, .select, .textarea {
+                border: 2px solid currentColor;
+            }
+        }
+        
+        /* Reduced motion support */
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+                scroll-behavior: auto !important;
+            }
+        }
+        
+        /* Focus indicators for keyboard navigation */
+        .focus-visible {
+            outline: 2px solid #3b82f6;
+            outline-offset: 2px;
+        }
+        
+        /* Skip links for screen readers */
+        .skip-link {
+            position: absolute;
+            top: -40px;
+            left: 6px;
+            background: #000;
+            color: #fff;
+            padding: 8px;
+            text-decoration: none;
+            z-index: 1000;
+            border-radius: 4px;
+        }
+        
+        .skip-link:focus {
+            top: 6px;
+        }
+        
+        /* Screen reader only content */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+        
+        /* ARIA live regions */
+        .aria-live {
+            position: absolute;
+            left: -10000px;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+        }
+        
+        /* Better focus management */
+        .focus-trap {
+            position: relative;
+        }
+        
+        /* Improved button accessibility */
+        .btn:focus-visible {
+            outline: 2px solid #3b82f6;
+            outline-offset: 2px;
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        /* Improved form accessibility */
+        .form-control label {
+            display: block;
+            margin-bottom: 4px;
+            font-weight: 500;
+        }
+        
+        .form-control .required {
+            color: #dc2626;
+        }
+        
+        .form-control .help-text {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-top: 4px;
+        }
+        
+        .form-control .error {
+            color: #dc2626;
+            font-size: 0.875rem;
+            margin-top: 4px;
+        }
+        
+        /* Improved table accessibility */
+        .table {
+            border-collapse: collapse;
+        }
+        
+        .table th {
+            background-color: #f3f4f6;
+            font-weight: 600;
+            text-align: left;
+        }
+        
+        .table th,
+        .table td {
+            padding: 12px;
+            border: 1px solid #e5e7eb;
+        }
+        
+        /* Improved link accessibility */
+        a:focus-visible {
+            outline: 2px solid #3b82f6;
+            outline-offset: 2px;
+        }
+        
+        /* Improved color contrast for text */
+        .text-muted {
+            color: #6b7280;
+        }
+        
+        /* Improved error states */
+        .error-state {
+            border-color: #dc2626;
+            background-color: #fef2f2;
+        }
+        
+        .error-state:focus {
+            outline-color: #dc2626;
+        }
+        
+        /* Improved success states */
+        .success-state {
+            border-color: #16a34a;
+            background-color: #f0fdf4;
+        }
+        
+        .success-state:focus {
+            outline-color: #16a34a;
+        }
+        
+        /* Loading states with proper labeling */
+        .loading-state {
+            position: relative;
+            color: transparent;
+        }
+        
+        .loading-state::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 16px;
+            height: 16px;
+            margin: -8px 0 0 -8px;
+            border: 2px solid #e5e7eb;
+            border-top-color: #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        /* Improved modal accessibility */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+        
+        .modal:focus {
+            outline: none;
+        }
+        
+        .modal-box {
+            position: relative;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+        
+        /* Improved dropdown accessibility */
+        .dropdown-content {
+            position: absolute;
+            z-index: 50;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Improved navigation accessibility */
+        .navbar nav {
+            role: navigation;
+        }
+        
+        .navbar ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        
+        /* Improved breadcrumb accessibility */
+        .breadcrumbs {
+            role: navigation;
+            aria-label: "Fil d'Ariane";
+        }
+        
+        .breadcrumbs ol {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+        }
+        
+        .breadcrumbs li {
+            display: flex;
+            align-items: center;
+        }
+        
+        .breadcrumbs li:not(:last-child)::after {
+            content: '/';
+            margin: 0 8px;
+            color: #6b7280;
+        }
+        
+        /* Improved alert accessibility */
+        .alert {
+            role: alert;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+        
+        .alert-success {
+            background-color: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            color: #166534;
+        }
+        
+        .alert-error {
+            background-color: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #991b1b;
+        }
+        
+        .alert-warning {
+            background-color: #fffbeb;
+            border: 1px solid #fed7aa;
+            color: #92400e;
+        }
+        
+        .alert-info {
+            background-color: #eff6ff;
+            border: 1px solid #bfdbfe;
+            color: #1e40af;
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body class="bg-base-100 text-base-content min-h-screen">
+    <!-- Skip Links for Accessibility -->
+    <a href="#main-content" class="skip-link">Aller au contenu principal</a>
+    <a href="#main-navigation" class="skip-link">Aller à la navigation</a>
+    <a href="#search" class="skip-link">Aller à la recherche</a>
+    
+    <!-- ARIA Live Region for Screen Readers -->
+    <div id="aria-live-region" class="aria-live" aria-live="polite" aria-atomic="true"></div>
+    
+    <!-- Navigation -->
+    <nav id="main-navigation" class="navbar bg-base-100 shadow-lg sticky top-0 z-50 transition-all" role="navigation" aria-label="Navigation principale">
+        <div class="navbar-start">
+            <div class="dropdown">
+                <div tabindex="0" role="button" class="btn btn-ghost lg:hidden hover-scale transition-transform" aria-label="Menu de navigation" aria-expanded="false" aria-controls="mobile-menu">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h8m-8 6h16"></path>
+                    </svg>
+                    <span class="sr-only">Ouvrir le menu de navigation</span>
+                </div>
+                <ul id="mobile-menu" tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52 animate-slide-in" role="menu" aria-label="Menu mobile">
+                    <li role="none"><a href="{% url 'products:home' %}" class="transition-colors hover:bg-primary hover:text-primary-content" role="menuitem">Accueil</a></li>
+                    <li role="none"><a href="{% url 'products:home' %}" class="transition-colors hover:bg-primary hover:text-primary-content" role="menuitem">Produits</a></li>
+                    <li role="none"><a href="{% url 'orders:list_cart_orders' %}" class="transition-colors hover:bg-primary hover:text-primary-content" role="menuitem">Panier</a></li>
+                    {% if user.is_authenticated %}
+                        <li role="none"><a href="{% url 'users:profile' %}" class="transition-colors hover:bg-primary hover:text-primary-content" role="menuitem">Profil</a></li>
+                        <li role="none"><a href="{% url 'users:logout' %}" class="transition-colors hover:bg-primary hover:text-primary-content" role="menuitem">Déconnexion</a></li>
+                    {% else %}
+                        <li role="none"><a href="{% url 'users:login' %}" class="transition-colors hover:bg-primary hover:text-primary-content" role="menuitem">Connexion</a></li>
+                        <li role="none"><a href="{% url 'users:register' %}" class="transition-colors hover:bg-primary hover:text-primary-content" role="menuitem">Inscription</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+            <a href="{% url 'products:home' %}" class="btn btn-ghost text-xl font-bold gradient-text hover-scale transition-transform" aria-label="Retour à l'accueil">
+                <i class="fas fa-store text-primary animate-pulse-slow" aria-hidden="true"></i>
+                Boutique
+            </a>
+        </div>
+        
+        <div class="navbar-center hidden lg:flex">
+            <ul class="menu menu-horizontal px-1" role="menubar" aria-label="Navigation principale">
+                <li role="none"><a href="{% url 'products:home' %}" class="btn btn-ghost transition-colors hover:bg-primary hover:text-primary-content" role="menuitem">Accueil</a></li>
+                <li role="none"><a href="{% url 'products:home' %}" class="btn btn-ghost transition-colors hover:bg-primary hover:text-primary-content" role="menuitem">Produits</a></li>
+                <li role="none"><a href="{% url 'orders:list_cart_orders' %}" class="btn btn-ghost transition-colors hover:bg-primary hover:text-primary-content hover-scale" role="menuitem" aria-label="Panier d'achat">
+                    <i class="fas fa-shopping-cart transition-transform" aria-hidden="true"></i>
+                    Panier
+                    {% if user.is_authenticated %}
+                        <span class="badge badge-primary badge-sm animate-bounce-in" id="cart-count" aria-label="Nombre d'articles dans le panier">0</span>
+                    {% endif %}
+                </a></li>
+            </ul>
+        </div>
+        
+        <div class="navbar-end">
+            <!-- Search Bar -->
+            <div id="search" class="form-control hidden md:block relative">
+                <div class="input-group">
+                    <label for="search-input" class="sr-only">Rechercher des produits</label>
+                    <input 
+                        type="text" 
+                        placeholder="Rechercher des produits..." 
+                        class="input input-bordered w-full max-w-xs focus-ring transition-all" 
+                        id="search-input" 
+                        aria-label="Rechercher des produits" 
+                        aria-describedby="search-help"
+                        autocomplete="off"
+                    >
+                    <button class="btn btn-square btn-primary hover-glow transition-all" id="search-btn" aria-label="Lancer la recherche">
+                        <i class="fas fa-search transition-transform" aria-hidden="true"></i>
+                    </button>
+                </div>
+                <div id="search-help" class="sr-only">Tapez le nom d'un produit pour le rechercher</div>
+                
+                <!-- Suggestions de recherche -->
+                <div id="search-suggestions" class="absolute top-full left-0 right-0 bg-white border border-gray-300 rounded-lg shadow-lg z-50 hidden mt-1 max-h-60 overflow-y-auto">
+                    <!-- Les suggestions seront chargées via AJAX -->
+                </div>
+            </div>
+            
+            <!-- Theme Toggle Button -->
+            <button class="btn btn-ghost btn-circle hover-scale transition-transform" onclick="toggleTheme()" title="Basculer le thème" aria-label="Basculer entre le mode sombre et clair">
+                <i class="fas fa-sun text-warning" id="theme-icon" aria-hidden="true"></i>
+            </button>
+            
+            <!-- User Menu -->
+            <div class="dropdown dropdown-end">
+                <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar hover-scale transition-transform" aria-label="Menu utilisateur" aria-expanded="false" aria-controls="user-menu">
+                    {% if user.is_authenticated %}
+                        <div class="w-10 rounded-full bg-primary text-primary-content flex items-center justify-center animate-pulse-slow">
+                            <i class="fas fa-user" aria-hidden="true"></i>
+                        </div>
+                        <span class="sr-only">Menu de {{ user.first_name|default:user.email }}</span>
+                    {% else %}
+                        <div class="w-10 rounded-full bg-base-300 text-base-content flex items-center justify-center">
+                            <i class="fas fa-user" aria-hidden="true"></i>
+                        </div>
+                        <span class="sr-only">Menu utilisateur non connecté</span>
+                    {% endif %}
+                </div>
+                <ul id="user-menu" tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52 animate-slide-in" role="menu" aria-label="Menu utilisateur">
+                    {% if user.is_authenticated %}
+                        <li role="none"><a href="{% url 'users:profile' %}" class="transition-colors hover:bg-primary hover:text-primary-content" role="menuitem"><i class="fas fa-user" aria-hidden="true"></i> Mon Profil</a></li>
+                        <li role="none"><a href="{% url 'orders:order_list' %}" class="transition-colors hover:bg-primary hover:text-primary-content" role="menuitem"><i class="fas fa-shopping-bag" aria-hidden="true"></i> Mes Commandes</a></li>
+                        <li role="none"><a href="{% url 'orders:support_ticket_list' %}" class="transition-colors hover:bg-primary hover:text-primary-content" role="menuitem"><i class="fas fa-headset" aria-hidden="true"></i> Support</a></li>
+                        <li role="separator"><hr class="my-2"></li>
+                        <li role="none"><a href="{% url 'users:logout' %}" class="transition-colors hover:bg-primary hover:text-primary-content" role="menuitem"><i class="fas fa-sign-out-alt" aria-hidden="true"></i> Déconnexion</a></li>
+                    {% else %}
+                        <li role="none"><a href="{% url 'users:login' %}" class="transition-colors hover:bg-primary hover:text-primary-content" role="menuitem"><i class="fas fa-sign-in-alt" aria-hidden="true"></i> Connexion</a></li>
+                        <li role="none"><a href="{% url 'users:register' %}" class="transition-colors hover:bg-primary hover:text-primary-content" role="menuitem"><i class="fas fa-user-plus" aria-hidden="true"></i> Inscription</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Messages -->
+    {% if messages %}
+        <div class="toast toast-top toast-end z-50" role="alert" aria-live="polite" aria-atomic="true">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags|default:'info' }} animate-fade-in" role="alert">
+                    <span>{{ message }}</span>
+                    <button class="btn btn-sm btn-circle btn-ghost" onclick="this.parentElement.remove()" aria-label="Fermer le message">✕</button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Main Content -->
+    <main id="main-content" class="min-h-screen" role="main" aria-label="Contenu principal">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer footer-center p-10 bg-base-200 text-base-content" role="contentinfo" aria-label="Pied de page">
+        <div class="grid grid-flow-col gap-4">
+            <a href="{% url 'products:home' %}" class="link link-hover">Accueil</a>
+            <a href="{% url 'products:home' %}" class="link link-hover">Produits</a>
+            <a href="{% url 'orders:support_ticket_create' %}" class="link link-hover">Support</a>
+            <a href="#" class="link link-hover">À propos</a>
+        </div>
+        <div>
+            <div class="grid grid-flow-col gap-4" role="list" aria-label="Réseaux sociaux">
+                <a href="#" class="text-2xl" role="listitem" aria-label="Facebook"><i class="fab fa-facebook" aria-hidden="true"></i></a>
+                <a href="#" class="text-2xl" role="listitem" aria-label="Twitter"><i class="fab fa-twitter" aria-hidden="true"></i></a>
+                <a href="#" class="text-2xl" role="listitem" aria-label="Instagram"><i class="fab fa-instagram" aria-hidden="true"></i></a>
+                <a href="#" class="text-2xl" role="listitem" aria-label="WhatsApp"><i class="fab fa-whatsapp" aria-hidden="true"></i></a>
+            </div>
+        </div>
+        <div>
+            <p class="text-sm">© 2024 Boutique E-commerce. Tous droits réservés.</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script>
+        // Theme Toggle
+        function toggleTheme() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            const themeIcon = document.getElementById('theme-icon');
+            
+            // Add transition effect
+            html.style.transition = 'background-color 0.3s ease, color 0.3s ease';
+            
+            // Update theme
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            
+            // Update icon with animation
+            if (themeIcon) {
+                themeIcon.style.transform = 'rotate(180deg) scale(0.8)';
+                setTimeout(() => {
+                    themeIcon.className = newTheme === 'dark' ? 'fas fa-moon text-info' : 'fas fa-sun text-warning';
+                    themeIcon.style.transform = 'rotate(0deg) scale(1)';
+                }, 150);
+            }
+            
+            // Show notification
+            showThemeNotification(newTheme);
+        }
+        
+        // Show theme change notification
+        function showThemeNotification(theme) {
+            const notification = document.createElement('div');
+            notification.className = `alert alert-${theme === 'dark' ? 'info' : 'warning'} animate-fade-in`;
+            notification.innerHTML = `
+                <i class="fas fa-${theme === 'dark' ? 'moon' : 'sun'}"></i>
+                <span>Mode ${theme === 'dark' ? 'sombre' : 'clair'} activé</span>
+            `;
+            
+            const toastContainer = document.querySelector('.toast') || createToastContainer();
+            toastContainer.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                setTimeout(() => notification.remove(), 300);
+            }, 2000);
+        }
+        
+        function createToastContainer() {
+            const container = document.createElement('div');
+            container.className = 'toast toast-top toast-end z-50';
+            document.body.appendChild(container);
+            return container;
+        }
+
+        // Load saved theme
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            
+            // Update theme icon
+            const themeIcon = document.getElementById('theme-icon');
+            if (themeIcon) {
+                themeIcon.className = savedTheme === 'dark' ? 'fas fa-moon text-info' : 'fas fa-sun text-warning';
+            }
+            
+            // Update cart count if user is authenticated
+            {% if user.is_authenticated %}
+                updateCartCount();
+            {% endif %}
+            
+            // Initialize animations
+            initializeAnimations();
+            
+            // Initialize scroll reveal
+            initializeScrollReveal();
+        });
+
+        // Search functionality
+        let searchTimeout;
+        
+        document.getElementById('search-btn')?.addEventListener('click', function() {
+            const query = document.getElementById('search-input').value;
+            if (query.trim()) {
+                // Temporairement commenté - window.location.href = `/products/search/?q=${encodeURIComponent(query)}`;
+            }
+        });
+
+        document.getElementById('search-input')?.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('search-btn').click();
+            }
+        });
+        
+        // Autocomplétion de recherche
+        document.getElementById('search-input')?.addEventListener('input', function(e) {
+            const query = e.target.value.trim();
+            
+            clearTimeout(searchTimeout);
+            
+            if (query.length >= 2) {
+                searchTimeout = setTimeout(() => {
+                    loadSearchSuggestions(query);
+                }, 300);
+            } else {
+                hideSearchSuggestions();
+            }
+        });
+        
+        function loadSearchSuggestions(query) {
+            // Temporairement commenté - fetch(`/products/search/suggestions/?q=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(data => {
+                    showSearchSuggestions(data.suggestions);
+                })
+                .catch(error => {
+                    console.error('Erreur lors du chargement des suggestions:', error);
+                });
+        }
+        
+        function showSearchSuggestions(suggestions) {
+            const container = document.getElementById('search-suggestions');
+            container.innerHTML = '';
+            
+            if (suggestions.length === 0) {
+                container.classList.add('hidden');
+                return;
+            }
+            
+            suggestions.forEach(suggestion => {
+                const item = document.createElement('div');
+                item.className = 'px-4 py-2 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-b-0';
+                item.textContent = suggestion;
+                item.onclick = () => {
+                    document.getElementById('search-input').value = suggestion;
+                    hideSearchSuggestions();
+                    // Temporairement commenté - window.location.href = `/products/search/?q=${encodeURIComponent(suggestion)}`;
+                };
+                container.appendChild(item);
+            });
+            
+            container.classList.remove('hidden');
+        }
+        
+        function hideSearchSuggestions() {
+            document.getElementById('search-suggestions').classList.add('hidden');
+        }
+        
+        // Cacher les suggestions quand on clique ailleurs
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('#search')) {
+                hideSearchSuggestions();
+            }
+        });
+
+        // Update cart count
+        function updateCartCount() {
+            fetch('{% url "orders:cart_count" %}')
+                .then(response => response.json())
+                .then(data => {
+                    const cartCount = document.getElementById('cart-count');
+                    if (cartCount) {
+                        cartCount.textContent = data.count;
+                        cartCount.style.display = data.count > 0 ? 'inline' : 'none';
+                    }
+                })
+                .catch(error => console.error('Error updating cart count:', error));
+        }
+
+        // Auto-hide messages after 5 seconds
+        setTimeout(function() {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                alert.style.opacity = '0';
+                setTimeout(() => alert.remove(), 300);
+            });
+        }, 5000);
+
+        // Initialize animations
+        function initializeAnimations() {
+            // Add hover effects to buttons
+            document.querySelectorAll('.btn').forEach(btn => {
+                btn.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-2px)';
+                });
+                btn.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                });
+            });
+
+            // Add loading states to forms
+            document.querySelectorAll('form').forEach(form => {
+                form.addEventListener('submit', function() {
+                    const submitBtn = this.querySelector('button[type="submit"]');
+                    if (submitBtn) {
+                        submitBtn.classList.add('loading');
+                        submitBtn.disabled = true;
+                    }
+                });
+            });
+
+            // Add ripple effect to buttons
+            document.querySelectorAll('.btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    const ripple = document.createElement('span');
+                    const rect = this.getBoundingClientRect();
+                    const size = Math.max(rect.width, rect.height);
+                    const x = e.clientX - rect.left - size / 2;
+                    const y = e.clientY - rect.top - size / 2;
+                    
+                    ripple.style.width = ripple.style.height = size + 'px';
+                    ripple.style.left = x + 'px';
+                    ripple.style.top = y + 'px';
+                    ripple.classList.add('ripple');
+                    
+                    this.appendChild(ripple);
+                    
+                    setTimeout(() => {
+                        ripple.remove();
+                    }, 600);
+                });
+            });
+        }
+
+        // Initialize scroll reveal animations
+        function initializeScrollReveal() {
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('revealed');
+                    }
+                });
+            }, observerOptions);
+
+            // Observe all elements with scroll-reveal class
+            document.querySelectorAll('.scroll-reveal').forEach(el => {
+                observer.observe(el);
+            });
+        }
+
+        // Add smooth scrolling to anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Add keyboard navigation support
+        document.addEventListener('keydown', function(e) {
+            // ESC key to close dropdowns
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.dropdown.open').forEach(dropdown => {
+                    dropdown.classList.remove('open');
+                });
+            }
+        });
+
+        // Add focus management for accessibility
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Tab') {
+                document.body.classList.add('keyboard-navigation');
+            }
+        });
+
+        document.addEventListener('mousedown', function() {
+            document.body.classList.remove('keyboard-navigation');
+        });
+
+        // Mobile-specific optimizations
+        function initializeMobileOptimizations() {
+            // Detect mobile device
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+            
+            if (isMobile || isTouch) {
+                document.body.classList.add('mobile-device');
+                
+                // Add touch-friendly classes
+                document.querySelectorAll('.btn').forEach(btn => {
+                    btn.classList.add('touch-friendly');
+                });
+                
+                // Optimize scroll performance on mobile
+                let ticking = false;
+                function updateScrollPosition() {
+                    // Add scroll-based animations here
+                    ticking = false;
+                }
+                
+                window.addEventListener('scroll', function() {
+                    if (!ticking) {
+                        requestAnimationFrame(updateScrollPosition);
+                        ticking = true;
+                    }
+                });
+                
+                // Add swipe gestures for navigation
+                let startX = 0;
+                let startY = 0;
+                
+                document.addEventListener('touchstart', function(e) {
+                    startX = e.touches[0].clientX;
+                    startY = e.touches[0].clientY;
+                });
+                
+                document.addEventListener('touchend', function(e) {
+                    if (!startX || !startY) return;
+                    
+                    const endX = e.changedTouches[0].clientX;
+                    const endY = e.changedTouches[0].clientY;
+                    
+                    const diffX = startX - endX;
+                    const diffY = startY - endY;
+                    
+                    // Horizontal swipe detection
+                    if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 50) {
+                        if (diffX > 0) {
+                            // Swipe left - could be used for navigation
+                            console.log('Swipe left detected');
+                        } else {
+                            // Swipe right - could be used for navigation
+                            console.log('Swipe right detected');
+                        }
+                    }
+                    
+                    startX = 0;
+                    startY = 0;
+                });
+                
+                // Optimize image loading for mobile
+                const images = document.querySelectorAll('img');
+                images.forEach(img => {
+                    if (img.dataset.src) {
+                        // Lazy loading implementation
+                        const observer = new IntersectionObserver((entries) => {
+                            entries.forEach(entry => {
+                                if (entry.isIntersecting) {
+                                    const image = entry.target;
+                                    image.src = image.dataset.src;
+                                    image.classList.remove('lazy');
+                                    observer.unobserve(image);
+                                }
+                            });
+                        });
+                        observer.observe(img);
+                    }
+                });
+                
+                // Add pull-to-refresh functionality
+                let pullStartY = 0;
+                let pullCurrentY = 0;
+                let isPulling = false;
+                
+                document.addEventListener('touchstart', function(e) {
+                    if (window.scrollY === 0) {
+                        pullStartY = e.touches[0].clientY;
+                        isPulling = true;
+                    }
+                });
+                
+                document.addEventListener('touchmove', function(e) {
+                    if (isPulling && window.scrollY === 0) {
+                        pullCurrentY = e.touches[0].clientY;
+                        const pullDistance = pullCurrentY - pullStartY;
+                        
+                        if (pullDistance > 0) {
+                            // Add pull-to-refresh visual feedback
+                            document.body.style.transform = `translateY(${Math.min(pullDistance * 0.5, 100)}px)`;
+                        }
+                    }
+                });
+                
+                document.addEventListener('touchend', function(e) {
+                    if (isPulling) {
+                        const pullDistance = pullCurrentY - pullStartY;
+                        
+                        if (pullDistance > 100) {
+                            // Trigger refresh
+                            location.reload();
+                        } else {
+                            // Reset position
+                            document.body.style.transform = 'translateY(0)';
+                        }
+                        
+                        isPulling = false;
+                        pullStartY = 0;
+                        pullCurrentY = 0;
+                    }
+                });
+            }
+            
+            // Add viewport height fix for mobile browsers
+            function setViewportHeight() {
+                const vh = window.innerHeight * 0.01;
+                document.documentElement.style.setProperty('--vh', `${vh}px`);
+            }
+            
+            setViewportHeight();
+            window.addEventListener('resize', setViewportHeight);
+            window.addEventListener('orientationchange', setViewportHeight);
+            
+            // Add safe area insets for devices with notches
+            const safeAreaInsets = {
+                top: getComputedStyle(document.documentElement).getPropertyValue('env(safe-area-inset-top)'),
+                right: getComputedStyle(document.documentElement).getPropertyValue('env(safe-area-inset-right)'),
+                bottom: getComputedStyle(document.documentElement).getPropertyValue('env(safe-area-inset-bottom)'),
+                left: getComputedStyle(document.documentElement).getPropertyValue('env(safe-area-inset-left)')
+            };
+            
+            if (safeAreaInsets.top || safeAreaInsets.bottom) {
+                document.body.classList.add('has-safe-area');
+            }
+        }
+        
+        // Initialize mobile optimizations
+        initializeMobileOptimizations();
+        
+        // Accessibility improvements
+        function initializeAccessibility() {
+            // Add ARIA live region announcements
+            function announceToScreenReader(message) {
+                const liveRegion = document.getElementById('aria-live-region');
+                if (liveRegion) {
+                    liveRegion.textContent = message;
+                    setTimeout(() => {
+                        liveRegion.textContent = '';
+                    }, 1000);
+                }
+            }
+            
+            // Enhanced keyboard navigation
+            document.addEventListener('keydown', function(e) {
+                // Handle dropdown navigation
+                if (e.key === 'Enter' || e.key === ' ') {
+                    const target = e.target;
+                    if (target.getAttribute('aria-expanded') === 'false') {
+                        target.setAttribute('aria-expanded', 'true');
+                        announceToScreenReader('Menu ouvert');
+                    } else if (target.getAttribute('aria-expanded') === 'true') {
+                        target.setAttribute('aria-expanded', 'false');
+                        announceToScreenReader('Menu fermé');
+                    }
+                }
+                
+                // Handle escape key
+                if (e.key === 'Escape') {
+                    const openDropdowns = document.querySelectorAll('[aria-expanded="true"]');
+                    openDropdowns.forEach(dropdown => {
+                        dropdown.setAttribute('aria-expanded', 'false');
+                        dropdown.focus();
+                    });
+                    announceToScreenReader('Menu fermé');
+                }
+                
+                // Handle arrow keys for menu navigation
+                if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+                    const menu = e.target.closest('[role="menu"]');
+                    if (menu) {
+                        e.preventDefault();
+                        const menuItems = menu.querySelectorAll('[role="menuitem"]');
+                        const currentIndex = Array.from(menuItems).indexOf(e.target);
+                        let nextIndex;
+                        
+                        if (e.key === 'ArrowDown') {
+                            nextIndex = (currentIndex + 1) % menuItems.length;
+                        } else {
+                            nextIndex = (currentIndex - 1 + menuItems.length) % menuItems.length;
+                        }
+                        
+                        menuItems[nextIndex].focus();
+                    }
+                }
+            });
+            
+            // Add focus management for modals
+            function trapFocus(element) {
+                const focusableElements = element.querySelectorAll(
+                    'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+                );
+                const firstElement = focusableElements[0];
+                const lastElement = focusableElements[focusableElements.length - 1];
+                
+                element.addEventListener('keydown', function(e) {
+                    if (e.key === 'Tab') {
+                        if (e.shiftKey) {
+                            if (document.activeElement === firstElement) {
+                                lastElement.focus();
+                                e.preventDefault();
+                            }
+                        } else {
+                            if (document.activeElement === lastElement) {
+                                firstElement.focus();
+                                e.preventDefault();
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // Add focus trap to all modals
+            document.querySelectorAll('.modal').forEach(modal => {
+                trapFocus(modal);
+            });
+            
+            // Add loading states with proper labeling
+            function addLoadingState(element, loadingText = 'Chargement...') {
+                element.setAttribute('aria-busy', 'true');
+                element.setAttribute('aria-label', loadingText);
+                element.classList.add('loading-state');
+            }
+            
+            function removeLoadingState(element, originalText = '') {
+                element.setAttribute('aria-busy', 'false');
+                element.setAttribute('aria-label', originalText);
+                element.classList.remove('loading-state');
+            }
+            
+            // Add form validation announcements
+            document.querySelectorAll('form').forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    const invalidFields = form.querySelectorAll(':invalid');
+                    if (invalidFields.length > 0) {
+                        e.preventDefault();
+                        const firstInvalid = invalidFields[0];
+                        firstInvalid.focus();
+                        announceToScreenReader('Veuillez corriger les erreurs dans le formulaire');
+                    }
+                });
+            });
+            
+            // Add error announcements
+            document.querySelectorAll('.error').forEach(error => {
+                error.setAttribute('role', 'alert');
+                error.setAttribute('aria-live', 'polite');
+            });
+            
+            // Add success announcements
+            document.querySelectorAll('.success').forEach(success => {
+                success.setAttribute('role', 'status');
+                success.setAttribute('aria-live', 'polite');
+            });
+            
+            // Add progress indicators
+            function addProgressIndicator(element, progress) {
+                const progressBar = document.createElement('div');
+                progressBar.setAttribute('role', 'progressbar');
+                progressBar.setAttribute('aria-valuenow', progress);
+                progressBar.setAttribute('aria-valuemin', '0');
+                progressBar.setAttribute('aria-valuemax', '100');
+                progressBar.setAttribute('aria-label', `Progression: ${progress}%`);
+                progressBar.className = 'progress progress-primary w-full';
+                progressBar.innerHTML = `<div class="progress-bar" style="width: ${progress}%"></div>`;
+                element.appendChild(progressBar);
+            }
+            
+            // Add tooltip accessibility
+            document.querySelectorAll('[title]').forEach(element => {
+                element.setAttribute('aria-describedby', element.id || 'tooltip-' + Math.random().toString(36).substr(2, 9));
+            });
+            
+            // Add table accessibility
+            document.querySelectorAll('table').forEach(table => {
+                if (!table.getAttribute('role')) {
+                    table.setAttribute('role', 'table');
+                }
+                
+                const caption = table.querySelector('caption');
+                if (caption) {
+                    table.setAttribute('aria-labelledby', caption.id || 'caption-' + Math.random().toString(36).substr(2, 9));
+                }
+            });
+            
+            // Add list accessibility
+            document.querySelectorAll('ul, ol').forEach(list => {
+                if (!list.getAttribute('role')) {
+                    list.setAttribute('role', 'list');
+                }
+            });
+            
+            // Add button accessibility
+            document.querySelectorAll('button').forEach(button => {
+                if (!button.getAttribute('aria-label') && !button.textContent.trim()) {
+                    button.setAttribute('aria-label', 'Bouton');
+                }
+            });
+            
+            // Add link accessibility
+            document.querySelectorAll('a').forEach(link => {
+                if (!link.getAttribute('aria-label') && !link.textContent.trim()) {
+                    link.setAttribute('aria-label', 'Lien');
+                }
+            });
+        }
+        
+        // Initialize accessibility features
+        initializeAccessibility();
+    </script>
+
+    {% block extra_js %}{% endblock %}
+    
+    <script>
+    // Load initial cart count when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        updateCartCount();
+    });
+    </script>
+</body>
+</html>

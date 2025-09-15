@@ -1,0 +1,372 @@
+{% extends 'manager/base.html' %}
+{% load static %}
+
+{% block page_title %}Dashboard{% endblock %}
+{% block navbar_title %}Dashboard{% endblock %}
+{% block header_title %}Dashboard{% endblock %}
+{% block page_description %}Vue d'ensemble de votre boutique e-commerce{% endblock %}
+
+{% block manager_content %}
+<!-- Statistics Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <!-- Total Orders -->
+    <div class="card bg-gradient-to-br from-primary to-primary-focus text-primary-content shadow-xl hover-lift transition-all animate-fade-in">
+        <div class="card-body text-center">
+            <div class="flex justify-center mb-4">
+                <div class="avatar placeholder">
+                    <div class="bg-primary-content text-primary rounded-full w-16">
+                        <i class="fas fa-shopping-cart text-2xl"></i>
+                    </div>
+                </div>
+            </div>
+            <h2 class="card-title justify-center text-4xl font-bold">{{ total_orders }}</h2>
+            <p class="text-primary-content/80">Total Commandes</p>
+        </div>
+    </div>
+
+    <!-- Total Sales -->
+    <div class="card bg-gradient-to-br from-success to-success-focus text-success-content shadow-xl hover-lift transition-all animate-fade-in" style="animation-delay: 0.1s">
+        <div class="card-body text-center">
+            <div class="flex justify-center mb-4">
+                <div class="avatar placeholder">
+                    <div class="bg-success-content text-success rounded-full w-16">
+                        <i class="fas fa-money-bill-wave text-2xl"></i>
+                    </div>
+                </div>
+            </div>
+            <h2 class="card-title justify-center text-4xl font-bold">{{ total_sales|floatformat:0 }} FCFA</h2>
+            <p class="text-success-content/80">Chiffre d'Affaires</p>
+        </div>
+    </div>
+
+    <!-- Total Products -->
+    <div class="card bg-gradient-to-br from-warning to-warning-focus text-warning-content shadow-xl hover-lift transition-all animate-fade-in" style="animation-delay: 0.2s">
+        <div class="card-body text-center">
+            <div class="flex justify-center mb-4">
+                <div class="avatar placeholder">
+                    <div class="bg-warning-content text-warning rounded-full w-16">
+                        <i class="fas fa-box text-2xl"></i>
+                    </div>
+                </div>
+            </div>
+            <h2 class="card-title justify-center text-4xl font-bold">{{ total_products }}</h2>
+            <p class="text-warning-content/80">Produits</p>
+            {% if low_stock_products > 0 %}
+            <div class="badge badge-error badge-lg mt-2">
+                <i class="fas fa-exclamation-triangle mr-1"></i>
+                {{ low_stock_products }} stock faible
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Total Customers -->
+    <div class="card bg-gradient-to-br from-info to-info-focus text-info-content shadow-xl hover-lift transition-all animate-fade-in" style="animation-delay: 0.3s">
+        <div class="card-body text-center">
+            <div class="flex justify-center mb-4">
+                <div class="avatar placeholder">
+                    <div class="bg-info-content text-info rounded-full w-16">
+                        <i class="fas fa-users text-2xl"></i>
+                    </div>
+                </div>
+            </div>
+            <h2 class="card-title justify-center text-4xl font-bold">{{ total_customers }}</h2>
+            <p class="text-info-content/80">Clients</p>
+            <div class="badge badge-success badge-lg mt-2">
+                <i class="fas fa-arrow-up mr-1"></i>
+                +{{ new_customers_this_month }} ce mois
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Important Alerts -->
+{% if pending_orders > 0 or low_stock_products > 0 %}
+<div class="alert alert-warning shadow-lg mb-8 animate-slide-in">
+    <div class="flex items-center">
+        <i class="fas fa-exclamation-triangle text-2xl mr-4"></i>
+        <div>
+            <h3 class="font-bold">Alertes importantes</h3>
+            <div class="text-sm">
+                {% if pending_orders > 0 %}
+                <div class="flex items-center mt-1">
+                    <i class="fas fa-clock mr-2"></i>
+                    <strong>{{ pending_orders }}</strong> commande(s) en attente de traitement
+                </div>
+                {% endif %}
+                {% if low_stock_products > 0 %}
+                <div class="flex items-center mt-1">
+                    <i class="fas fa-box mr-2"></i>
+                    <strong>{{ low_stock_products }}</strong> produit(s) avec stock faible
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+    <!-- Recent Orders -->
+    <div class="lg:col-span-2">
+        <div class="card bg-base-100 shadow-xl animate-slide-in">
+            <div class="card-body">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="card-title text-2xl">
+                        <i class="fas fa-clock text-primary mr-2"></i>
+                        Commandes récentes
+                    </h2>
+                    <a href="{% url 'manager:order_list' %}" class="btn btn-outline btn-primary btn-sm hover-scale transition-all">
+                        Voir toutes
+                        <i class="fas fa-arrow-right ml-1"></i>
+                    </a>
+                </div>
+
+                {% if recent_orders %}
+                <div class="overflow-x-auto">
+                    <table class="table table-zebra w-full">
+                        <thead>
+                            <tr>
+                                <th>Commande</th>
+                                <th>Client</th>
+                                <th>Montant</th>
+                                <th>Statut</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in recent_orders %}
+                            <tr class="hover">
+                                <td>
+                                    <div class="font-bold text-primary">#{{ order.uid|truncatechars:8 }}</div>
+                                </td>
+                                <td>
+                                    <div class="font-medium">{{ order.customer.first_name }} {{ order.customer.last_name }}</div>
+                                </td>
+                                <td>
+                                    <div class="font-bold">{{ order.total_amount|floatformat:0 }} FCFA</div>
+                                </td>
+                                <td>
+                                    <span class="badge badge-{% if order.status == 'pending' %}warning{% elif order.status == 'paid' %}info{% elif order.status == 'shipped' %}primary{% elif order.status == 'delivered' %}success{% elif order.status == 'cancelled' %}error{% endif %}">
+                                        {{ order.get_status_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="text-sm">{{ order.created_at|date:"d/m/Y H:i" }}</div>
+                                </td>
+                                <td>
+                                    <a href="{% url 'manager:order_detail' order.uid %}" class="btn btn-ghost btn-sm hover-scale transition-all">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-8">
+                    <div class="avatar placeholder mb-4">
+                        <div class="bg-base-300 text-base-content rounded-full w-16">
+                            <i class="fas fa-shopping-cart text-2xl"></i>
+                        </div>
+                    </div>
+                    <p class="text-base-content/70">Aucune commande récente</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Products -->
+    <div class="lg:col-span-1">
+        <div class="card bg-base-100 shadow-xl animate-slide-in">
+            <div class="card-body">
+                <h2 class="card-title text-2xl mb-6">
+                    <i class="fas fa-trophy text-warning mr-2"></i>
+                    Top produits
+                </h2>
+
+                {% if top_products %}
+                <div class="space-y-4">
+                    {% for product in top_products %}
+                    <div class="flex items-center space-x-3 p-3 bg-base-200 rounded-lg hover-scale transition-all">
+                        <div class="avatar placeholder">
+                            <div class="bg-neutral text-neutral-content rounded w-12">
+                                <i class="fas fa-box"></i>
+                            </div>
+                        </div>
+                        <div class="flex-1">
+                            <div class="font-medium text-sm">{{ product.name }}</div>
+                            <div class="text-xs text-base-content/70">{{ product.total_sold|default:0 }} vendu(s)</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="font-bold text-sm">{{ product.price|floatformat:0 }} FCFA</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-8">
+                    <div class="avatar placeholder mb-4">
+                        <div class="bg-base-300 text-base-content rounded-full w-16">
+                            <i class="fas fa-trophy text-2xl"></i>
+                        </div>
+                    </div>
+                    <p class="text-base-content/70">Aucune donnée disponible</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+    <!-- Sales Chart -->
+    <div class="card bg-base-100 shadow-xl animate-slide-in">
+        <div class="card-body">
+            <h2 class="card-title text-2xl mb-6">
+                <i class="fas fa-chart-line text-primary mr-2"></i>
+                Ventes des 6 derniers mois
+            </h2>
+            <div class="h-64">
+                <canvas id="salesChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Chart -->
+    <div class="card bg-base-100 shadow-xl animate-slide-in">
+        <div class="card-body">
+            <h2 class="card-title text-2xl mb-6">
+                <i class="fas fa-chart-pie text-secondary mr-2"></i>
+                Commandes par statut
+            </h2>
+            <div class="h-64">
+                <canvas id="statusChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="card bg-base-100 shadow-xl animate-slide-in">
+    <div class="card-body">
+        <h2 class="card-title text-2xl mb-6">
+            <i class="fas fa-bolt text-accent mr-2"></i>
+            Actions rapides
+        </h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <a href="{% url 'manager:order_list' %}?status=pending" class="btn btn-warning w-full hover-glow transition-all">
+                <i class="fas fa-clock mr-2"></i>
+                Commandes en attente
+            </a>
+            
+            <a href="{% url 'manager:product_list' %}?stock_status=low" class="btn btn-error w-full hover-glow transition-all">
+                <i class="fas fa-exclamation-triangle mr-2"></i>
+                Stock faible
+            </a>
+            
+            <a href="{% url 'manager:order_list' %}?payment_status=paid" class="btn btn-success w-full hover-glow transition-all">
+                <i class="fas fa-check mr-2"></i>
+                Commandes payées
+            </a>
+            
+            <a href="{% url 'manager:customer_list' %}" class="btn btn-info w-full hover-glow transition-all">
+                <i class="fas fa-users mr-2"></i>
+                Nouveaux clients
+            </a>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Sales Chart
+    const salesCtx = document.getElementById('salesChart').getContext('2d');
+    const salesChart = new Chart(salesCtx, {
+        type: 'line',
+        data: {
+            labels: [{% for month in sales_by_month %}'{{ month.month }}'{% if not forloop.last %},{% endif %}{% endfor %}],
+            datasets: [{
+                label: 'Ventes (FCFA)',
+                data: [{% for month in sales_by_month %}{{ month.sales }}{% if not forloop.last %},{% endif %}{% endfor %}],
+                borderColor: 'rgb(59, 130, 246)',
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.1)'
+                    }
+                },
+                x: {
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.1)'
+                    }
+                }
+            }
+        }
+    });
+
+    // Status Chart
+    const statusCtx = document.getElementById('statusChart').getContext('2d');
+    const statusChart = new Chart(statusCtx, {
+        type: 'doughnut',
+        data: {
+            labels: [{% for status in orders_by_status %}'{{ status.status }}'{% if not forloop.last %},{% endif %}{% endfor %}],
+            datasets: [{
+                data: [{% for status in orders_by_status %}{{ status.count }}{% if not forloop.last %},{% endif %}{% endfor %}],
+                backgroundColor: [
+                    '#f59e0b', // warning
+                    '#3b82f6', // primary
+                    '#10b981', // success
+                    '#ef4444', // error
+                    '#8b5cf6'  // secondary
+                ],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 20,
+                        usePointStyle: true
+                    }
+                }
+            }
+        }
+    });
+
+    // Add ripple effect to buttons
+    document.querySelectorAll('.btn').forEach(button => {
+        button.addEventListener('click', function(e) {
+            createRipple(e, this);
+        });
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,264 @@
+{% extends 'manager/base.html' %}
+{% load static %}
+
+{% block title %}Commandes - Gestionnaire{% endblock %}
+{% block page_title %}Gestion des Commandes{% endblock %}
+{% block page_description %}Liste et gestion de toutes les commandes{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-slate-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 py-8">
+    <div class="container mx-auto px-4">
+        <!-- Header -->
+        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 animate-fade-in">
+            <div>
+                <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-3">
+                    <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-shopping-cart text-2xl text-white"></i>
+                    </div>
+                    Gestion des Commandes
+                </h1>
+                <p class="text-gray-600 dark:text-gray-300">Liste et gestion de toutes les commandes</p>
+            </div>
+            <div class="flex flex-wrap gap-3 mt-4 lg:mt-0">
+                <a href="{% url 'manager:dashboard' %}" class="btn btn-outline btn-secondary hover-scale transition-all">
+                    <i class="fas fa-arrow-left mr-2"></i>
+                    Retour
+                </a>
+            </div>
+        </div>
+
+        <!-- Filtres -->
+        <div class="card bg-white dark:bg-gray-800 shadow-xl mb-8 animate-slide-in">
+            <div class="card-body">
+                <h2 class="card-title text-xl mb-6">
+                    <i class="fas fa-filter text-primary mr-2"></i>
+                    Filtres de recherche
+                </h2>
+                
+                <form method="get" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-semibold">Statut</span>
+                        </label>
+                        <select name="status" class="select select-bordered">
+                            <option value="">Tous les statuts</option>
+                            {% for value, label in status_choices %}
+                                <option value="{{ value }}" {% if request.GET.status == value %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-semibold">Statut paiement</span>
+                        </label>
+                        <select name="payment_status" class="select select-bordered">
+                            <option value="">Tous les paiements</option>
+                            {% for value, label in payment_status_choices %}
+                                <option value="{{ value }}" {% if request.GET.payment_status == value %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-semibold">Rechercher</span>
+                        </label>
+                        <input type="text" name="search" class="input input-bordered" placeholder="ID, nom, email..." value="{{ request.GET.search }}">
+                    </div>
+                    
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">&nbsp;</span>
+                        </label>
+                        <button type="submit" class="btn btn-primary hover-glow transition-all">
+                            <i class="fas fa-search mr-2"></i>
+                            Filtrer
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Liste des commandes -->
+        <div class="card bg-white dark:bg-gray-800 shadow-xl animate-slide-in">
+            <div class="card-body">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="card-title text-2xl">
+                        <i class="fas fa-list text-primary mr-2"></i>
+                        Commandes
+                    </h2>
+                    <div class="badge badge-primary badge-lg">{{ orders|length }}</div>
+                </div>
+
+                {% if orders %}
+                    <div class="overflow-x-auto">
+                        <table class="table table-zebra w-full">
+                            <thead>
+                                <tr>
+                                    <th class="text-base-content/70">Commande</th>
+                                    <th class="text-base-content/70">Client</th>
+                                    <th class="text-base-content/70">Montant</th>
+                                    <th class="text-base-content/70">Statut</th>
+                                    <th class="text-base-content/70">Paiement</th>
+                                    <th class="text-base-content/70">Date</th>
+                                    <th class="text-base-content/70">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for order in orders %}
+                                <tr class="hover:bg-base-200 transition-colors">
+                                    <td>
+                                        <div class="flex items-center gap-3">
+                                            <div class="avatar placeholder">
+                                                <div class="bg-primary text-primary-content rounded-full w-10">
+                                                    <span class="text-xs">#{{ order.order_number|default:order.uid|truncatechars:4 }}</span>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <div class="font-bold text-sm">#{{ order.order_number|default:order.uid|truncatechars:8 }}</div>
+                                                <div class="text-xs text-gray-500">{{ order.get_payment_method_display }}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <div class="font-semibold text-sm">{{ order.customer.first_name }} {{ order.customer.last_name }}</div>
+                                            <div class="text-xs text-gray-500">{{ order.customer.email }}</div>
+                                            <div class="text-xs text-gray-500">{{ order.delivery_phone }}</div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="text-right">
+                                            <div class="font-bold text-sm">{{ order.total_amount|floatformat:0 }} FCFA</div>
+                                            <div class="text-xs text-gray-500">{{ order.items.count }} article(s)</div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-{% if order.status == 'pending' %}warning{% elif order.status == 'paid' %}info{% elif order.status == 'shipped' %}primary{% elif order.status == 'delivered' %}success{% elif order.status == 'cancelled' %}error{% endif %} badge-sm">
+                                            {{ order.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="flex flex-col gap-1">
+                                            <span class="badge badge-{% if order.payment_status == 'paid' %}success{% elif order.payment_status == 'pending' %}warning{% else %}error{% endif %} badge-sm">
+                                                {{ order.get_payment_status_display }}
+                                            </span>
+                                            {% if order.payment_method == 'cash_on_delivery' and order.payment_status == 'pending' %}
+                                            <span class="text-xs text-warning">
+                                                <i class="fas fa-money-bill-wave mr-1"></i>À confirmer
+                                            </span>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="text-sm">
+                                            <div class="font-medium">{{ order.created_at|date:"d/m/Y" }}</div>
+                                            <div class="text-xs text-gray-500">{{ order.created_at|time:"H:i" }}</div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="flex gap-2">
+                                            <a href="{% url 'manager:order_detail' order.uid %}" class="btn btn-ghost btn-sm hover-scale transition-all" title="Voir détails">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            
+                                            {% if order.payment_method == 'cash_on_delivery' and order.payment_status == 'pending' %}
+                                            <a href="{% url 'manager:cash_payment_confirmation' order.uid %}" class="btn btn-ghost btn-sm hover-scale transition-all" title="Confirmer paiement">
+                                                <i class="fas fa-money-bill-wave text-success"></i>
+                                            </a>
+                                            {% endif %}
+                                            
+                                            <a href="{% url 'manager:order_status_update' order.uid %}" class="btn btn-ghost btn-sm hover-scale transition-all" title="Modifier statut">
+                                                <i class="fas fa-edit text-warning"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    {% if is_paginated %}
+                        <div class="flex justify-center mt-8">
+                            <div class="join">
+                                {% if page_obj.has_previous %}
+                                    <a href="?page=1{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.payment_status %}&payment_status={{ request.GET.payment_status }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}" class="join-item btn btn-outline">
+                                        <i class="fas fa-angle-double-left"></i>
+                                    </a>
+                                    <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.payment_status %}&payment_status={{ request.GET.payment_status }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}" class="join-item btn btn-outline">
+                                        <i class="fas fa-angle-left"></i>
+                                    </a>
+                                {% endif %}
+
+                                <div class="join-item btn btn-primary">
+                                    Page {{ page_obj.number }} sur {{ page_obj.paginator.num_pages }}
+                                </div>
+
+                                {% if page_obj.has_next %}
+                                    <a href="?page={{ page_obj.next_page_number }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.payment_status %}&payment_status={{ request.GET.payment_status }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}" class="join-item btn btn-outline">
+                                        <i class="fas fa-angle-right"></i>
+                                    </a>
+                                    <a href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.payment_status %}&payment_status={{ request.GET.payment_status }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}" class="join-item btn btn-outline">
+                                        <i class="fas fa-angle-double-right"></i>
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <div class="text-center py-12">
+                        <div class="avatar placeholder mb-4">
+                            <div class="bg-neutral text-neutral-content rounded-full w-16">
+                                <i class="fas fa-shopping-cart text-2xl"></i>
+                            </div>
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-500 mb-2">Aucune commande trouvée</h3>
+                        <p class="text-gray-400 mb-6">Aucune commande ne correspond à vos critères de recherche.</p>
+                        <a href="{% url 'manager:order_list' %}" class="btn btn-outline btn-primary hover-scale transition-all">
+                            <i class="fas fa-refresh mr-2"></i>
+                            Voir toutes les commandes
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add ripple effect to buttons
+    document.querySelectorAll('.btn').forEach(button => {
+        button.addEventListener('click', function(e) {
+            createRipple(e, this);
+        });
+    });
+
+    // Auto-submit form on filter change
+    const filterInputs = document.querySelectorAll('select[name="status"], select[name="payment_status"]');
+    filterInputs.forEach(input => {
+        input.addEventListener('change', function() {
+            this.form.submit();
+        });
+    });
+
+    // Search with debounce
+    const searchInput = document.querySelector('input[name="search"]');
+    let searchTimeout;
+    
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                this.form.submit();
+            }, 500);
+        });
+    }
+});
+</script>
+{% endblock %}

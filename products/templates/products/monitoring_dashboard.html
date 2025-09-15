@@ -1,0 +1,301 @@
+{% extends 'manager/base.html' %}
+{% load static %}
+
+{% block page_title %}Monitoring Système{% endblock %}
+{% block page_description %}Surveillance et monitoring du système{% endblock %}
+
+{% block manager_content %}
+<div class="space-y-6">
+    <!-- En-tête -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+            <h1 class="text-3xl font-bold">
+                <i class="fas fa-heartbeat text-primary mr-2"></i>
+                Monitoring Système
+            </h1>
+            <p class="text-base-content/70 mt-2">
+                Surveillance et monitoring du système en temps réel
+            </p>
+        </div>
+        
+        <div class="flex gap-2">
+            <button class="btn btn-outline btn-sm" onclick="refreshMonitoring()">
+                <i class="fas fa-sync-alt mr-2"></i>
+                Actualiser
+            </button>
+            <button class="btn btn-primary btn-sm" onclick="exportMetrics()">
+                <i class="fas fa-download mr-2"></i>
+                Exporter
+            </button>
+        </div>
+    </div>
+    
+    <!-- Statut de santé global -->
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h3 class="card-title mb-4">
+                <i class="fas fa-heartbeat"></i>
+                Statut de Santé Global
+            </h3>
+            
+            <div class="flex items-center gap-4">
+                <div class="stat">
+                    <div class="stat-figure">
+                        <i class="fas fa-{{ health_status.status == 'healthy' and 'check-circle text-success' or health_status.status == 'warning' and 'exclamation-triangle text-warning' or 'times-circle text-error' }} text-4xl"></i>
+                    </div>
+                    <div class="stat-title">Statut</div>
+                    <div class="stat-value text-{{ health_status.status == 'healthy' and 'success' or health_status.status == 'warning' and 'warning' or 'error' }}">
+                        {{ health_status.status|title }}
+                    </div>
+                    <div class="stat-desc">{{ health_status.timestamp|date:"d/m/Y H:i:s" }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Vérifications de santé -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {% for check_name, check_data in health_status.checks.items %}
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h4 class="card-title text-sm">
+                    <i class="fas fa-{{ check_name == 'database' and 'database' or check_name == 'cache' and 'memory' or check_name == 'inventory' and 'boxes' or 'star' }}"></i>
+                    {{ check_name|title }}
+                </h4>
+                <div class="flex items-center gap-2">
+                    <span class="badge badge-{{ check_data.status == 'healthy' and 'success' or check_data.status == 'warning' and 'warning' or 'error' }}">
+                        {{ check_data.status|title }}
+                    </span>
+                </div>
+                <p class="text-sm text-base-content/70">{{ check_data.message }}</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Métriques de performance -->
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h3 class="card-title mb-4">
+                <i class="fas fa-chart-line"></i>
+                Métriques de Performance
+            </h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Base de données -->
+                <div class="stat bg-base-200 rounded-lg">
+                    <div class="stat-title">Base de Données</div>
+                    <div class="stat-value text-lg">{{ performance_metrics.database.query_time }}ms</div>
+                    <div class="stat-desc">Temps de requête moyen</div>
+                </div>
+                
+                <!-- Cache -->
+                <div class="stat bg-base-200 rounded-lg">
+                    <div class="stat-title">Cache</div>
+                    <div class="stat-value text-lg">{{ performance_metrics.cache.hit_rate }}%</div>
+                    <div class="stat-desc">Taux de réussite</div>
+                </div>
+                
+                <!-- Application -->
+                <div class="stat bg-base-200 rounded-lg">
+                    <div class="stat-title">Utilisateurs Actifs</div>
+                    <div class="stat-value text-lg">{{ performance_metrics.application.active_users }}</div>
+                    <div class="stat-desc">Utilisateurs connectés</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Alertes récentes -->
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h3 class="card-title mb-4">
+                <i class="fas fa-bell"></i>
+                Alertes Récentes
+            </h3>
+            
+            {% if recent_alerts %}
+            <div class="space-y-3">
+                {% for alert in recent_alerts %}
+                <div class="alert alert-{{ alert.severity == 'high' and 'error' or alert.severity == 'medium' and 'warning' or 'info' }}">
+                    <div>
+                        <h4 class="font-bold">{{ alert.type|title }}</h4>
+                        <div class="text-sm">{{ alert.message }}</div>
+                        <div class="text-xs text-base-content/70">{{ alert.timestamp|date:"d/m/Y H:i:s" }}</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-8">
+                <i class="fas fa-check-circle text-4xl text-success mb-4"></i>
+                <h3 class="text-lg font-semibold mb-2">Aucune alerte</h3>
+                <p class="text-base-content/70">Le système fonctionne normalement.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Requêtes lentes -->
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h3 class="card-title mb-4">
+                <i class="fas fa-clock"></i>
+                Requêtes Lentes
+            </h3>
+            
+            {% if slow_requests %}
+            <div class="overflow-x-auto">
+                <table class="table table-zebra w-full">
+                    <thead>
+                        <tr>
+                            <th>Chemin</th>
+                            <th>Méthode</th>
+                            <th>Durée</th>
+                            <th>IP</th>
+                            <th>Timestamp</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for request in slow_requests %}
+                        <tr>
+                            <td>
+                                <div class="font-mono text-sm">{{ request.path }}</div>
+                            </td>
+                            <td>
+                                <span class="badge badge-{{ request.method == 'GET' and 'info' or 'warning' }}">
+                                    {{ request.method }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="font-semibold text-error">{{ request.duration|floatformat:2 }}s</div>
+                            </td>
+                            <td>
+                                <div class="font-mono text-sm">{{ request.ip_address }}</div>
+                            </td>
+                            <td>
+                                <div class="text-sm">{{ request.timestamp|date:"d/m/Y H:i:s" }}</div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-8">
+                <i class="fas fa-check-circle text-4xl text-success mb-4"></i>
+                <h3 class="text-lg font-semibold mb-2">Aucune requête lente</h3>
+                <p class="text-base-content/70">Toutes les requêtes sont dans les temps.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Actions d'administration -->
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h3 class="card-title mb-4">
+                <i class="fas fa-cogs"></i>
+                Actions d'Administration
+            </h3>
+            
+            <div class="flex gap-4">
+                <button class="btn btn-outline" onclick="resetSecurityCounters()">
+                    <i class="fas fa-shield-alt mr-2"></i>
+                    Reset Compteurs Sécurité
+                </button>
+                
+                <button class="btn btn-outline" onclick="sendTestAlert()">
+                    <i class="fas fa-bell mr-2"></i>
+                    Envoyer Alerte Test
+                </button>
+                
+                <button class="btn btn-outline" onclick="clearCache()">
+                    <i class="fas fa-trash mr-2"></i>
+                    Vider le Cache
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function refreshMonitoring() {
+    window.location.reload();
+}
+
+function exportMetrics() {
+    window.open('/products/monitoring/export/', '_blank');
+}
+
+function resetSecurityCounters() {
+    if (confirm('Êtes-vous sûr de vouloir remettre à zéro les compteurs de sécurité ?')) {
+        fetch('/products/monitoring/reset-security/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Compteurs de sécurité remis à zéro');
+                refreshMonitoring();
+            } else {
+                alert('Erreur: ' + data.error);
+            }
+        });
+    }
+}
+
+function sendTestAlert() {
+    if (confirm('Envoyer une alerte de test ?')) {
+        fetch('/products/monitoring/test-alert/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Alerte de test envoyée');
+                refreshMonitoring();
+            } else {
+                alert('Erreur: ' + data.error);
+            }
+        });
+    }
+}
+
+function clearCache() {
+    if (confirm('Êtes-vous sûr de vouloir vider le cache ?')) {
+        fetch('/products/monitoring/clear-cache/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Cache vidé');
+                refreshMonitoring();
+            } else {
+                alert('Erreur: ' + data.error);
+            }
+        });
+    }
+}
+
+// Auto-refresh toutes les 30 secondes
+setInterval(function() {
+    if (document.visibilityState === 'visible') {
+        refreshMonitoring();
+    }
+}, 30000);
+</script>
+{% endblock %}

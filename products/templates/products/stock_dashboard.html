@@ -1,0 +1,279 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard Stock - Boutique E-commerce{% endblock %}
+
+{% block description %}Tableau de bord complet pour la gestion du stock{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- En-tête -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Dashboard Stock</h1>
+            <p class="text-gray-600">Vue d'ensemble de votre gestion de stock</p>
+        </div>
+        <div class="mt-4 md:mt-0">
+            <a href="{% url 'products:stock:stock_list' %}" 
+               class="btn btn-outline">
+                <i class="fas fa-list mr-2"></i>
+                Liste des Stocks
+            </a>
+        </div>
+    </div>
+
+    <!-- Statistiques principales -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="card bg-white shadow-lg">
+            <div class="card-body">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-blue-100 text-blue-600">
+                        <i class="fas fa-boxes text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Total Produits</p>
+                        <p class="text-2xl font-bold text-gray-900">{{ summary.total_products }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card bg-white shadow-lg">
+            <div class="card-body">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-green-100 text-green-600">
+                        <i class="fas fa-check-circle text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Disponibles</p>
+                        <p class="text-2xl font-bold text-gray-900">{{ summary.available_products }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card bg-white shadow-lg">
+            <div class="card-body">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-yellow-100 text-yellow-600">
+                        <i class="fas fa-exclamation-triangle text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Stock Faible</p>
+                        <p class="text-2xl font-bold text-gray-900">{{ summary.low_stock_products }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card bg-white shadow-lg">
+            <div class="card-body">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-red-100 text-red-600">
+                        <i class="fas fa-times-circle text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Rupture</p>
+                        <p class="text-2xl font-bold text-gray-900">{{ summary.out_of_stock_products }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Valeur totale du stock -->
+    <div class="card bg-white shadow-lg mb-8">
+        <div class="card-body">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900">Valeur Totale du Stock</h3>
+                    <p class="text-3xl font-bold text-blue-600">{{ summary.total_value|floatformat:0 }} GNF</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-sm text-gray-600">Quantité totale</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ summary.total_quantity }} unités</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Produits avec stock faible -->
+        <div class="card bg-white shadow-lg">
+            <div class="card-header">
+                <h3 class="text-lg font-semibold text-gray-900">
+                    <i class="fas fa-exclamation-triangle text-yellow-500 mr-2"></i>
+                    Stock Faible
+                </h3>
+            </div>
+            <div class="card-body p-0">
+                {% if low_stock_products %}
+                <div class="overflow-x-auto">
+                    <table class="table table-zebra w-full">
+                        <thead>
+                            <tr>
+                                <th>Produit</th>
+                                <th>Quantité</th>
+                                <th>Seuil</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for stock in low_stock_products %}
+                            <tr>
+                                <td>
+                                    <div class="font-medium">{{ stock.product.name }}</div>
+                                    <div class="text-sm text-gray-500">{{ stock.product.category.name }}</div>
+                                </td>
+                                <td>
+                                    <span class="font-mono text-yellow-600 font-bold">{{ stock.current_quantity }}</span>
+                                </td>
+                                <td>
+                                    <span class="text-sm">{{ stock.min_quantity }}</span>
+                                </td>
+                                <td>
+                                    <a href="{% url 'products:stock:stock_adjustment' stock.id %}" 
+                                       class="btn btn-warning btn-xs">
+                                        <i class="fas fa-plus"></i>
+                                        Réapprovisionner
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-8 text-gray-500">
+                    <i class="fas fa-check-circle text-4xl mb-4 text-green-500"></i>
+                    <p>Aucun produit en stock faible</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Produits en rupture -->
+        <div class="card bg-white shadow-lg">
+            <div class="card-header">
+                <h3 class="text-lg font-semibold text-gray-900">
+                    <i class="fas fa-times-circle text-red-500 mr-2"></i>
+                    Rupture de Stock
+                </h3>
+            </div>
+            <div class="card-body p-0">
+                {% if out_of_stock_products %}
+                <div class="overflow-x-auto">
+                    <table class="table table-zebra w-full">
+                        <thead>
+                            <tr>
+                                <th>Produit</th>
+                                <th>Catégorie</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for stock in out_of_stock_products %}
+                            <tr>
+                                <td>
+                                    <div class="font-medium">{{ stock.product.name }}</div>
+                                    <div class="text-sm text-gray-500">{{ stock.product.price }} GNF</div>
+                                </td>
+                                <td>
+                                    <span class="badge badge-outline">{{ stock.product.category.name }}</span>
+                                </td>
+                                <td>
+                                    <a href="{% url 'products:stock:stock_adjustment' stock.id %}" 
+                                       class="btn btn-error btn-xs">
+                                        <i class="fas fa-plus"></i>
+                                        Réapprovisionner
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-8 text-gray-500">
+                    <i class="fas fa-check-circle text-4xl mb-4 text-green-500"></i>
+                    <p>Aucun produit en rupture de stock</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Mouvements récents -->
+    <div class="card bg-white shadow-lg mt-8">
+        <div class="card-header">
+            <h3 class="text-lg font-semibold text-gray-900">
+                <i class="fas fa-history mr-2"></i>
+                Mouvements Récents
+            </h3>
+        </div>
+        <div class="card-body p-0">
+            {% if recent_movements %}
+            <div class="overflow-x-auto">
+                <table class="table table-zebra w-full">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Produit</th>
+                            <th>Type</th>
+                            <th>Quantité</th>
+                            <th>Raison</th>
+                            <th>Utilisateur</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for movement in recent_movements %}
+                        <tr>
+                            <td>
+                                <div class="text-sm">
+                                    {{ movement.created_at|date:"d/m/Y" }}
+                                    <br>
+                                    <span class="text-gray-500">{{ movement.created_at|time:"H:i" }}</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="font-medium">{{ movement.stock.product.name }}</div>
+                            </td>
+                            <td>
+                                {% if movement.movement_type == 'in' %}
+                                <span class="badge badge-success">Entrée</span>
+                                {% elif movement.movement_type == 'out' %}
+                                <span class="badge badge-error">Sortie</span>
+                                {% elif movement.movement_type == 'adjustment' %}
+                                <span class="badge badge-info">Ajustement</span>
+                                {% else %}
+                                <span class="badge badge-neutral">{{ movement.get_movement_type_display }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="font-mono">{{ movement.quantity }}</span>
+                            </td>
+                            <td>
+                                <span class="text-sm">{{ movement.reason }}</span>
+                            </td>
+                            <td>
+                                {% if movement.user %}
+                                <span class="text-sm">{{ movement.user.first_name }} {{ movement.user.last_name }}</span>
+                                {% else %}
+                                <span class="text-gray-500">Système</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-8 text-gray-500">
+                <i class="fas fa-history text-4xl mb-4"></i>
+                <p>Aucun mouvement récent</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

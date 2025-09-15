@@ -1,0 +1,415 @@
+{% extends 'manager/base.html' %}
+{% load static %}
+
+{% block title %}Commande #{{ order.order_number|default:order.uid }} - Gestionnaire{% endblock %}
+{% block page_title %}Détail de la Commande{% endblock %}
+{% block page_description %}Informations complètes de la commande #{{ order.order_number|default:order.uid }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-slate-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 py-8">
+    <div class="container mx-auto px-4">
+        <!-- Header -->
+        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 animate-fade-in">
+            <div>
+                <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-3">
+                    <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-shopping-cart text-2xl text-white"></i>
+                    </div>
+                    Commande #{{ order.order_number|default:order.uid }}
+                </h1>
+                <p class="text-gray-600 dark:text-gray-300">Informations complètes de la commande</p>
+            </div>
+            <div class="flex flex-wrap gap-3 mt-4 lg:mt-0">
+                <a href="{% url 'manager:order_list' %}" class="btn btn-outline btn-secondary hover-scale transition-all">
+                    <i class="fas fa-arrow-left mr-2"></i>
+                    Retour aux commandes
+                </a>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Informations principales -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Informations générales -->
+                <div class="card bg-white dark:bg-gray-800 shadow-xl animate-slide-in">
+                    <div class="card-body">
+                        <h2 class="card-title text-xl mb-6">
+                            <i class="fas fa-info-circle text-primary mr-2"></i>
+                            Informations générales
+                        </h2>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="label">
+                                        <span class="label-text font-semibold">ID Commande</span>
+                                    </label>
+                                    <div class="text-lg font-mono bg-gray-100 dark:bg-gray-700 p-3 rounded-lg">
+                                        #{{ order.order_number|default:order.uid }}
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <label class="label">
+                                        <span class="label-text font-semibold">Date de commande</span>
+                                    </label>
+                                    <div class="text-lg">
+                                        <i class="fas fa-calendar text-primary mr-2"></i>
+                                        {{ order.created_at|date:"d/m/Y à H:i" }}
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <label class="label">
+                                        <span class="label-text font-semibold">Statut</span>
+                                    </label>
+                                    <span class="badge badge-{% if order.status == 'pending' %}warning{% elif order.status == 'paid' %}info{% elif order.status == 'shipped' %}primary{% elif order.status == 'delivered' %}success{% elif order.status == 'cancelled' %}error{% endif %} badge-lg">
+                                        {{ order.get_status_display }}
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="label">
+                                        <span class="label-text font-semibold">Montant total</span>
+                                    </label>
+                                    <div class="text-2xl font-bold text-primary">
+                                        {{ order.total_amount|floatformat:0 }} FCFA
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <label class="label">
+                                        <span class="label-text font-semibold">Méthode de paiement</span>
+                                    </label>
+                                    <div class="flex items-center gap-2">
+                                        {% if order.payment_method == 'orange_money' %}
+                                            <i class="fas fa-mobile-alt text-orange-500"></i>
+                                            <span>Orange Money</span>
+                                        {% elif order.payment_method == 'visa' %}
+                                            <i class="fas fa-credit-card text-blue-500"></i>
+                                            <span>Visa/Mastercard</span>
+                                        {% else %}
+                                            <i class="fas fa-money-bill-wave text-green-500"></i>
+                                            <span>Paiement à la livraison</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <label class="label">
+                                        <span class="label-text font-semibold">Statut du paiement</span>
+                                    </label>
+                                    <span class="badge badge-{% if order.payment_status == 'paid' %}success{% elif order.payment_status == 'pending' %}warning{% else %}error{% endif %} badge-lg">
+                                        {{ order.get_payment_status_display }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Informations client -->
+                <div class="card bg-white dark:bg-gray-800 shadow-xl animate-slide-in">
+                    <div class="card-body">
+                        <h2 class="card-title text-xl mb-6">
+                            <i class="fas fa-user text-primary mr-2"></i>
+                            Informations client
+                        </h2>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="label">
+                                        <span class="label-text font-semibold">Nom complet</span>
+                                    </label>
+                                    <div class="text-lg">
+                                        {{ order.customer.first_name }} {{ order.customer.last_name }}
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <label class="label">
+                                        <span class="label-text font-semibold">Email</span>
+                                    </label>
+                                    <div class="text-lg">
+                                        <i class="fas fa-envelope text-primary mr-2"></i>
+                                        {{ order.customer.email }}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="label">
+                                        <span class="label-text font-semibold">Téléphone</span>
+                                    </label>
+                                    <div class="text-lg">
+                                        <i class="fas fa-phone text-primary mr-2"></i>
+                                        {{ order.delivery_phone }}
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <label class="label">
+                                        <span class="label-text font-semibold">Date d'inscription</span>
+                                    </label>
+                                    <div class="text-lg">
+                                        <i class="fas fa-calendar text-primary mr-2"></i>
+                                        {{ order.customer.date_joined|date:"d/m/Y" }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Adresse de livraison -->
+                <div class="card bg-white dark:bg-gray-800 shadow-xl animate-slide-in">
+                    <div class="card-body">
+                        <h2 class="card-title text-xl mb-6">
+                            <i class="fas fa-map-marker-alt text-primary mr-2"></i>
+                            Adresse de livraison
+                        </h2>
+                        
+                        <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                            <div class="text-lg">
+                                <div class="font-semibold mb-2">{{ order.delivery_address }}</div>
+                                {% if order.delivery_notes %}
+                                    <div class="text-gray-600 dark:text-gray-300">
+                                        <strong>Notes :</strong> {{ order.delivery_notes }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Articles commandés -->
+                <div class="card bg-white dark:bg-gray-800 shadow-xl animate-slide-in">
+                    <div class="card-body">
+                        <h2 class="card-title text-xl mb-6">
+                            <i class="fas fa-box text-primary mr-2"></i>
+                            Articles commandés
+                        </h2>
+                        
+                        <div class="overflow-x-auto">
+                            <table class="table table-zebra w-full">
+                                <thead>
+                                    <tr>
+                                        <th>Produit</th>
+                                        <th>Prix unitaire</th>
+                                        <th>Quantité</th>
+                                        <th>Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in order.items.all %}
+                                    <tr>
+                                        <td>
+                                            <div class="flex items-center gap-3">
+                                                {% if item.product.image %}
+                                                    <div class="avatar">
+                                                        <div class="w-12 h-12 rounded-lg">
+                                                            <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="object-cover">
+                                                        </div>
+                                                    </div>
+                                                {% endif %}
+                                                <div>
+                                                    <div class="font-semibold">{{ item.product.name }}</div>
+                                                    <div class="text-sm text-gray-500">{{ item.product.category.name }}</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="font-semibold">{{ item.price|floatformat:0 }} FCFA</td>
+                                        <td>
+                                            <span class="badge badge-primary">{{ item.quantity }}</span>
+                                        </td>
+                                        <td class="font-bold text-primary">{{ item.total_price|floatformat:0 }} FCFA</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="divider"></div>
+                        
+                        <div class="flex justify-end">
+                            <div class="text-right space-y-2">
+                                <div class="flex justify-between gap-8">
+                                    <span>Sous-total :</span>
+                                    <span class="font-semibold">{{ order.subtotal|floatformat:0 }} FCFA</span>
+                                </div>
+                                <div class="flex justify-between gap-8">
+                                    <span>Frais de livraison :</span>
+                                    <span class="font-semibold">{{ order.delivery_fee|floatformat:0 }} FCFA</span>
+                                </div>
+                                <div class="divider my-2"></div>
+                                <div class="flex justify-between gap-8 text-lg">
+                                    <span class="font-bold">Total :</span>
+                                    <span class="font-bold text-primary">{{ order.total_amount|floatformat:0 }} FCFA</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions et historique -->
+            <div class="space-y-6">
+                <!-- Actions -->
+                <div class="card bg-white dark:bg-gray-800 shadow-xl animate-slide-in">
+                    <div class="card-body">
+                        <h2 class="card-title text-xl mb-6">
+                            <i class="fas fa-cogs text-primary mr-2"></i>
+                            Actions
+                        </h2>
+                        
+                        <div class="space-y-3">
+                            <a href="{% url 'manager:order_status_update' order.uid %}" class="btn btn-outline btn-warning w-full hover-scale transition-all">
+                                <i class="fas fa-edit mr-2"></i>
+                                Modifier le statut
+                            </a>
+                            
+                            {% if order.payment_method == 'cash_on_delivery' and order.payment_status == 'pending' %}
+                            <a href="{% url 'manager:cash_payment_confirmation' order.uid %}" class="btn btn-outline btn-success w-full hover-scale transition-all">
+                                <i class="fas fa-money-bill-wave mr-2"></i>
+                                Confirmer le paiement
+                            </a>
+                            {% endif %}
+                            
+                            <a href="{% url 'manager:order_invoice_pdf' order.uid %}" class="btn btn-outline btn-info w-full hover-scale transition-all" target="_blank">
+                                <i class="fas fa-file-pdf mr-2"></i>
+                                Facture PDF
+                            </a>
+                            
+                            <a href="{% url 'manager:order_receipt_pdf' order.uid %}" class="btn btn-outline btn-info w-full hover-scale transition-all" target="_blank">
+                                <i class="fas fa-receipt mr-2"></i>
+                                Reçu PDF
+                            </a>
+                            
+                            <a href="{% url 'manager:customer_detail' order.customer.id %}" class="btn btn-outline btn-secondary w-full hover-scale transition-all">
+                                <i class="fas fa-user mr-2"></i>
+                                Voir le client
+                            </a>
+                            
+                            <a href="{% url 'manager:order_list' %}" class="btn btn-outline btn-ghost w-full hover-scale transition-all">
+                                <i class="fas fa-arrow-left mr-2"></i>
+                                Retour aux commandes
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Historique des paiements -->
+                <div class="card bg-white dark:bg-gray-800 shadow-xl animate-slide-in">
+                    <div class="card-body">
+                        <h2 class="card-title text-xl mb-6">
+                            <i class="fas fa-history text-primary mr-2"></i>
+                            Historique des paiements
+                        </h2>
+                        
+                        {% if order.payments.exists %}
+                            <div class="space-y-4">
+                                {% for payment in order.payments.all %}
+                                <div class="border-l-4 border-primary pl-4 py-2">
+                                    <div class="flex justify-between items-start">
+                                        <div>
+                                            <div class="font-semibold">{{ payment.get_status_display }}</div>
+                                            <div class="text-sm text-gray-500">{{ payment.created_at|date:"d/m/Y H:i" }}</div>
+                                        </div>
+                                        <span class="badge badge-{% if payment.status == 'completed' %}success{% elif payment.status == 'pending' %}warning{% else %}error{% endif %} badge-sm">
+                                            {{ payment.get_status_display }}
+                                        </span>
+                                    </div>
+                                    {% if payment.transaction_id %}
+                                        <div class="text-xs text-gray-500 mt-1">
+                                            ID: {{ payment.transaction_id }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="text-center py-4">
+                                <i class="fas fa-info-circle text-gray-400 text-2xl mb-2"></i>
+                                <p class="text-gray-500">Aucun paiement enregistré</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Timeline de la commande -->
+                <div class="card bg-white dark:bg-gray-800 shadow-xl animate-slide-in">
+                    <div class="card-body">
+                        <h2 class="card-title text-xl mb-6">
+                            <i class="fas fa-timeline text-primary mr-2"></i>
+                            Timeline de la commande
+                        </h2>
+                        
+                        <div class="space-y-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-3 h-3 bg-success rounded-full"></div>
+                                <div>
+                                    <div class="font-semibold">Commande créée</div>
+                                    <div class="text-sm text-gray-500">{{ order.created_at|date:"d/m/Y H:i" }}</div>
+                                </div>
+                            </div>
+                            
+                            {% if order.payment_status == 'paid' %}
+                            <div class="flex items-center gap-3">
+                                <div class="w-3 h-3 bg-success rounded-full"></div>
+                                <div>
+                                    <div class="font-semibold">Paiement confirmé</div>
+                                    <div class="text-sm text-gray-500">
+                                        {% for payment in order.payments.all %}
+                                            {% if payment.status == 'completed' %}
+                                                {{ payment.updated_at|date:"d/m/Y H:i" }}
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            {% if order.status == 'shipped' %}
+                            <div class="flex items-center gap-3">
+                                <div class="w-3 h-3 bg-primary rounded-full"></div>
+                                <div>
+                                    <div class="font-semibold">Commande expédiée</div>
+                                    <div class="text-sm text-gray-500">{{ order.updated_at|date:"d/m/Y H:i" }}</div>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            {% if order.status == 'delivered' %}
+                            <div class="flex items-center gap-3">
+                                <div class="w-3 h-3 bg-success rounded-full"></div>
+                                <div>
+                                    <div class="font-semibold">Commande livrée</div>
+                                    <div class="text-sm text-gray-500">{{ order.updated_at|date:"d/m/Y H:i" }}</div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add ripple effect to buttons
+    document.querySelectorAll('.btn').forEach(button => {
+        button.addEventListener('click', function(e) {
+            createRipple(e, this);
+        });
+    });
+});
+</script>
+{% endblock %}

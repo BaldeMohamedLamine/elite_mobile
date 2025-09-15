@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Signaler un avis{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Breadcrumb -->
+    <div class="breadcrumbs text-sm mb-6">
+        <ul>
+            <li><a href="{% url 'products:home' %}" class="link link-hover">Accueil</a></li>
+            <li><a href="{% url 'products:product_detail' review.product.uid %}" class="link link-hover">{{ review.product.name }}</a></li>
+            <li><a href="/products/reviews/product/{{ review.product.uid }}/" class="link link-hover">Avis</a></li>
+            <li><a href="/products/reviews/detail/{{ review.uid }}/" class="link link-hover">{{ review.title }}</a></li>
+            <li>Signaler</li>
+        </ul>
+    </div>
+
+    <div class="max-w-2xl mx-auto">
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h1 class="card-title text-2xl mb-6">
+                    <i class="fas fa-flag text-error mr-2"></i>
+                    Signaler un avis
+                </h1>
+
+                <!-- Review Preview -->
+                <div class="bg-base-200 rounded-lg p-4 mb-6">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="avatar placeholder">
+                            <div class="bg-neutral text-neutral-content rounded-full w-10">
+                                <span class="text-sm">{{ review.user.username|first|upper }}</span>
+                            </div>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold">{{ review.title }}</h3>
+                            <div class="flex items-center gap-2">
+                                <div class="rating rating-sm">
+                                    {% for i in "12345" %}
+                                        {% if forloop.counter <= review.rating %}
+                                            <input type="radio" class="mask mask-star-2 bg-orange-400" checked disabled>
+                                        {% else %}
+                                            <input type="radio" class="mask mask-star-2 bg-gray-300" disabled>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                                <span class="text-sm text-base-content/70">par {{ review.user.username }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-sm text-base-content/80">{{ review.content|truncatewords:30 }}</p>
+                </div>
+
+                <!-- Report Form -->
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="form-control mb-6">
+                        <label class="label">
+                            <span class="label-text font-semibold">Raison du signalement *</span>
+                        </label>
+                        {{ form.reason }}
+                        {% if form.reason.errors %}
+                            <div class="label">
+                                <span class="label-text-alt text-error">{{ form.reason.errors.0 }}</span>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-control mb-6">
+                        <label class="label">
+                            <span class="label-text font-semibold">Description (optionnel)</span>
+                        </label>
+                        {{ form.description }}
+                        {% if form.description.errors %}
+                            <div class="label">
+                                <span class="label-text-alt text-error">{{ form.description.errors.0 }}</span>
+                            </div>
+                        {% endif %}
+                        <div class="label">
+                            <span class="label-text-alt">Fournissez plus de détails sur le problème (minimum 10 caractères)</span>
+                        </div>
+                    </div>
+
+                    <!-- Guidelines -->
+                    <div class="alert alert-info mb-6">
+                        <i class="fas fa-info-circle"></i>
+                        <div>
+                            <h3 class="font-bold">Rappel des règles</h3>
+                            <div class="text-sm">
+                                <p>Nous examinons tous les signalements. Un avis peut être signalé pour :</p>
+                                <ul class="list-disc list-inside mt-2 space-y-1">
+                                    <li>Contenu inapproprié ou offensant</li>
+                                    <li>Spam ou publicité</li>
+                                    <li>Avis faux ou trompeurs</li>
+                                    <li>Informations personnelles</li>
+                                    <li>Contenu non pertinent</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Submit Buttons -->
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <button type="submit" class="btn btn-error flex-1">
+                            <i class="fas fa-flag mr-2"></i>
+                            Envoyer le signalement
+                        </button>
+                        <a href="/products/reviews/detail/{{ review.uid }}/" class="btn btn-outline flex-1">
+                            <i class="fas fa-arrow-left mr-2"></i>
+                            Annuler
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

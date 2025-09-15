@@ -1,54 +1,198 @@
+{% extends 'base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="fr" dir="ltr">
-  <head>
-    <meta charset="utf-8">
-    <title>Online Shop</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-      integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
-      crossorigin="anonymous">
-    <link rel="stylesheet" href="{% static 'registration/main.css' %}">
-  </head>
-  <body>
-    <div class="container container-sm container-md">
-        <div class="container form">
-          {% if messages %}
-            <ul class="messages">
-              {% for message in messages %}
-                <li class="alert alert-success">{{ message }}</li>
-              {% endfor %}
-            </ul>
-          {% endif %}
-          {% if form.errors %}
-            {% for error in form.non_field_errors %}
-              <p class="alert alert-danger">{{ error }}<p>
-            {% endfor %}
-          {% endif %}
-          <form class="" action="{% url 'login' %}" method="post">
-            {% csrf_token %}
-            <div class="mb-3">
-              <label for="formGroupExampleInput" class="form-label">Email</label>
-              <input type="text" class="form-control" id="formGrouempExampleInput"
-                placeholder="Example input placeholder" name="username">
-              </div>
-              <div class="mb-3">
-              <label for="formGroupExampleInput2" class="form-label">Mot de passe</label>
-              <input type="password" class="form-control" id="formGroupExampleInput2"
-                name="password"
-                placeholder="Another input placeholder">
+
+{% block title %}Connexion - Boutique{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-primary/10 via-base-100 to-secondary/10 flex items-center justify-center p-4">
+    <div class="card w-full max-w-md shadow-2xl bg-base-100 animate-fade-in">
+        <div class="card-body">
+            <!-- Header -->
+            <div class="text-center mb-6">
+                <div class="avatar placeholder mb-4">
+                    <div class="bg-primary text-primary-content rounded-full w-16">
+                        <i class="fas fa-user text-2xl"></i>
+                    </div>
+                </div>
+                <h1 class="text-3xl font-bold gradient-text">Connexion</h1>
+                <p class="text-base-content/70 mt-2">Accédez à votre compte</p>
             </div>
-            <div class="col-auto">
-              <button type="submit" class="btn btn-primary mb-3">Se connecter</button>
-              <a href="{% url 'register' %}" class="btn btn-secondary mb-3">S'inscrire</a>
+
+            <!-- Messages -->
+            {% if messages %}
+                <div class="space-y-2 mb-4">
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags|default:'info' }} animate-slide-in" role="alert">
+                            <i class="fas fa-info-circle"></i>
+                            <span>{{ message }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <!-- Form Errors -->
+            {% if form.errors %}
+                <div class="space-y-2 mb-4">
+                    {% for error in form.non_field_errors %}
+                        <div class="alert alert-error animate-shake" role="alert">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <span>{{ error }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <!-- Login Form -->
+            <form action="{% url 'users:login' %}" method="post" class="space-y-4">
+                {% csrf_token %}
+                
+                <!-- Email Field -->
+                <div class="form-control">
+                    <label class="label" for="id_username">
+                        <span class="label-text font-medium">
+                            <i class="fas fa-envelope mr-2"></i>Email
+                        </span>
+                    </label>
+                    <input 
+                        type="email" 
+                        name="username" 
+                        id="id_username"
+                        class="input input-bordered w-full focus-ring transition-all hover-scale" 
+                        placeholder="votre@email.com"
+                        required
+                        autocomplete="email"
+                        aria-describedby="email-help"
+                    >
+                    <div id="email-help" class="sr-only">Entrez votre adresse email</div>
+                </div>
+
+                <!-- Password Field -->
+                <div class="form-control">
+                    <label class="label" for="id_password">
+                        <span class="label-text font-medium">
+                            <i class="fas fa-lock mr-2"></i>Mot de passe
+                        </span>
+                    </label>
+                    <div class="relative">
+                        <input 
+                            type="password" 
+                            name="password" 
+                            id="id_password"
+                            class="input input-bordered w-full focus-ring transition-all hover-scale pr-12" 
+                            placeholder="••••••••"
+                            required
+                            autocomplete="current-password"
+                            aria-describedby="password-help"
+                        >
+                        <button 
+                            type="button" 
+                            class="absolute right-3 top-1/2 transform -translate-y-1/2 text-base-content/50 hover:text-base-content transition-colors"
+                            onclick="togglePassword('id_password')"
+                            aria-label="Afficher/masquer le mot de passe"
+                        >
+                            <i class="fas fa-eye" id="password-icon"></i>
+                        </button>
+                    </div>
+                    <div id="password-help" class="sr-only">Entrez votre mot de passe</div>
+                </div>
+
+                <!-- Remember Me & Forgot Password -->
+                <div class="flex items-center justify-between">
+                    <label class="label cursor-pointer">
+                        <input type="checkbox" class="checkbox checkbox-primary checkbox-sm" name="remember_me">
+                        <span class="label-text ml-2">Se souvenir de moi</span>
+                    </label>
+                    <a href="#" class="link link-primary text-sm hover-scale transition-transform">
+                        Mot de passe oublié ?
+                    </a>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="form-control mt-6">
+                    <button 
+                        type="submit" 
+                        class="btn btn-primary w-full hover-glow transition-all animate-pulse-slow"
+                        id="login-btn"
+                    >
+                        <i class="fas fa-sign-in-alt mr-2"></i>
+                        Se connecter
+                    </button>
+                </div>
+            </form>
+
+            <!-- Divider -->
+            <div class="divider">
+                <span class="text-base-content/50">ou</span>
             </div>
-          </form>
+
+            <!-- Register Link -->
+            <div class="text-center">
+                <p class="text-base-content/70 mb-3">
+                    Pas encore de compte ?
+                </p>
+                <a 
+                    href="{% url 'users:register' %}" 
+                    class="btn btn-outline btn-primary w-full hover-scale transition-all"
+                >
+                    <i class="fas fa-user-plus mr-2"></i>
+                    Créer un compte
+                </a>
+            </div>
+
+            <!-- Security Notice -->
+            <div class="alert alert-info mt-4">
+                <i class="fas fa-shield-alt"></i>
+                <div>
+                    <div class="font-medium">Sécurité</div>
+                    <div class="text-sm">Vos données sont protégées par un chiffrement de niveau bancaire</div>
+                </div>
+            </div>
         </div>
     </div>
+</div>
 
-    <script
-      src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
-      integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
-      crossorigin="anonymous"></script>
-  </body>
-</html>
+<script>
+// Toggle password visibility
+function togglePassword(inputId) {
+    const input = document.getElementById(inputId);
+    const icon = document.getElementById('password-icon');
+    
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    } else {
+        input.type = 'password';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+    }
+}
+
+// Form validation and loading state
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const loginBtn = document.getElementById('login-btn');
+    
+    form.addEventListener('submit', function(e) {
+        // Add loading state
+        loginBtn.innerHTML = '<span class="loading loading-spinner loading-sm mr-2"></span>Connexion...';
+        loginBtn.disabled = true;
+        loginBtn.classList.add('loading');
+        
+        // Re-enable after 3 seconds (in case of error)
+        setTimeout(() => {
+            loginBtn.innerHTML = '<i class="fas fa-sign-in-alt mr-2"></i>Se connecter';
+            loginBtn.disabled = false;
+            loginBtn.classList.remove('loading');
+        }, 3000);
+    });
+    
+    // Add ripple effect to buttons
+    document.querySelectorAll('.btn').forEach(button => {
+        button.addEventListener('click', function(e) {
+            createRipple(e, this);
+        });
+    });
+});
+</script>
+{% endblock %}

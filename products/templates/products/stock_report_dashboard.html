@@ -1,0 +1,343 @@
+{% extends 'manager/base.html' %}
+{% load static %}
+
+{% block title %}Rapports de Stock - Gestionnaire{% endblock %}
+{% block page_title %}Rapports de Stock{% endblock %}
+{% block page_description %}Analyses et rapports détaillés des stocks{% endblock %}
+
+{% block content %}
+<!-- Statistiques principales -->
+<div class="row mb-4">
+  <div class="col-md-3 mb-3">
+    <div class="card stat-card">
+      <div class="card-body text-center">
+        <i class="fas fa-boxes fa-2x mb-2"></i>
+        <h3>{{ summary.total_products }}</h3>
+        <p class="mb-0">Produits Actifs</p>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-3 mb-3">
+    <div class="card stat-card warning">
+      <div class="card-body text-center">
+        <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+        <h3>{{ summary.low_stock_products }}</h3>
+        <p class="mb-0">Stock Faible</p>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-3 mb-3">
+    <div class="card stat-card danger">
+      <div class="card-body text-center">
+        <i class="fas fa-times-circle fa-2x mb-2"></i>
+        <h3>{{ summary.out_of_stock_products }}</h3>
+        <p class="mb-0">Rupture de Stock</p>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-3 mb-3">
+    <div class="card stat-card success">
+      <div class="card-body text-center">
+        <i class="fas fa-dollar-sign fa-2x mb-2"></i>
+        <h3>{{ summary.total_stock_value|floatformat:0 }}</h3>
+        <p class="mb-0">Valeur Stock (GNF)</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Actions rapides -->
+<div class="row mb-4">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header">
+        <h5><i class="fas fa-tools"></i> Actions Rapides</h5>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-2 mb-2">
+            <a href="{% url 'products:reports:stock_value' %}" class="btn btn-primary w-100">
+              <i class="fas fa-chart-line"></i> Valeur Stock
+            </a>
+          </div>
+          <div class="col-md-2 mb-2">
+            <a href="{% url 'products:reports:movements' %}" class="btn btn-info w-100">
+              <i class="fas fa-history"></i> Mouvements
+            </a>
+          </div>
+          <div class="col-md-2 mb-2">
+            <a href="{% url 'products:reports:low_stock' %}" class="btn btn-warning w-100">
+              <i class="fas fa-exclamation-triangle"></i> Stock Faible
+            </a>
+          </div>
+          <div class="col-md-2 mb-2">
+            <a href="{% url 'products:reports:export' %}?type=csv&report=products" class="btn btn-success w-100">
+              <i class="fas fa-download"></i> Export CSV
+            </a>
+          </div>
+          <div class="col-md-2 mb-2">
+            <a href="{% url 'products:reports:export' %}?type=json&report=products" class="btn btn-secondary w-100">
+              <i class="fas fa-file-code"></i> Export JSON
+            </a>
+          </div>
+          <div class="col-md-2 mb-2">
+            <a href="/products/stock/" class="btn btn-outline-secondary w-100">
+              <i class="fas fa-arrow-left"></i> Retour Stock
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <!-- Top produits par valeur -->
+  <div class="col-md-6 mb-4">
+    <div class="card">
+      <div class="card-header">
+        <h5><i class="fas fa-trophy text-warning"></i> Top Produits (Valeur)</h5>
+      </div>
+      <div class="card-body">
+        {% if top_products_by_value %}
+        <div class="table-responsive">
+          <table class="table table-sm">
+            <thead>
+              <tr>
+                <th>Produit</th>
+                <th>Stock</th>
+                <th>Valeur</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for product in top_products_by_value %}
+              <tr>
+                <td>
+                  <strong>{{ product.name }}</strong>
+                  <br><small class="text-muted">{{ product.sku|default:"N/A" }}</small>
+                </td>
+                <td>
+                  <span class="badge bg-{% if product.is_out_of_stock %}danger{% elif product.is_low_stock %}warning{% else %}success{% endif %}">
+                    {{ product.quantity }}
+                  </span>
+                </td>
+                <td>
+                  <strong>{{ product.stock_value|floatformat:0 }} GNF</strong>
+                </td>
+                <td>
+                  <a href="/products/stock/products/{{ product.uid }}/" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-eye"></i>
+                  </a>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <p class="text-muted text-center">Aucun produit</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  
+  <!-- Top produits par mouvements -->
+  <div class="col-md-6 mb-4">
+    <div class="card">
+      <div class="card-header">
+        <h5><i class="fas fa-chart-bar text-info"></i> Top Produits (Mouvements)</h5>
+      </div>
+      <div class="card-body">
+        {% if top_products_by_movements %}
+        <div class="table-responsive">
+          <table class="table table-sm">
+            <thead>
+              <tr>
+                <th>Produit</th>
+                <th>Mouvements</th>
+                <th>Stock</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for product in top_products_by_movements %}
+              <tr>
+                <td>
+                  <strong>{{ product.name }}</strong>
+                  <br><small class="text-muted">{{ product.sku|default:"N/A" }}</small>
+                </td>
+                <td>
+                  <span class="badge bg-info">{{ product.movement_count }}</span>
+                </td>
+                <td>
+                  <span class="badge bg-{% if product.is_out_of_stock %}danger{% elif product.is_low_stock %}warning{% else %}success{% endif %}">
+                    {{ product.quantity }}
+                  </span>
+                </td>
+                <td>
+                  <a href="/products/stock/products/{{ product.uid }}/" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-eye"></i>
+                  </a>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <p class="text-muted text-center">Aucun mouvement récent</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <!-- Mouvements par type -->
+  <div class="col-md-6 mb-4">
+    <div class="card">
+      <div class="card-header">
+        <h5><i class="fas fa-chart-pie text-success"></i> Mouvements par Type (30j)</h5>
+      </div>
+      <div class="card-body">
+        {% if movements_by_type %}
+        <div class="table-responsive">
+          <table class="table table-sm">
+            <thead>
+              <tr>
+                <th>Type</th>
+                <th>Nombre</th>
+                <th>Quantité</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for movement in movements_by_type %}
+              <tr>
+                <td>
+                  <span class="badge bg-{% if movement.movement_type == 'in' %}success{% elif movement.movement_type == 'out' %}danger{% else %}info{% endif %}">
+                    {{ movement.movement_type|title }}
+                  </span>
+                </td>
+                <td>{{ movement.count }}</td>
+                <td>{{ movement.total_quantity }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <p class="text-muted text-center">Aucun mouvement récent</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  
+  <!-- Alertes par type -->
+  <div class="col-md-6 mb-4">
+    <div class="card">
+      <div class="card-header">
+        <h5><i class="fas fa-bell text-warning"></i> Alertes Actives</h5>
+      </div>
+      <div class="card-body">
+        {% if alerts_by_type %}
+        <div class="table-responsive">
+          <table class="table table-sm">
+            <thead>
+              <tr>
+                <th>Type d'Alerte</th>
+                <th>Nombre</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for alert in alerts_by_type %}
+              <tr>
+                <td>
+                  <span class="badge bg-{% if alert.alert_type == 'out_of_stock' %}danger{% elif alert.alert_type == 'low_stock' %}warning{% else %}info{% endif %}">
+                    {{ alert.alert_type|title }}
+                  </span>
+                </td>
+                <td>{{ alert.count }}</td>
+                <td>
+                  <a href="/products/stock/alerts/?type={{ alert.alert_type }}" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-eye"></i>
+                  </a>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <p class="text-muted text-center">Aucune alerte active</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Graphiques -->
+<div class="row">
+  <div class="col-md-12">
+    <div class="card">
+      <div class="card-header">
+        <h5><i class="fas fa-chart-line"></i> Tendance des Mouvements (7 derniers jours)</h5>
+      </div>
+      <div class="card-body">
+        {% if daily_movements %}
+        <canvas id="movementsChart" width="400" height="100"></canvas>
+        {% else %}
+        <p class="text-muted text-center">Aucune donnée disponible</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+{% if daily_movements %}
+// Graphique des mouvements
+const ctx = document.getElementById('movementsChart').getContext('2d');
+const movementsChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: [
+            {% for movement in daily_movements %}
+            '{{ movement.day|date:"d/m" }}'{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ],
+        datasets: [{
+            label: 'Nombre de mouvements',
+            data: [
+                {% for movement in daily_movements %}
+                {{ movement.count }}{% if not forloop.last %},{% endif %}
+                {% endfor %}
+            ],
+            borderColor: 'rgb(75, 192, 192)',
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            tension: 0.1
+        }]
+    },
+    options: {
+        responsive: true,
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+{% endif %}
+
+// Auto-refresh toutes les 5 minutes
+setInterval(function() {
+    location.reload();
+}, 300000);
+</script>
+{% endblock %}

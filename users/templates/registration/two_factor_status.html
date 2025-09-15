@@ -1,0 +1,275 @@
+{% extends 'theme/templates/base.html' %}
+{% load static %}
+
+{% block title %}Statut 2FA{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 py-12">
+    <div class="container mx-auto px-4">
+        <div class="max-w-4xl mx-auto">
+            <!-- Header -->
+            <div class="text-center mb-8 animate-fade-in">
+                <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-full mb-4">
+                    <i class="fas fa-shield-alt text-3xl text-white"></i>
+                </div>
+                <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2">Statut 2FA</h1>
+                <p class="text-gray-600 dark:text-gray-300">Gérez votre authentification à deux facteurs</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Main Status Card -->
+                <div class="lg:col-span-2">
+                    <div class="card bg-white dark:bg-gray-800 shadow-2xl animate-slide-in">
+                        <div class="card-body">
+                            <h2 class="card-title text-2xl mb-6">
+                                <i class="fas fa-user-shield text-primary mr-2"></i>
+                                Statut de votre compte
+                            </h2>
+                            
+                            <!-- Status Overview -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                                <div class="stat bg-base-200 rounded-lg p-6">
+                                    <div class="stat-figure text-primary">
+                                        <i class="fas fa-shield-alt text-3xl"></i>
+                                    </div>
+                                    <div class="stat-title">Authentification 2FA</div>
+                                    <div class="stat-value text-2xl">
+                                        {% if user.two_factor_enabled %}
+                                            <span class="text-success">Activée</span>
+                                        {% else %}
+                                            <span class="text-warning">Désactivée</span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="stat-desc">
+                                        {% if user.two_factor_enabled %}
+                                            Votre compte est protégé
+                                        {% else %}
+                                            Activez la 2FA pour plus de sécurité
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <div class="stat bg-base-200 rounded-lg p-6">
+                                    <div class="stat-figure text-info">
+                                        <i class="fas fa-mobile-alt text-3xl"></i>
+                                    </div>
+                                    <div class="stat-title">Méthode de vérification</div>
+                                    <div class="stat-value text-lg">
+                                        {{ user.get_two_factor_method_display|default:"Non configurée" }}
+                                    </div>
+                                    <div class="stat-desc">
+                                        {% if user.phone_number %}
+                                            {{ user.phone_number }}
+                                        {% else %}
+                                            Aucun numéro configuré
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Detailed Information -->
+                            <div class="space-y-6">
+                                <div class="bg-base-200 p-6 rounded-lg">
+                                    <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                                        <i class="fas fa-info-circle text-info"></i>
+                                        Informations détaillées
+                                    </h3>
+                                    <div class="space-y-3">
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-base-content/70">Statut 2FA :</span>
+                                            <span class="badge badge-{% if user.two_factor_enabled %}success{% else %}warning{% endif %} badge-lg">
+                                                {% if user.two_factor_enabled %}Activée{% else %}Désactivée{% endif %}
+                                            </span>
+                                        </div>
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-base-content/70">Méthode :</span>
+                                            <span class="font-medium">{{ user.get_two_factor_method_display|default:"Non configurée" }}</span>
+                                        </div>
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-base-content/70">Numéro de téléphone :</span>
+                                            <span class="font-medium">{{ user.phone_number|default:"Non configuré" }}</span>
+                                        </div>
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-base-content/70">Dernière activation :</span>
+                                            <span class="font-medium">{{ user.date_joined|date:"d/m/Y H:i" }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Security Level -->
+                                <div class="bg-base-200 p-6 rounded-lg">
+                                    <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                                        <i class="fas fa-lock text-success"></i>
+                                        Niveau de sécurité
+                                    </h3>
+                                    <div class="space-y-4">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-4 h-4 rounded-full {% if user.two_factor_enabled %}bg-success{% else %}bg-warning{% endif %}"></div>
+                                            <span class="font-medium">
+                                                {% if user.two_factor_enabled %}
+                                                    Sécurité élevée - 2FA activée
+                                                {% else %}
+                                                    Sécurité standard - 2FA recommandée
+                                                {% endif %}
+                                            </span>
+                                        </div>
+                                        <div class="progress progress-primary w-full">
+                                            <div class="progress-bar" style="width: {% if user.two_factor_enabled %}100{% else %}60{% endif %}%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sidebar Actions -->
+                <div class="lg:col-span-1 space-y-6">
+                    <!-- Quick Actions -->
+                    <div class="card bg-white dark:bg-gray-800 shadow-xl animate-slide-in">
+                        <div class="card-body">
+                            <h3 class="card-title text-xl mb-6">
+                                <i class="fas fa-bolt text-primary mr-2"></i>
+                                Actions rapides
+                            </h3>
+                            
+                            <div class="space-y-4">
+                                {% if not user.two_factor_enabled %}
+                                <a href="{% url 'users:two_factor_setup' %}" class="btn btn-primary w-full hover-glow transition-all">
+                                    <i class="fas fa-shield-alt mr-2"></i>
+                                    Activer la 2FA
+                                </a>
+                                {% else %}
+                                <a href="{% url 'users:two_factor_disable' %}" class="btn btn-error w-full hover-scale transition-all">
+                                    <i class="fas fa-times mr-2"></i>
+                                    Désactiver la 2FA
+                                </a>
+                                {% endif %}
+                                
+                                <a href="{% url 'users:two_factor_backup_codes' %}" class="btn btn-outline btn-warning w-full hover-scale transition-all">
+                                    <i class="fas fa-key mr-2"></i>
+                                    Codes de sauvegarde
+                                </a>
+                                
+                                <a href="{% url 'users:user_profile' %}" class="btn btn-outline btn-secondary w-full hover-scale transition-all">
+                                    <i class="fas fa-user mr-2"></i>
+                                    Mon profil
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Security Tips -->
+                    <div class="card bg-white dark:bg-gray-800 shadow-xl animate-slide-in">
+                        <div class="card-body">
+                            <h3 class="card-title text-xl mb-6">
+                                <i class="fas fa-lightbulb text-warning mr-2"></i>
+                                Conseils de sécurité
+                            </h3>
+                            
+                            <div class="space-y-4">
+                                <div class="flex items-start gap-3">
+                                    <i class="fas fa-check text-success mt-1"></i>
+                                    <div>
+                                        <div class="font-semibold text-sm">Activez la 2FA</div>
+                                        <div class="text-xs text-gray-500">Protégez votre compte avec l'authentification à deux facteurs</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-start gap-3">
+                                    <i class="fas fa-check text-success mt-1"></i>
+                                    <div>
+                                        <div class="font-semibold text-sm">Sauvegardez vos codes</div>
+                                        <div class="text-xs text-gray-500">Gardez vos codes de sauvegarde en lieu sûr</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-start gap-3">
+                                    <i class="fas fa-check text-success mt-1"></i>
+                                    <div>
+                                        <div class="font-semibold text-sm">Numéro à jour</div>
+                                        <div class="text-xs text-gray-500">Assurez-vous que votre numéro de téléphone est correct</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-start gap-3">
+                                    <i class="fas fa-exclamation-triangle text-warning mt-1"></i>
+                                    <div>
+                                        <div class="font-semibold text-sm">Ne partagez jamais</div>
+                                        <div class="text-xs text-gray-500">Ne partagez jamais vos codes de vérification</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activity -->
+                    <div class="card bg-white dark:bg-gray-800 shadow-xl animate-slide-in">
+                        <div class="card-body">
+                            <h3 class="card-title text-xl mb-6">
+                                <i class="fas fa-history text-info mr-2"></i>
+                                Activité récente
+                            </h3>
+                            
+                            <div class="space-y-3">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-2 h-2 bg-success rounded-full"></div>
+                                    <div>
+                                        <div class="text-sm font-medium">Connexion réussie</div>
+                                        <div class="text-xs text-gray-500">Il y a quelques minutes</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-center gap-3">
+                                    <div class="w-2 h-2 bg-info rounded-full"></div>
+                                    <div>
+                                        <div class="text-sm font-medium">Vérification 2FA</div>
+                                        <div class="text-xs text-gray-500">Il y a 1 heure</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-center gap-3">
+                                    <div class="w-2 h-2 bg-warning rounded-full"></div>
+                                    <div>
+                                        <div class="text-sm font-medium">Tentative de connexion</div>
+                                        <div class="text-xs text-gray-500">Il y a 2 heures</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add ripple effect to buttons
+    document.querySelectorAll('.btn').forEach(button => {
+        button.addEventListener('click', function(e) {
+            createRipple(e, this);
+        });
+    });
+
+    // Animate progress bar
+    const progressBar = document.querySelector('.progress-bar');
+    if (progressBar) {
+        setTimeout(() => {
+            progressBar.style.transition = 'width 2s ease-in-out';
+        }, 500);
+    }
+
+    // Animate stats
+    const stats = document.querySelectorAll('.stat');
+    stats.forEach((stat, index) => {
+        setTimeout(() => {
+            stat.classList.add('animate-fade-in');
+        }, index * 200);
+    });
+});
+</script>
+{% endblock %}

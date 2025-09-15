@@ -1,0 +1,459 @@
+{% load product_filters %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Reçu {{ receipt_number }}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #fff;
+            font-size: 14px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 10px 10px 0 0;
+            text-align: center;
+            margin-bottom: 0;
+        }
+        
+        .company-name {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .company-details {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        /* Receipt Title */
+        .receipt-title {
+            background: #f8f9fa;
+            color: #28a745;
+            text-align: center;
+            font-size: 32px;
+            font-weight: bold;
+            padding: 20px;
+            border: 2px solid #e9ecef;
+            border-top: none;
+            letter-spacing: 2px;
+        }
+        
+        /* Receipt Info */
+        .receipt-info {
+            display: flex;
+            justify-content: space-between;
+            background: #fff;
+            padding: 30px;
+            border: 1px solid #e9ecef;
+            border-top: none;
+        }
+        
+        .receipt-info-left, .receipt-info-right {
+            flex: 1;
+        }
+        
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .info-table th {
+            background: #f8f9fa;
+            padding: 12px;
+            text-align: left;
+            font-weight: bold;
+            color: #495057;
+            border: 1px solid #e9ecef;
+        }
+        
+        .info-table td {
+            padding: 12px;
+            border: 1px solid #e9ecef;
+            vertical-align: top;
+        }
+        
+        /* Status Badge */
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .status-paid {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        /* Items Table */
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: #fff;
+            border: 1px solid #e9ecef;
+        }
+        
+        .items-table th {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: bold;
+        }
+        
+        .items-table td {
+            padding: 15px;
+            border-bottom: 1px solid #e9ecef;
+            vertical-align: top;
+        }
+        
+        .items-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        
+        .items-table tr:hover {
+            background: #e8f5e8;
+        }
+        
+        .text-center {
+            text-align: center;
+        }
+        
+        .text-right {
+            text-align: right;
+        }
+        
+        /* Total Section */
+        .total-section {
+            background: #e8f5e8;
+            padding: 20px;
+            border: 1px solid #e9ecef;
+            border-top: none;
+        }
+        
+        .total-line {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 16px;
+        }
+        
+        .total-line.final {
+            border-top: 2px solid #28a745;
+            margin-top: 10px;
+            padding-top: 15px;
+            font-size: 20px;
+            font-weight: bold;
+            color: #28a745;
+        }
+        
+        /* Payment Info */
+        .payment-info {
+            background: #d1ecf1;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border-left: 4px solid #17a2b8;
+        }
+        
+        .payment-info h4 {
+            color: #0c5460;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        
+        /* Order Status */
+        .order-status {
+            background: #fff3cd;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border-left: 4px solid #ffc107;
+        }
+        
+        .order-status h4 {
+            color: #856404;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        
+        /* Notes */
+        .notes-section {
+            background: #f8d7da;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border-left: 4px solid #dc3545;
+        }
+        
+        .notes-section h4 {
+            color: #721c24;
+            margin-bottom: 10px;
+        }
+        
+        /* Footer */
+        .footer {
+            background: #343a40;
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 0 0 10px 10px;
+            margin-top: 20px;
+        }
+        
+        .footer p {
+            margin: 5px 0;
+        }
+        
+        .footer p:first-child {
+            font-size: 18px;
+            font-weight: bold;
+            color: #28a745;
+        }
+        
+        /* Success Badge */
+        .success-badge {
+            display: inline-block;
+            background: #28a745;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 25px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        /* Responsive */
+        @media print {
+            body {
+                font-size: 12px;
+            }
+            
+            .container {
+                max-width: none;
+                padding: 0;
+            }
+            
+            .header, .footer {
+                -webkit-print-color-adjust: exact;
+                color-adjust: exact;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .receipt-info {
+                flex-direction: column;
+            }
+            
+            .receipt-info-left, .receipt-info-right {
+                margin-bottom: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="company-name">{{ company_name }}</div>
+            <div class="company-details">
+                {{ company_address }}<br>
+                Tél: {{ company_phone }} | Email: {{ company_email }}
+            </div>
+        </div>
+
+        <!-- Receipt Title -->
+        <div class="receipt-title">REÇU DE PAIEMENT</div>
+
+        <!-- Receipt Info -->
+        <div class="receipt-info">
+            <div class="receipt-info-left">
+                <table class="info-table">
+                    <tr>
+                        <th colspan="2">Client:</th>
+                    </tr>
+                    <tr>
+                        <td colspan="2">
+                            <strong>{{ order.customer.first_name }} {{ order.customer.last_name }}</strong><br>
+                            {{ order.customer.email }}<br>
+                            {{ order.delivery_address }}<br>
+                            Tél: {{ order.delivery_phone }}
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            
+            <div class="receipt-info-right">
+                <table class="info-table">
+                    <tr>
+                        <th>N° Reçu:</th>
+                        <td><strong>{{ receipt_number }}</strong></td>
+                    </tr>
+                    <tr>
+                        <th>Date de paiement:</th>
+                        <td>{{ receipt_date }}</td>
+                    </tr>
+                    <tr>
+                        <th>N° Commande:</th>
+                        <td>{{ order.order_number|default:order.uid }}</td>
+                    </tr>
+                    <tr>
+                        <th>Statut:</th>
+                        <td>
+                            <span class="status-badge status-paid">✅ Payé</span>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- Items -->
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th>Description</th>
+                    <th class="text-center">Quantité</th>
+                    <th class="text-right">Prix unitaire</th>
+                    <th class="text-right">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in order.items.all %}
+                <tr>
+                    <td>
+                        <strong>{{ item.product.name }}</strong><br>
+                        <small style="color: #6c757d;">{{ item.product.category.name }}</small>
+                    </td>
+                    <td class="text-center">{{ item.quantity }}</td>
+                    <td class="text-right">{{ item.price_at_time|floatformat:0 }} FCFA</td>
+                    <td class="text-right"><strong>{{ item.price_at_time|floatformat:0|mul:item.quantity }} FCFA</strong></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Totals -->
+        <div class="total-section">
+            <div class="total-line">
+                <span>Sous-total:</span>
+                <span>{{ order.subtotal|floatformat:0 }} FCFA</span>
+            </div>
+            <div class="total-line">
+                <span>Frais de livraison:</span>
+                <span>{{ order.delivery_fee|floatformat:0 }} FCFA</span>
+            </div>
+            <div class="total-line final">
+                <span>TOTAL PAYÉ:</span>
+                <span>{{ order.total_amount|floatformat:0 }} FCFA</span>
+            </div>
+        </div>
+
+        <!-- Payment Information -->
+        {% if order.payments.exists %}
+        <div class="payment-info">
+            <h4>💳 Détails du paiement</h4>
+            {% for payment in order.payments.all %}
+            <table class="info-table" style="margin-bottom: 15px;">
+                <tr>
+                    <th>Méthode de paiement:</th>
+                    <td><strong>{{ payment.get_method_display }}</strong></td>
+                </tr>
+                <tr>
+                    <th>Montant payé:</th>
+                    <td><strong style="color: #28a745; font-size: 18px;">{{ payment.amount|floatformat:0 }} FCFA</strong></td>
+                </tr>
+                <tr>
+                    <th>Date et heure:</th>
+                    <td>{{ payment.created_at|date:"d/m/Y H:i" }}</td>
+                </tr>
+                {% if payment.orange_money_phone %}
+                <tr>
+                    <th>Téléphone Orange Money:</th>
+                    <td>{{ payment.orange_money_phone }}</td>
+                </tr>
+                {% endif %}
+                {% if payment.card_last_four %}
+                <tr>
+                    <th>Carte utilisée:</th>
+                    <td>**** **** **** {{ payment.card_last_four }}</td>
+                </tr>
+                {% endif %}
+                {% if payment.cash_received %}
+                <tr>
+                    <th>Montant reçu:</th>
+                    <td>{{ payment.cash_received|floatformat:0 }} FCFA</td>
+                </tr>
+                {% if payment.cash_change %}
+                <tr>
+                    <th>Monnaie rendue:</th>
+                    <td>{{ payment.cash_change|floatformat:0 }} FCFA</td>
+                </tr>
+                {% endif %}
+                {% endif %}
+            </table>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Order Status -->
+        <div class="order-status">
+            <h4>📦 Statut de la commande</h4>
+            <table class="info-table">
+                <tr>
+                    <th>Statut actuel:</th>
+                    <td><strong>{{ order.get_status_display }}</strong></td>
+                </tr>
+                <tr>
+                    <th>Date de commande:</th>
+                    <td>{{ order.created_at|date:"d/m/Y H:i" }}</td>
+                </tr>
+                {% if order.paid_at %}
+                <tr>
+                    <th>Date de paiement:</th>
+                    <td>{{ order.paid_at|date:"d/m/Y H:i" }}</td>
+                </tr>
+                {% endif %}
+            </table>
+        </div>
+
+        <!-- Notes -->
+        {% if order.delivery_notes %}
+        <div class="notes-section">
+            <h4>📝 Notes de livraison</h4>
+            <p>{{ order.delivery_notes }}</p>
+        </div>
+        {% endif %}
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>✅ Paiement confirmé et reçu !</p>
+            <p>Merci pour votre achat. Votre commande sera traitée dans les plus brefs délais.</p>
+            <p>Pour toute question, contactez-nous au {{ company_phone }} ou par email à {{ company_email }}</p>
+            <p>Reçu généré automatiquement le {{ "now"|date:"d/m/Y H:i" }}</p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,6 +1,369 @@
-Bonjour {{ user.first_name }},
-
-Merci de vous etre inscrit sur notre site. Veuillez cliquer sur le lien suivant
-pour activer votre compte :
-
-http://{{ domain }}{% url 'confirm_user_activation' uid=uid token=token %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Activation de votre compte</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        
+        .email-container {
+            background-color: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="0.5" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+        }
+        
+        .header-content {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .company-name {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header-subtitle {
+            font-size: 16px;
+            opacity: 0.9;
+            margin: 0;
+        }
+        
+        .content {
+            padding: 30px 20px;
+        }
+        
+        .activation-icon {
+            text-align: center;
+            margin: 30px 0;
+        }
+        
+        .activation-icon div {
+            display: inline-block;
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .greeting {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #495057;
+        }
+        
+        .activation-info {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 25px;
+            border-radius: 10px;
+            margin: 25px 0;
+            border-left: 4px solid #667eea;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .activation-info h3 {
+            color: #495057;
+            margin-bottom: 20px;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .cta-section {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            padding: 25px;
+            border-radius: 10px;
+            margin: 25px 0;
+            text-align: center;
+            border: 1px solid #bbdefb;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: bold;
+            font-size: 16px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s ease;
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+        
+        .steps-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .steps-list li {
+            display: flex;
+            align-items: center;
+            margin: 15px 0;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .step-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+        
+        .step-content {
+            flex: 1;
+        }
+        
+        .step-title {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 5px;
+        }
+        
+        .step-description {
+            color: #6c757d;
+            font-size: 14px;
+        }
+        
+        .footer {
+            background: linear-gradient(135deg, #343a40 0%, #495057 100%);
+            color: white;
+            padding: 25px 20px;
+            text-align: center;
+        }
+        
+        .footer p {
+            margin: 5px 0;
+        }
+        
+        .footer-company {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .footer-contact {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .icon {
+            font-size: 20px;
+            margin-right: 8px;
+        }
+        
+        .expiry-notice {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 1px solid #ffeaa7;
+            text-align: center;
+        }
+        
+        .expiry-notice h4 {
+            color: #856404;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        
+        .expiry-notice p {
+            color: #856404;
+            margin: 0;
+            font-size: 14px;
+        }
+        
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            
+            .content {
+                padding: 20px 15px;
+            }
+            
+            .header {
+                padding: 25px 15px;
+            }
+            
+            .company-name {
+                font-size: 24px;
+            }
+            
+            .activation-icon div {
+                width: 60px;
+                height: 60px;
+                font-size: 30px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <div class="header-content">
+                <div class="company-name">{{ company_name }}</div>
+                <p class="header-subtitle">Activation de votre compte</p>
+            </div>
+        </div>
+        
+        <div class="content">
+            <div class="activation-icon">
+                <div>📧</div>
+            </div>
+            
+            <div class="greeting">
+                Bonjour <strong>{{ user.first_name }} {{ user.last_name }}</strong>,
+            </div>
+            
+            <p style="font-size: 16px; color: #495057; margin-bottom: 25px;">
+                Merci de vous être inscrit sur notre site ! Pour finaliser votre inscription et activer votre compte, 
+                veuillez cliquer sur le bouton ci-dessous.
+            </p>
+            
+            <div class="activation-info">
+                <h3>
+                    <span class="icon">🎉</span>
+                    Bienvenue chez nous !
+                </h3>
+                <p style="margin-bottom: 15px; color: #495057;">
+                    Nous sommes ravis de vous compter parmi nos clients. Voici ce qui vous attend :
+                </p>
+                <ul class="steps-list">
+                    <li>
+                        <div class="step-icon">1</div>
+                        <div class="step-content">
+                            <div class="step-title">Accès complet</div>
+                            <div class="step-description">Accédez à tous nos produits et services</div>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="step-icon">2</div>
+                        <div class="step-content">
+                            <div class="step-title">Commandes sécurisées</div>
+                            <div class="step-description">Passez des commandes en toute sécurité</div>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="step-icon">3</div>
+                        <div class="step-content">
+                            <div class="step-title">Suivi des commandes</div>
+                            <div class="step-description">Suivez l'état de vos commandes en temps réel</div>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="step-icon">4</div>
+                        <div class="step-content">
+                            <div class="step-title">Support client</div>
+                            <div class="step-description">Bénéficiez de notre support client dédié</div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="cta-section">
+                <h3 style="color: #1976d2; margin-bottom: 15px;">
+                    <span class="icon">🔗</span>
+                    Activez votre compte
+                </h3>
+                <p style="margin-bottom: 20px; color: #1976d2;">
+                    Cliquez sur le bouton ci-dessous pour activer votre compte :
+                </p>
+                <a href="{{ request.scheme }}://{{ request.get_host }}{% url 'users:activate_account' uidb64=uid token=token %}" class="cta-button">
+                    ✅ Activer mon compte
+                </a>
+            </div>
+            
+            <div class="expiry-notice">
+                <h4>
+                    <span class="icon">⏰</span>
+                    Important
+                </h4>
+                <p>
+                    Ce lien d'activation est valide pendant <strong>24 heures</strong>. 
+                    Si vous ne l'utilisez pas dans ce délai, vous devrez demander un nouveau lien.
+                </p>
+            </div>
+            
+            <p style="font-size: 16px; color: #495057; margin: 25px 0;">
+                Si le bouton ne fonctionne pas, vous pouvez copier et coller ce lien dans votre navigateur :
+            </p>
+            
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 20px 0; word-break: break-all;">
+                <code style="color: #667eea; font-size: 14px;">
+                    {{ request.scheme }}://{{ request.get_host }}{% url 'users:activate_account' uidb64=uid token=token %}
+                </code>
+            </div>
+            
+            <p style="font-size: 16px; color: #495057; font-weight: 500;">
+                Merci de votre confiance et bienvenue dans notre communauté ! 🙏
+            </p>
+        </div>
+        
+        <div class="footer">
+            <p class="footer-company">{{ company_name }}</p>
+            <p class="footer-contact">Tél : {{ company_phone }} | Email : {{ company_email }}</p>
+            <p class="footer-contact">Conakry, Guinée</p>
+        </div>
+    </div>
+</body>
+</html>

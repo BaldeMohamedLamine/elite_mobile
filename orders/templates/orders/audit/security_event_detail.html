@@ -1,0 +1,380 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Détail de l'événement de sécurité{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-slate-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 py-8">
+    <div class="container mx-auto px-4">
+        <!-- Header -->
+        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 animate-fade-in">
+            <div>
+                <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-3">
+                    <div class="w-12 h-12 bg-gradient-to-r from-red-500 to-pink-600 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-exclamation-triangle text-2xl text-white"></i>
+                    </div>
+                    Détail de l'événement de sécurité
+                </h1>
+                <p class="text-gray-600 dark:text-gray-300">Analyse détaillée de l'incident de sécurité</p>
+            </div>
+            <div class="flex flex-wrap gap-3 mt-4 lg:mt-0">
+                <a href="{% url 'orders:security_event_list' %}" class="btn btn-outline btn-secondary hover-scale transition-all">
+                    <i class="fas fa-arrow-left mr-2"></i>
+                    Retour à la liste
+                </a>
+                <a href="{% url 'orders:audit_dashboard' %}" class="btn btn-outline btn-primary hover-scale transition-all">
+                    <i class="fas fa-tachometer-alt mr-2"></i>
+                    Tableau de bord
+                </a>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Contenu principal -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Informations principales -->
+                <div class="card bg-white dark:bg-gray-800 shadow-xl animate-slide-in">
+                    <div class="card-body">
+                        <div class="flex items-center gap-3 mb-6">
+                            <div class="w-8 h-8 bg-{% if security_event.severity == 'critical' %}error{% elif security_event.severity == 'high' %}warning{% elif security_event.severity == 'medium' %}info{% else %}neutral{% endif %} text-{% if security_event.severity == 'critical' %}error{% elif security_event.severity == 'high' %}warning{% elif security_event.severity == 'medium' %}info{% else %}neutral{% endif %}-content rounded-full flex items-center justify-center">
+                                <i class="fas fa-shield-alt"></i>
+                            </div>
+                            <h2 class="card-title text-2xl">Informations principales</h2>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="space-y-4">
+                                <div class="flex justify-between items-center p-3 bg-base-200 rounded-lg">
+                                    <span class="font-semibold">ID unique :</span>
+                                    <code class="text-sm bg-base-300 px-2 py-1 rounded">{{ security_event.uid }}</code>
+                                </div>
+                                
+                                <div class="flex justify-between items-center p-3 bg-base-200 rounded-lg">
+                                    <span class="font-semibold">Type d'événement :</span>
+                                    <span class="badge badge-{% if security_event.severity == 'critical' %}error{% elif security_event.severity == 'high' %}warning{% elif security_event.severity == 'medium' %}info{% else %}neutral{% endif %} badge-lg">
+                                        {{ security_event.get_event_type_display }}
+                                    </span>
+                                </div>
+                                
+                                <div class="flex justify-between items-center p-3 bg-base-200 rounded-lg">
+                                    <span class="font-semibold">Sévérité :</span>
+                                    <span class="badge badge-{% if security_event.severity == 'critical' %}error{% elif security_event.severity == 'high' %}warning{% elif security_event.severity == 'medium' %}info{% else %}neutral{% endif %} badge-lg">
+                                        {{ security_event.get_severity_display }}
+                                    </span>
+                                </div>
+                                
+                                <div class="flex justify-between items-center p-3 bg-base-200 rounded-lg">
+                                    <span class="font-semibold">Utilisateur :</span>
+                                    {% if security_event.user %}
+                                        <div class="flex items-center gap-2">
+                                            <div class="avatar placeholder">
+                                                <div class="bg-primary text-primary-content rounded-full w-8">
+                                                    <span class="text-xs">{{ security_event.user.email|first|upper }}</span>
+                                                </div>
+                                            </div>
+                                            <span class="text-sm">{{ security_event.user.email }}</span>
+                                        </div>
+                                    {% else %}
+                                        <span class="text-gray-500 italic">Anonyme</span>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="flex justify-between items-center p-3 bg-base-200 rounded-lg">
+                                    <span class="font-semibold">Date/Heure :</span>
+                                    <span class="text-sm">{{ security_event.created_at|date:"d/m/Y H:i:s" }}</span>
+                                </div>
+                            </div>
+                            
+                            <div class="space-y-4">
+                                <div class="flex justify-between items-center p-3 bg-base-200 rounded-lg">
+                                    <span class="font-semibold">Adresse IP :</span>
+                                    <code class="text-sm bg-base-300 px-2 py-1 rounded">{{ security_event.ip_address }}</code>
+                                </div>
+                                
+                                <div class="flex justify-between items-center p-3 bg-base-200 rounded-lg">
+                                    <span class="font-semibold">Chemin de requête :</span>
+                                    {% if security_event.request_path %}
+                                        <code class="text-sm bg-base-300 px-2 py-1 rounded">{{ security_event.request_path }}</code>
+                                    {% else %}
+                                        <span class="text-gray-500">Non disponible</span>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="flex justify-between items-center p-3 bg-base-200 rounded-lg">
+                                    <span class="font-semibold">Méthode HTTP :</span>
+                                    {% if security_event.request_method %}
+                                        <span class="badge badge-info">{{ security_event.request_method }}</span>
+                                    {% else %}
+                                        <span class="text-gray-500">Non disponible</span>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="flex justify-between items-center p-3 bg-base-200 rounded-lg">
+                                    <span class="font-semibold">Code de réponse :</span>
+                                    {% if security_event.response_status %}
+                                        <span class="badge badge-{% if security_event.response_status >= 400 %}error{% elif security_event.response_status >= 300 %}warning{% else %}success{% endif %}">
+                                            {{ security_event.response_status }}
+                                        </span>
+                                    {% else %}
+                                        <span class="text-gray-500">Non disponible</span>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="flex justify-between items-center p-3 bg-base-200 rounded-lg">
+                                    <span class="font-semibold">Statut :</span>
+                                    {% if security_event.blocked %}
+                                        <div class="flex items-center gap-2">
+                                            <i class="fas fa-ban text-error"></i>
+                                            <span class="text-error font-medium">Bloqué</span>
+                                        </div>
+                                    {% else %}
+                                        <div class="flex items-center gap-2">
+                                            <i class="fas fa-exclamation text-warning"></i>
+                                            <span class="text-warning font-medium">Non bloqué</span>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Description -->
+                <div class="card bg-white dark:bg-gray-800 shadow-xl animate-slide-in">
+                    <div class="card-body">
+                        <h2 class="card-title text-2xl mb-6">
+                            <i class="fas fa-align-left text-primary mr-2"></i>
+                            Description
+                        </h2>
+                        <div class="prose max-w-none">
+                            <p class="text-base-content/80 leading-relaxed">{{ security_event.description }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action prise -->
+                {% if security_event.action_taken %}
+                <div class="card bg-white dark:bg-gray-800 shadow-xl animate-slide-in">
+                    <div class="card-body">
+                        <h2 class="card-title text-2xl mb-6">
+                            <i class="fas fa-tools text-warning mr-2"></i>
+                            Action prise
+                        </h2>
+                        <div class="bg-warning/10 border border-warning/20 p-4 rounded-lg">
+                            <p class="text-base-content/80">{{ security_event.action_taken }}</p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Données de la requête -->
+                {% if security_event.request_data %}
+                <div class="card bg-white dark:bg-gray-800 shadow-xl animate-slide-in">
+                    <div class="card-body">
+                        <h2 class="card-title text-2xl mb-6">
+                            <i class="fas fa-database text-info mr-2"></i>
+                            Données de la requête
+                        </h2>
+                        <div class="bg-base-200 p-4 rounded-lg">
+                            <pre class="text-sm overflow-x-auto"><code>{{ security_event.request_data|pprint }}</code></pre>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Métadonnées -->
+                {% if security_event.metadata %}
+                <div class="card bg-white dark:bg-gray-800 shadow-xl animate-slide-in">
+                    <div class="card-body">
+                        <h2 class="card-title text-2xl mb-6">
+                            <i class="fas fa-info text-primary mr-2"></i>
+                            Métadonnées
+                        </h2>
+                        <div class="bg-base-200 p-4 rounded-lg">
+                            <pre class="text-sm overflow-x-auto"><code>{{ security_event.metadata|pprint }}</code></pre>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Sidebar -->
+            <div class="space-y-6">
+                <!-- User-Agent -->
+                {% if security_event.user_agent %}
+                <div class="card bg-white dark:bg-gray-800 shadow-xl animate-slide-in">
+                    <div class="card-body">
+                        <h3 class="card-title text-lg mb-4">
+                            <i class="fas fa-desktop text-primary mr-2"></i>
+                            User-Agent
+                        </h3>
+                        <div class="bg-base-200 p-3 rounded-lg">
+                            <p class="text-sm text-base-content/80 break-words">{{ security_event.user_agent }}</p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Actions rapides -->
+                <div class="card bg-white dark:bg-gray-800 shadow-xl animate-slide-in">
+                    <div class="card-body">
+                        <h3 class="card-title text-lg mb-6">
+                            <i class="fas fa-bolt text-warning mr-2"></i>
+                            Actions rapides
+                        </h3>
+                        
+                        <div class="space-y-3">
+                            <a href="{% url 'orders:security_event_list' %}?event_type={{ security_event.event_type }}" class="btn btn-outline btn-primary w-full hover-scale transition-all">
+                                <i class="fas fa-filter mr-2"></i>
+                                Voir les événements similaires
+                            </a>
+                            
+                            <a href="{% url 'orders:security_event_list' %}?ip_address={{ security_event.ip_address }}" class="btn btn-outline btn-warning w-full hover-scale transition-all">
+                                <i class="fas fa-globe mr-2"></i>
+                                Voir les événements de cette IP
+                            </a>
+                            
+                            {% if security_event.user %}
+                            <a href="{% url 'orders:security_event_list' %}?user={{ security_event.user.id }}" class="btn btn-outline btn-info w-full hover-scale transition-all">
+                                <i class="fas fa-user mr-2"></i>
+                                Voir les événements de cet utilisateur
+                            </a>
+                            {% endif %}
+                            
+                            <a href="{% url 'orders:security_event_list' %}?severity={{ security_event.severity }}" class="btn btn-outline btn-error w-full hover-scale transition-all">
+                                <i class="fas fa-exclamation-triangle mr-2"></i>
+                                Voir les événements de même sévérité
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recommandations -->
+                <div class="card bg-white dark:bg-gray-800 shadow-xl animate-slide-in">
+                    <div class="card-body">
+                        <h3 class="card-title text-lg mb-4">
+                            <i class="fas fa-lightbulb text-warning mr-2"></i>
+                            Recommandations
+                        </h3>
+                        
+                        {% if security_event.severity == 'critical' %}
+                            <div class="alert alert-error">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <div>
+                                    <h4 class="font-bold">Action immédiate requise !</h4>
+                                    <ul class="mt-2 space-y-1 text-sm">
+                                        <li>• Bloquer l'IP immédiatement</li>
+                                        <li>• Vérifier les logs système</li>
+                                        <li>• Notifier l'équipe de sécurité</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        {% elif security_event.severity == 'high' %}
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-circle"></i>
+                                <div>
+                                    <h4 class="font-bold">Surveillance renforcée recommandée</h4>
+                                    <ul class="mt-2 space-y-1 text-sm">
+                                        <li>• Surveiller cette IP</li>
+                                        <li>• Vérifier les tentatives répétées</li>
+                                        <li>• Considérer un blocage temporaire</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle"></i>
+                                <div>
+                                    <h4 class="font-bold">Surveillance normale</h4>
+                                    <ul class="mt-2 space-y-1 text-sm">
+                                        <li>• Continuer la surveillance</li>
+                                        <li>• Analyser les tendances</li>
+                                        <li>• Mettre à jour les règles de sécurité</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Informations de sécurité -->
+                <div class="card bg-white dark:bg-gray-800 shadow-xl animate-slide-in">
+                    <div class="card-body">
+                        <h3 class="card-title text-lg mb-4">
+                            <i class="fas fa-shield-alt text-success mr-2"></i>
+                            Informations de sécurité
+                        </h3>
+                        
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm">Niveau de risque :</span>
+                                <span class="badge badge-{% if security_event.severity == 'critical' %}error{% elif security_event.severity == 'high' %}warning{% elif security_event.severity == 'medium' %}info{% else %}neutral{% endif %} badge-sm">
+                                    {{ security_event.get_severity_display }}
+                                </span>
+                            </div>
+                            
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm">Statut :</span>
+                                {% if security_event.blocked %}
+                                    <span class="badge badge-success badge-sm">Bloqué</span>
+                                {% else %}
+                                    <span class="badge badge-warning badge-sm">Non bloqué</span>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm">Source :</span>
+                                {% if security_event.user %}
+                                    <span class="badge badge-info badge-sm">Utilisateur</span>
+                                {% else %}
+                                    <span class="badge badge-secondary badge-sm">Anonyme</span>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm">Géolocalisation :</span>
+                                <span class="badge badge-neutral badge-sm">Non disponible</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add ripple effect to buttons
+    document.querySelectorAll('.btn').forEach(button => {
+        button.addEventListener('click', function(e) {
+            createRipple(e, this);
+        });
+    });
+
+    // Copy to clipboard functionality
+    document.querySelectorAll('code').forEach(code => {
+        code.addEventListener('click', function() {
+            navigator.clipboard.writeText(this.textContent).then(() => {
+                showToast('Copié dans le presse-papiers', 'success');
+            });
+        });
+        
+        // Add copy icon
+        const copyIcon = document.createElement('i');
+        copyIcon.className = 'fas fa-copy ml-2 text-gray-400 hover:text-gray-600 cursor-pointer';
+        copyIcon.title = 'Cliquer pour copier';
+        code.parentNode.appendChild(copyIcon);
+    });
+
+    // Auto-refresh for critical events
+    {% if security_event.severity == 'critical' %}
+    setInterval(() => {
+        location.reload();
+    }, 30000); // Refresh every 30 seconds for critical events
+    {% endif %}
+});
+</script>
+{% endblock %}

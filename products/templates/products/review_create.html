@@ -1,0 +1,270 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Laisser un avis - {{ product.name }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Breadcrumb -->
+    <div class="breadcrumbs text-sm mb-6">
+        <ul>
+            <li><a href="{% url 'products:home' %}" class="link link-hover">Accueil</a></li>
+            <li><a href="{% url 'products:product_detail' product.uid %}" class="link link-hover">{{ product.name }}</a></li>
+            <li><a href="/products/reviews/product/{{ product.uid }}/" class="link link-hover">Avis</a></li>
+            <li>Laisser un avis</li>
+        </ul>
+    </div>
+
+    <div class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold mb-4">Laisser un avis</h1>
+            <div class="flex items-center justify-center gap-4">
+                {% if product.image %}
+                    <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-16 h-16 object-cover rounded-lg">
+                {% endif %}
+                <div class="text-left">
+                    <h2 class="text-xl font-semibold">{{ product.name }}</h2>
+                    <p class="text-base-content/70">{{ product.category.name }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Product Info -->
+            <div class="lg:col-span-1">
+                <div class="card bg-base-100 shadow-xl sticky top-8">
+                    <div class="card-body">
+                        <h3 class="card-title mb-4">Informations produit</h3>
+                        
+                        {% if product.image %}
+                            <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-full h-48 object-cover rounded-lg mb-4">
+                        {% endif %}
+                        
+                        <div class="space-y-2">
+                            <div>
+                                <span class="font-semibold">Prix :</span>
+                                <span class="text-primary font-bold">{{ product.price }} GNF</span>
+                            </div>
+                            
+                            {% if product.brand %}
+                                <div>
+                                    <span class="font-semibold">Marque :</span>
+                                    <span>{{ product.brand }}</span>
+                                </div>
+                            {% endif %}
+                            
+                            <div>
+                                <span class="font-semibold">Catégorie :</span>
+                                <span>{{ product.category.name }}</span>
+                            </div>
+                            
+                            {% if product.description %}
+                                <div>
+                                    <span class="font-semibold">Description :</span>
+                                    <p class="text-sm text-base-content/80 mt-1">{{ product.description|truncatewords:20 }}</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="divider"></div>
+                        
+                        <div class="text-sm text-base-content/70">
+                            <h4 class="font-semibold mb-2">Conseils pour un bon avis :</h4>
+                            <ul class="space-y-1">
+                                <li>• Soyez honnête et constructif</li>
+                                <li>• Mentionnez les points positifs et négatifs</li>
+                                <li>• Évitez les informations personnelles</li>
+                                <li>• Respectez les autres utilisateurs</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Review Form -->
+            <div class="lg:col-span-2">
+                <div class="card bg-base-100 shadow-xl">
+                    <div class="card-body">
+                        <form method="post" enctype="multipart/form-data" id="reviewForm">
+                            {% csrf_token %}
+                            
+                            <!-- Rating -->
+                            <div class="form-control mb-6">
+                                <label class="label">
+                                    <span class="label-text font-semibold">Votre note *</span>
+                                </label>
+                                <div class="flex items-center gap-2">
+                                    <div class="rating rating-lg" id="ratingInput">
+                                        {% for choice in form.rating.field.choices %}
+                                            <input type="radio" name="rating" value="{{ choice.0 }}" 
+                                                   class="mask mask-star-2 bg-orange-400" 
+                                                   {% if forloop.first %}checked{% endif %}
+                                                   onchange="updateRatingDisplay({{ choice.0 }})">
+                                        {% endfor %}
+                                    </div>
+                                    <span id="ratingText" class="text-lg font-semibold text-primary">5 étoiles</span>
+                                </div>
+                                {% if form.rating.errors %}
+                                    <div class="label">
+                                        <span class="label-text-alt text-error">{{ form.rating.errors.0 }}</span>
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Title -->
+                            <div class="form-control mb-6">
+                                <label class="label">
+                                    <span class="label-text font-semibold">Titre de votre avis *</span>
+                                </label>
+                                {{ form.title }}
+                                {% if form.title.errors %}
+                                    <div class="label">
+                                        <span class="label-text-alt text-error">{{ form.title.errors.0 }}</span>
+                                    </div>
+                                {% endif %}
+                                <div class="label">
+                                    <span class="label-text-alt">Résumez votre expérience en quelques mots</span>
+                                </div>
+                            </div>
+
+                            <!-- Content -->
+                            <div class="form-control mb-6">
+                                <label class="label">
+                                    <span class="label-text font-semibold">Votre avis *</span>
+                                </label>
+                                {{ form.content }}
+                                {% if form.content.errors %}
+                                    <div class="label">
+                                        <span class="label-text-alt text-error">{{ form.content.errors.0 }}</span>
+                                    </div>
+                                {% endif %}
+                                <div class="label">
+                                    <span class="label-text-alt">Partagez votre expérience détaillée avec ce produit</span>
+                                </div>
+                            </div>
+
+                            <!-- Images -->
+                            <div class="form-control mb-6">
+                                <label class="label">
+                                    <span class="label-text font-semibold">Photos (optionnel)</span>
+                                </label>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" id="imageUploads">
+                                    <div class="form-control">
+                                        <input type="file" name="images" accept="image/*" class="file-input file-input-bordered w-full" onchange="previewImage(this, 0)">
+                                        <div class="label">
+                                            <span class="label-text-alt">Image 1</span>
+                                        </div>
+                                    </div>
+                                    <div class="form-control">
+                                        <input type="file" name="images" accept="image/*" class="file-input file-input-bordered w-full" onchange="previewImage(this, 1)">
+                                        <div class="label">
+                                            <span class="label-text-alt">Image 2</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="label">
+                                    <span class="label-text-alt">Ajoutez des photos pour illustrer votre avis (max 2 images, 5MB chacune)</span>
+                                </div>
+                            </div>
+
+                            <!-- Image Previews -->
+                            <div id="imagePreviews" class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6 hidden">
+                                <div class="relative">
+                                    <img id="preview0" src="" alt="Preview" class="w-full h-32 object-cover rounded-lg">
+                                    <button type="button" class="btn btn-sm btn-circle btn-error absolute top-2 right-2" onclick="removeImage(0)">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                                <div class="relative">
+                                    <img id="preview1" src="" alt="Preview" class="w-full h-32 object-cover rounded-lg">
+                                    <button type="button" class="btn btn-sm btn-circle btn-error absolute top-2 right-2" onclick="removeImage(1)">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Submit Buttons -->
+                            <div class="flex flex-col sm:flex-row gap-4">
+                                <button type="submit" class="btn btn-primary flex-1">
+                                    <i class="fas fa-paper-plane mr-2"></i>
+                                    Publier l'avis
+                                </button>
+                                <a href="/products/reviews/product/{{ product.uid }}/" class="btn btn-outline flex-1">
+                                    <i class="fas fa-arrow-left mr-2"></i>
+                                    Annuler
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function updateRatingDisplay(rating) {
+    const ratingTexts = {
+        1: '1 étoile - Très décevant',
+        2: '2 étoiles - Décevant',
+        3: '3 étoiles - Correct',
+        4: '4 étoiles - Bien',
+        5: '5 étoiles - Excellent'
+    };
+    
+    document.getElementById('ratingText').textContent = ratingTexts[rating];
+}
+
+function previewImage(input, index) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const preview = document.getElementById(`preview${index}`);
+            preview.src = e.target.result;
+            document.getElementById('imagePreviews').classList.remove('hidden');
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+function removeImage(index) {
+    const input = document.querySelector(`input[name="images"]:nth-of-type(${index + 1})`);
+    const preview = document.getElementById(`preview${index}`);
+    
+    input.value = '';
+    preview.src = '';
+    
+    // Hide previews if no images
+    const hasImages = Array.from(document.querySelectorAll('input[name="images"]')).some(input => input.files.length > 0);
+    if (!hasImages) {
+        document.getElementById('imagePreviews').classList.add('hidden');
+    }
+}
+
+// Form validation
+document.getElementById('reviewForm').addEventListener('submit', function(e) {
+    const rating = document.querySelector('input[name="rating"]:checked');
+    const title = document.querySelector('input[name="title"]').value.trim();
+    const content = document.querySelector('textarea[name="content"]').value.trim();
+    
+    if (!rating || !title || !content) {
+        e.preventDefault();
+        alert('Veuillez remplir tous les champs obligatoires.');
+        return;
+    }
+    
+    if (title.length < 5) {
+        e.preventDefault();
+        alert('Le titre doit contenir au moins 5 caractères.');
+        return;
+    }
+    
+    if (content.length < 20) {
+        e.preventDefault();
+        alert('Le contenu doit contenir au moins 20 caractères.');
+        return;
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,579 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Recherche Avancée{% endblock %}
+
+{% block extra_css %}
+<style>
+    .search-form-section {
+        background: white;
+        border-radius: 0.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-section-header {
+        background: #f8fafc;
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid #e2e8f0;
+        border-radius: 0.5rem 0.5rem 0 0;
+    }
+    
+    .form-section-content {
+        padding: 1.5rem;
+    }
+    
+    .price-range-container {
+        position: relative;
+    }
+    
+    .price-range-slider {
+        -webkit-appearance: none;
+        appearance: none;
+        height: 6px;
+        border-radius: 3px;
+        background: #ddd;
+        outline: none;
+        width: 100%;
+    }
+    
+    .price-range-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: #3b82f6;
+        cursor: pointer;
+    }
+    
+    .price-range-slider::-moz-range-thumb {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: #3b82f6;
+        cursor: pointer;
+        border: none;
+    }
+    
+    .search-preview {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        margin-top: 1rem;
+    }
+    
+    .category-tree {
+        max-height: 200px;
+        overflow-y: auto;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.375rem;
+        padding: 0.5rem;
+    }
+    
+    .category-item {
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+    
+    .category-item:hover {
+        background-color: #f1f5f9;
+    }
+    
+    .category-item.selected {
+        background-color: #dbeafe;
+        color: #1e40af;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <div class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">Recherche Avancée</h1>
+                    <p class="text-gray-600 mt-1">Trouvez exactement ce que vous cherchez avec nos filtres avancés</p>
+                </div>
+                
+                <div class="flex items-center gap-4">
+                    <a href="{% url 'search:search' %}" class="text-blue-600 hover:text-blue-700 flex items-center gap-2">
+                        <i class="fas fa-search"></i>
+                        Recherche simple
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <form method="GET" action="{% url 'search:search' %}" id="advanced-search-form">
+            <!-- Section 1: Mots-clés -->
+            <div class="search-form-section">
+                <div class="form-section-header">
+                    <h2 class="text-lg font-semibold text-gray-900">
+                        <i class="fas fa-keyboard mr-2"></i>
+                        Mots-clés de recherche
+                    </h2>
+                </div>
+                <div class="form-section-content">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="q" class="block text-sm font-medium text-gray-700 mb-2">
+                                Rechercher dans le nom du produit
+                            </label>
+                            <input 
+                                type="text" 
+                                id="q" 
+                                name="q" 
+                                placeholder="Ex: iPhone, Samsung, ordinateur..."
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            >
+                        </div>
+                        
+                        <div>
+                            <label for="description" class="block text-sm font-medium text-gray-700 mb-2">
+                                Rechercher dans la description
+                            </label>
+                            <input 
+                                type="text" 
+                                id="description" 
+                                name="description" 
+                                placeholder="Ex: écran, batterie, caméra..."
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            >
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <label class="flex items-center gap-2">
+                            <input 
+                                type="checkbox" 
+                                name="exact_match" 
+                                class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                            >
+                            <span class="text-sm text-gray-700">Correspondance exacte</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 2: Catégories -->
+            <div class="search-form-section">
+                <div class="form-section-header">
+                    <h2 class="text-lg font-semibold text-gray-900">
+                        <i class="fas fa-tags mr-2"></i>
+                        Catégories
+                    </h2>
+                </div>
+                <div class="form-section-content">
+                    <div class="category-tree">
+                        {% for category in categories %}
+                        <label class="category-item block">
+                            <input 
+                                type="checkbox" 
+                                name="category" 
+                                value="{{ category.uid }}"
+                                class="mr-2 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                            >
+                            <span class="text-sm">{{ category.name }}</span>
+                            <span class="text-xs text-gray-500 ml-2">({{ category.product_count }})</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 3: Prix -->
+            <div class="search-form-section">
+                <div class="form-section-header">
+                    <h2 class="text-lg font-semibold text-gray-900">
+                        <i class="fas fa-dollar-sign mr-2"></i>
+                        Gamme de prix
+                    </h2>
+                </div>
+                <div class="form-section-content">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label for="price_min" class="block text-sm font-medium text-gray-700 mb-2">
+                                Prix minimum (FCFA)
+                            </label>
+                            <input 
+                                type="number" 
+                                id="price_min" 
+                                name="price_min" 
+                                min="0"
+                                placeholder="0"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            >
+                        </div>
+                        
+                        <div>
+                            <label for="price_max" class="block text-sm font-medium text-gray-700 mb-2">
+                                Prix maximum (FCFA)
+                            </label>
+                            <input 
+                                type="number" 
+                                id="price_max" 
+                                name="price_max" 
+                                min="0"
+                                placeholder="Aucune limite"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            >
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Gammes prédéfinies
+                            </label>
+                            <select 
+                                name="price_range" 
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                onchange="setPriceRange(this.value)"
+                            >
+                                <option value="">Sélectionner une gamme</option>
+                                <option value="0-50000">Moins de 50,000 FCFA</option>
+                                <option value="50000-100000">50,000 - 100,000 FCFA</option>
+                                <option value="100000-200000">100,000 - 200,000 FCFA</option>
+                                <option value="200000-500000">200,000 - 500,000 FCFA</option>
+                                <option value="500000-999999999">Plus de 500,000 FCFA</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Slider de prix -->
+                    <div class="mt-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Ajuster avec le curseur
+                        </label>
+                        <div class="price-range-container">
+                            <input 
+                                type="range" 
+                                id="price_slider_min" 
+                                min="{{ min_price }}" 
+                                max="{{ max_price }}" 
+                                value="{{ min_price }}"
+                                class="price-range-slider"
+                                oninput="updatePriceFromSlider()"
+                            >
+                            <div class="flex justify-between text-xs text-gray-500 mt-1">
+                                <span>{{ min_price|floatformat:0 }} FCFA</span>
+                                <span>{{ max_price|floatformat:0 }} FCFA</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 4: Disponibilité et caractéristiques -->
+            <div class="search-form-section">
+                <div class="form-section-header">
+                    <h2 class="text-lg font-semibold text-gray-900">
+                        <i class="fas fa-filter mr-2"></i>
+                        Filtres supplémentaires
+                    </h2>
+                </div>
+                <div class="form-section-content">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <h3 class="text-sm font-medium text-gray-700 mb-3">Disponibilité</h3>
+                            <div class="space-y-2">
+                                <label class="flex items-center gap-2">
+                                    <input 
+                                        type="radio" 
+                                        name="availability" 
+                                        value="all"
+                                        checked
+                                        class="text-blue-600 focus:ring-blue-500"
+                                    >
+                                    <span class="text-sm text-gray-700">Tous les produits</span>
+                                </label>
+                                <label class="flex items-center gap-2">
+                                    <input 
+                                        type="radio" 
+                                        name="availability" 
+                                        value="in_stock"
+                                        class="text-blue-600 focus:ring-blue-500"
+                                    >
+                                    <span class="text-sm text-gray-700">En stock uniquement</span>
+                                </label>
+                                <label class="flex items-center gap-2">
+                                    <input 
+                                        type="radio" 
+                                        name="availability" 
+                                        value="out_of_stock"
+                                        class="text-blue-600 focus:ring-blue-500"
+                                    >
+                                    <span class="text-sm text-gray-700">Rupture de stock</span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h3 class="text-sm font-medium text-gray-700 mb-3">Caractéristiques</h3>
+                            <div class="space-y-2">
+                                <label class="flex items-center gap-2">
+                                    <input 
+                                        type="checkbox" 
+                                        name="featured" 
+                                        class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                    >
+                                    <span class="text-sm text-gray-700">Produits vedettes</span>
+                                </label>
+                                <label class="flex items-center gap-2">
+                                    <input 
+                                        type="checkbox" 
+                                        name="discount" 
+                                        class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                    >
+                                    <span class="text-sm text-gray-700">Produits en promotion</span>
+                                </label>
+                                <label class="flex items-center gap-2">
+                                    <input 
+                                        type="checkbox" 
+                                        name="new_products" 
+                                        class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                    >
+                                    <span class="text-sm text-gray-700">Nouveaux produits</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 5: Tri et options -->
+            <div class="search-form-section">
+                <div class="form-section-header">
+                    <h2 class="text-lg font-semibold text-gray-900">
+                        <i class="fas fa-sort mr-2"></i>
+                        Options de tri et d'affichage
+                    </h2>
+                </div>
+                <div class="form-section-content">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="sort" class="block text-sm font-medium text-gray-700 mb-2">
+                                Trier par
+                            </label>
+                            <select 
+                                id="sort" 
+                                name="sort" 
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            >
+                                {% for option in sort_options %}
+                                <option value="{{ option.value }}">{{ option.label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label for="per_page" class="block text-sm font-medium text-gray-700 mb-2">
+                                Résultats par page
+                            </label>
+                            <select 
+                                id="per_page" 
+                                name="per_page" 
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            >
+                                <option value="12">12 résultats</option>
+                                <option value="24" selected>24 résultats</option>
+                                <option value="48">48 résultats</option>
+                                <option value="96">96 résultats</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Aperçu de la recherche -->
+            <div class="search-preview" id="search-preview">
+                <h3 class="text-sm font-medium text-gray-700 mb-2">Aperçu de votre recherche :</h3>
+                <p class="text-sm text-gray-600" id="preview-text">
+                    Aucun critère sélectionné
+                </p>
+            </div>
+
+            <!-- Boutons d'action -->
+            <div class="flex flex-col sm:flex-row gap-4 mt-8">
+                <button 
+                    type="submit" 
+                    class="flex-1 bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition-colors font-medium"
+                >
+                    <i class="fas fa-search mr-2"></i>
+                    Lancer la recherche
+                </button>
+                
+                <button 
+                    type="button" 
+                    onclick="resetForm()"
+                    class="flex-1 bg-gray-200 text-gray-700 px-6 py-3 rounded-md hover:bg-gray-300 transition-colors font-medium"
+                >
+                    <i class="fas fa-undo mr-2"></i>
+                    Réinitialiser
+                </button>
+                
+                <button 
+                    type="button" 
+                    onclick="saveSearch()"
+                    class="flex-1 bg-green-600 text-white px-6 py-3 rounded-md hover:bg-green-700 transition-colors font-medium"
+                >
+                    <i class="fas fa-bookmark mr-2"></i>
+                    Sauvegarder
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Variables globales
+const minPrice = {{ min_price }};
+const maxPrice = {{ max_price }};
+
+// Fonction pour définir la gamme de prix
+function setPriceRange(rangeValue) {
+    if (!rangeValue) return;
+    
+    const [min, max] = rangeValue.split('-').map(Number);
+    document.getElementById('price_min').value = min;
+    document.getElementById('price_max').value = max;
+    updatePreview();
+}
+
+// Fonction pour mettre à jour le prix depuis le slider
+function updatePriceFromSlider() {
+    const sliderValue = document.getElementById('price_slider_min').value;
+    document.getElementById('price_min').value = sliderValue;
+    updatePreview();
+}
+
+// Fonction pour mettre à jour l'aperçu
+function updatePreview() {
+    const form = document.getElementById('advanced-search-form');
+    const formData = new FormData(form);
+    const criteria = [];
+    
+    // Mots-clés
+    const q = formData.get('q');
+    if (q) criteria.push(`Nom: "${q}"`);
+    
+    const description = formData.get('description');
+    if (description) criteria.push(`Description: "${description}"`);
+    
+    // Catégories
+    const categories = formData.getAll('category');
+    if (categories.length > 0) {
+        criteria.push(`${categories.length} catégorie(s) sélectionnée(s)`);
+    }
+    
+    // Prix
+    const priceMin = formData.get('price_min');
+    const priceMax = formData.get('price_max');
+    if (priceMin || priceMax) {
+        const min = priceMin ? `${parseInt(priceMin).toLocaleString()} FCFA` : '0 FCFA';
+        const max = priceMax ? `${parseInt(priceMax).toLocaleString()} FCFA` : 'Aucune limite';
+        criteria.push(`Prix: ${min} - ${max}`);
+    }
+    
+    // Disponibilité
+    const availability = formData.get('availability');
+    if (availability && availability !== 'all') {
+        const labels = {
+            'in_stock': 'En stock uniquement',
+            'out_of_stock': 'Rupture de stock'
+        };
+        criteria.push(labels[availability]);
+    }
+    
+    // Caractéristiques
+    const featured = formData.get('featured');
+    if (featured) criteria.push('Produits vedettes');
+    
+    const discount = formData.get('discount');
+    if (discount) criteria.push('Produits en promotion');
+    
+    const newProducts = formData.get('new_products');
+    if (newProducts) criteria.push('Nouveaux produits');
+    
+    // Tri
+    const sort = formData.get('sort');
+    const sortLabels = {
+        'relevance': 'Pertinence',
+        'price_asc': 'Prix croissant',
+        'price_desc': 'Prix décroissant',
+        'name': 'Nom A-Z',
+        'popularity': 'Popularité'
+    };
+    if (sort) criteria.push(`Tri: ${sortLabels[sort]}`);
+    
+    // Afficher l'aperçu
+    const previewText = document.getElementById('preview-text');
+    if (criteria.length === 0) {
+        previewText.textContent = 'Aucun critère sélectionné';
+    } else {
+        previewText.textContent = criteria.join(' • ');
+    }
+}
+
+// Fonction pour réinitialiser le formulaire
+function resetForm() {
+    document.getElementById('advanced-search-form').reset();
+    document.getElementById('price_slider_min').value = minPrice;
+    updatePreview();
+}
+
+// Fonction pour sauvegarder la recherche
+function saveSearch() {
+    // Cette fonctionnalité pourrait être implémentée plus tard
+    alert('Fonctionnalité de sauvegarde de recherche à venir !');
+}
+
+// Écouter les changements sur le formulaire
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('advanced-search-form');
+    
+    // Écouter tous les changements
+    form.addEventListener('change', updatePreview);
+    form.addEventListener('input', updatePreview);
+    
+    // Initialiser l'aperçu
+    updatePreview();
+    
+    // Initialiser le slider
+    document.getElementById('price_slider_min').value = minPrice;
+});
+
+// Validation du formulaire
+document.getElementById('advanced-search-form').addEventListener('submit', function(e) {
+    const priceMin = parseInt(document.getElementById('price_min').value) || 0;
+    const priceMax = parseInt(document.getElementById('price_max').value) || Infinity;
+    
+    if (priceMin > priceMax) {
+        e.preventDefault();
+        alert('Le prix minimum ne peut pas être supérieur au prix maximum.');
+        return false;
+    }
+    
+    // Vérifier qu'au moins un critère est sélectionné
+    const formData = new FormData(this);
+    const hasQuery = formData.get('q') || formData.get('description');
+    const hasCategories = formData.getAll('category').length > 0;
+    const hasPrice = formData.get('price_min') || formData.get('price_max');
+    const hasFilters = formData.get('featured') || formData.get('discount') || formData.get('new_products');
+    
+    if (!hasQuery && !hasCategories && !hasPrice && !hasFilters) {
+        e.preventDefault();
+        alert('Veuillez sélectionner au moins un critère de recherche.');
+        return false;
+    }
+});
+</script>
+{% endblock %}

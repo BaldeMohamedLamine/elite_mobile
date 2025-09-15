@@ -1,0 +1,265 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Gestion du Stock - Boutique E-commerce{% endblock %}
+
+{% block description %}Gérez le stock de vos produits avec précision{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- En-tête -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Gestion du Stock</h1>
+            <p class="text-gray-600">Surveillez et gérez les quantités de vos produits</p>
+        </div>
+        <div class="mt-4 md:mt-0">
+            <a href="{% url 'products:stock:stock_dashboard' %}" 
+               class="btn btn-primary">
+                <i class="fas fa-chart-bar mr-2"></i>
+                Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Statistiques rapides -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div class="card bg-white shadow-lg">
+            <div class="card-body">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-blue-100 text-blue-600">
+                        <i class="fas fa-boxes text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Total Produits</p>
+                        <p class="text-2xl font-bold text-gray-900">{{ stats.total_products }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card bg-white shadow-lg">
+            <div class="card-body">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-green-100 text-green-600">
+                        <i class="fas fa-check-circle text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Disponibles</p>
+                        <p class="text-2xl font-bold text-gray-900">{{ stats.available_products }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card bg-white shadow-lg">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-yellow-100 text-yellow-600">
+                    <i class="fas fa-exclamation-triangle text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Stock Faible</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ stats.low_stock_products }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card bg-white shadow-lg">
+            <div class="card-body">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-red-100 text-red-600">
+                        <i class="fas fa-times-circle text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Rupture</p>
+                        <p class="text-2xl font-bold text-gray-900">{{ stats.out_of_stock_products }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtres -->
+    <div class="card bg-white shadow-lg mb-6">
+        <div class="card-body">
+            <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                    <label class="label">
+                        <span class="label-text">Statut</span>
+                    </label>
+                    <select name="status" class="select select-bordered w-full">
+                        <option value="">Tous les statuts</option>
+                        {% for value, label in status_choices %}
+                        <option value="{{ value }}" {% if request.GET.status == value %}selected{% endif %}>
+                            {{ label }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label class="label">
+                        <span class="label-text">Catégorie</span>
+                    </label>
+                    <select name="category" class="select select-bordered w-full">
+                        <option value="">Toutes les catégories</option>
+                        {% for id, name in categories %}
+                        <option value="{{ id }}" {% if request.GET.category == id|stringformat:"s" %}selected{% endif %}>
+                            {{ name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label class="label">
+                        <span class="label-text">Type de stock</span>
+                    </label>
+                    <select name="stock_type" class="select select-bordered w-full">
+                        <option value="">Tous</option>
+                        <option value="low_stock" {% if request.GET.stock_type == 'low_stock' %}selected{% endif %}>
+                            Stock faible
+                        </option>
+                        <option value="out_of_stock" {% if request.GET.stock_type == 'out_of_stock' %}selected{% endif %}>
+                            Rupture de stock
+                        </option>
+                        <option value="available" {% if request.GET.stock_type == 'available' %}selected{% endif %}>
+                            Disponible
+                        </option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="label">
+                        <span class="label-text">Recherche</span>
+                    </label>
+                    <input type="text" name="search" 
+                           value="{{ request.GET.search }}"
+                           placeholder="Nom du produit..."
+                           class="input input-bordered w-full">
+                </div>
+
+                <div class="md:col-span-4 flex gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search mr-2"></i>
+                        Filtrer
+                    </button>
+                    <a href="{% url 'products:stock:stock_list' %}" class="btn btn-outline">
+                        <i class="fas fa-times mr-2"></i>
+                        Effacer
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Liste des stocks -->
+    <div class="card bg-white shadow-lg">
+        <div class="card-body p-0">
+            <div class="overflow-x-auto">
+                <table class="table table-zebra w-full">
+                    <thead>
+                        <tr>
+                            <th>Produit</th>
+                            <th>Catégorie</th>
+                            <th>Quantité Actuelle</th>
+                            <th>Quantité Disponible</th>
+                            <th>Statut</th>
+                            <th>Dernière Mise à Jour</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for stock in stocks %}
+                        <tr>
+                            <td>
+                                <div class="flex items-center space-x-3">
+                                    {% if stock.product.image %}
+                                    <div class="avatar">
+                                        <div class="mask mask-squircle w-12 h-12">
+                                            <img src="{{ stock.product.image.url }}" alt="{{ stock.product.name }}">
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                    <div>
+                                        <div class="font-bold">{{ stock.product.name }}</div>
+                                        <div class="text-sm opacity-50">{{ stock.product.price }} GNF</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge badge-outline">{{ stock.product.category.name }}</span>
+                            </td>
+                            <td>
+                                <span class="font-mono text-lg">{{ stock.current_quantity }}</span>
+                            </td>
+                            <td>
+                                <span class="font-mono text-lg">{{ stock.available_quantity }}</span>
+                            </td>
+                            <td>
+                                {% if stock.status == 'available' %}
+                                <span class="badge badge-success">{{ stock.get_status_display }}</span>
+                                {% elif stock.status == 'low_stock' %}
+                                <span class="badge badge-warning">{{ stock.get_status_display }}</span>
+                                {% elif stock.status == 'out_of_stock' %}
+                                <span class="badge badge-error">{{ stock.get_status_display }}</span>
+                                {% else %}
+                                <span class="badge badge-neutral">{{ stock.get_status_display }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="text-sm">
+                                    {{ stock.last_updated|date:"d/m/Y" }}
+                                    <br>
+                                    <span class="text-gray-500">{{ stock.last_updated|time:"H:i" }}</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="flex space-x-2">
+                                    <a href="{% url 'products:stock:stock_detail' stock.id %}" 
+                                       class="btn btn-ghost btn-xs">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{% url 'products:stock:stock_adjustment' stock.id %}" 
+                                       class="btn btn-primary btn-xs">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center py-8">
+                                <div class="text-gray-500">
+                                    <i class="fas fa-box-open text-4xl mb-4"></i>
+                                    <p>Aucun stock trouvé</p>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <div class="flex justify-center mt-8">
+        <div class="btn-group">
+            {% if page_obj.has_previous %}
+            <a href="?page=1" class="btn btn-outline">«</a>
+            <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-outline">‹</a>
+            {% endif %}
+            
+            <span class="btn btn-active">{{ page_obj.number }} sur {{ page_obj.paginator.num_pages }}</span>
+            
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}" class="btn btn-outline">›</a>
+            <a href="?page={{ page_obj.paginator.num_pages }}" class="btn btn-outline">»</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

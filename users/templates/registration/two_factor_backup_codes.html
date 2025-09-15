@@ -1,0 +1,240 @@
+{% extends 'theme/templates/base.html' %}
+{% load static %}
+
+{% block title %}Codes de sauvegarde 2FA{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-orange-50 to-red-100 dark:from-gray-900 dark:to-gray-800 py-12">
+    <div class="container mx-auto px-4">
+        <div class="max-w-2xl mx-auto">
+            <!-- Header -->
+            <div class="text-center mb-8 animate-fade-in">
+                <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-orange-500 to-red-600 rounded-full mb-4">
+                    <i class="fas fa-key text-3xl text-white"></i>
+                </div>
+                <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2">Codes de sauvegarde</h1>
+                <p class="text-gray-600 dark:text-gray-300">Utilisez ces codes si vous n'avez pas accès à votre téléphone</p>
+            </div>
+
+            <div class="card bg-white dark:bg-gray-800 shadow-2xl animate-slide-in">
+                <div class="card-body">
+                    <!-- Warning -->
+                    <div class="alert alert-warning mb-6">
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-exclamation-triangle text-2xl text-yellow-500 mt-1"></i>
+                            <div>
+                                <h3 class="font-bold text-lg mb-2">Important</h3>
+                                <p class="text-sm">
+                                    Ces codes de sauvegarde vous permettent d'accéder à votre compte si vous n'avez pas accès à votre téléphone. 
+                                    <strong>Gardez-les en lieu sûr et ne les partagez jamais.</strong>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if backup_codes %}
+                    <!-- Backup Codes Display -->
+                    <div class="bg-base-200 p-6 rounded-lg mb-6">
+                        <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                            <i class="fas fa-list text-primary"></i>
+                            Vos codes de sauvegarde
+                        </h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {% for code in backup_codes %}
+                            <div class="bg-white dark:bg-gray-700 p-4 rounded-lg border-2 border-dashed border-primary/30">
+                                <div class="font-mono text-lg font-bold text-center text-primary">
+                                    {{ code }}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="mt-4 text-center">
+                            <button onclick="copyAllCodes()" class="btn btn-outline btn-primary btn-sm">
+                                <i class="fas fa-copy mr-2"></i>
+                                Copier tous les codes
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Usage Instructions -->
+                    <div class="space-y-6">
+                        <div class="bg-base-200 p-6 rounded-lg">
+                            <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                                <i class="fas fa-info-circle text-info"></i>
+                                Comment utiliser ces codes
+                            </h3>
+                            <div class="space-y-3">
+                                <div class="flex items-start gap-3">
+                                    <div class="w-6 h-6 bg-primary text-primary-content rounded-full flex items-center justify-center text-sm font-bold">1</div>
+                                    <div>
+                                        <div class="font-semibold">Lors de la connexion</div>
+                                        <div class="text-sm text-gray-600">Si vous n'avez pas accès à votre téléphone, utilisez un de ces codes au lieu du code SMS/Email</div>
+                                    </div>
+                                </div>
+                                <div class="flex items-start gap-3">
+                                    <div class="w-6 h-6 bg-primary text-primary-content rounded-full flex items-center justify-center text-sm font-bold">2</div>
+                                    <div>
+                                        <div class="font-semibold">Un code = une utilisation</div>
+                                        <div class="text-sm text-gray-600">Chaque code ne peut être utilisé qu'une seule fois</div>
+                                    </div>
+                                </div>
+                                <div class="flex items-start gap-3">
+                                    <div class="w-6 h-6 bg-primary text-primary-content rounded-full flex items-center justify-center text-sm font-bold">3</div>
+                                    <div>
+                                        <div class="font-semibold">Régénération</div>
+                                        <div class="text-sm text-gray-600">Vous pouvez régénérer de nouveaux codes à tout moment</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Security Tips -->
+                        <div class="bg-base-200 p-6 rounded-lg">
+                            <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                                <i class="fas fa-shield-alt text-success"></i>
+                                Conseils de sécurité
+                            </h3>
+                            <div class="space-y-2">
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-check text-success"></i>
+                                    <span class="text-sm">Imprimez ces codes et gardez-les en lieu sûr</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-check text-success"></i>
+                                    <span class="text-sm">Ne les stockez pas sur votre ordinateur ou téléphone</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-check text-success"></i>
+                                    <span class="text-sm">Ne les partagez jamais avec qui que ce soit</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-exclamation-triangle text-warning"></i>
+                                    <span class="text-sm">Si vous pensez qu'ils ont été compromis, régénérez-les immédiatement</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% else %}
+                    <!-- No Backup Codes -->
+                    <div class="text-center py-8">
+                        <div class="avatar placeholder mb-4">
+                            <div class="bg-warning text-warning-content rounded-full w-16">
+                                <i class="fas fa-exclamation-triangle text-2xl"></i>
+                            </div>
+                        </div>
+                        <h3 class="text-xl font-bold text-warning mb-2">Aucun code de sauvegarde</h3>
+                        <p class="text-base-content/70 mb-6">
+                            Vous n'avez pas encore de codes de sauvegarde. Générez-en maintenant pour plus de sécurité.
+                        </p>
+                    </div>
+                    {% endif %}
+
+                    <!-- Action Buttons -->
+                    <div class="flex flex-col sm:flex-row gap-4 pt-6">
+                        <a href="{% url 'users:two_factor_status' %}" class="btn btn-outline btn-secondary hover-scale transition-all">
+                            <i class="fas fa-arrow-left mr-2"></i>
+                            Retour au statut
+                        </a>
+                        
+                        {% if backup_codes %}
+                        <button onclick="printCodes()" class="btn btn-outline btn-info hover-scale transition-all">
+                            <i class="fas fa-print mr-2"></i>
+                            Imprimer
+                        </button>
+                        
+                        <a href="{% url 'users:two_factor_regenerate_backup_codes' %}" class="btn btn-warning hover-glow transition-all">
+                            <i class="fas fa-redo mr-2"></i>
+                            Régénérer les codes
+                        </a>
+                        {% else %}
+                        <a href="{% url 'users:two_factor_regenerate_backup_codes' %}" class="btn btn-primary hover-glow transition-all">
+                            <i class="fas fa-plus mr-2"></i>
+                            Générer des codes
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Help Section -->
+            <div class="card bg-white dark:bg-gray-800 shadow-xl mt-6 animate-slide-in">
+                <div class="card-body">
+                    <h3 class="card-title text-lg mb-4">
+                        <i class="fas fa-question-circle text-primary mr-2"></i>
+                        Besoin d'aide ?
+                    </h3>
+                    <div class="space-y-4">
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-phone text-green-500 mt-1"></i>
+                            <div>
+                                <div class="font-semibold">Support téléphonique</div>
+                                <div class="text-sm text-gray-500">+224 XXX XX XX XX</div>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-envelope text-blue-500 mt-1"></i>
+                            <div>
+                                <div class="font-semibold">Email de support</div>
+                                <div class="text-sm text-gray-500">support@example.com</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add ripple effect to buttons
+    document.querySelectorAll('.btn').forEach(button => {
+        button.addEventListener('click', function(e) {
+            createRipple(e, this);
+        });
+    });
+});
+
+function copyAllCodes() {
+    const codes = document.querySelectorAll('.font-mono');
+    const codeText = Array.from(codes).map(code => code.textContent.trim()).join('\n');
+    
+    navigator.clipboard.writeText(codeText).then(() => {
+        showToast('Codes copiés dans le presse-papiers', 'success');
+    }).catch(() => {
+        showToast('Erreur lors de la copie', 'error');
+    });
+}
+
+function printCodes() {
+    const printContent = document.querySelector('.bg-base-200.p-6.rounded-lg').innerHTML;
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+        <html>
+            <head>
+                <title>Codes de sauvegarde 2FA</title>
+                <style>
+                    body { font-family: Arial, sans-serif; padding: 20px; }
+                    .code { font-family: monospace; font-size: 18px; font-weight: bold; text-align: center; padding: 10px; border: 2px dashed #ccc; margin: 5px; }
+                    .warning { background: #fff3cd; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
+                </style>
+            </head>
+            <body>
+                <h1>Codes de sauvegarde 2FA</h1>
+                <div class="warning">
+                    <strong>Important:</strong> Gardez ces codes en lieu sûr et ne les partagez jamais.
+                </div>
+                ${printContent}
+            </body>
+        </html>
+    `);
+    printWindow.document.close();
+    printWindow.print();
+}
+</script>
+{% endblock %}

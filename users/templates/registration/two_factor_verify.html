@@ -1,0 +1,229 @@
+{% extends 'theme/templates/base.html' %}
+{% load static %}
+
+{% block title %}Vérification 2FA{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 dark:from-gray-900 dark:to-gray-800 py-12">
+    <div class="container mx-auto px-4">
+        <div class="max-w-md mx-auto">
+            <!-- Header -->
+            <div class="text-center mb-8 animate-fade-in">
+                <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full mb-4">
+                    <i class="fas fa-key text-3xl text-white"></i>
+                </div>
+                <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2">Vérification 2FA</h1>
+                <p class="text-gray-600 dark:text-gray-300">Entrez le code de vérification reçu</p>
+            </div>
+
+            <div class="card bg-white dark:bg-gray-800 shadow-2xl animate-slide-in">
+                <div class="card-body">
+                    <!-- Status Info -->
+                    <div class="alert alert-info mb-6">
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-mobile-alt text-2xl text-blue-500 mt-1"></i>
+                            <div>
+                                <h3 class="font-bold text-lg mb-1">Code envoyé</h3>
+                                <p class="text-sm">
+                                    Un code de vérification a été envoyé à votre numéro 
+                                    <strong>{{ user.phone_number|default:"non configuré" }}</strong>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form method="post" class="space-y-6" id="verify-form">
+                        {% csrf_token %}
+                        
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-semibold">
+                                    <i class="fas fa-key text-primary mr-2"></i>
+                                    Code de vérification *
+                                </span>
+                            </label>
+                            <input type="text" 
+                                   name="verification_code" 
+                                   class="input input-bordered input-lg text-center text-2xl font-mono tracking-widest" 
+                                   placeholder="000000" 
+                                   maxlength="6" 
+                                   required
+                                   autocomplete="one-time-code">
+                            {% if form.verification_code.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.verification_code.errors.0 }}</span>
+                                </label>
+                            {% endif %}
+                            <label class="label">
+                                <span class="label-text-alt text-gray-500">
+                                    Entrez le code à 6 chiffres reçu par {{ user.get_two_factor_method_display|lower }}
+                                </span>
+                            </label>
+                        </div>
+
+                        <!-- Timer -->
+                        <div class="text-center">
+                            <div class="countdown-timer mb-4">
+                                <span class="text-sm text-gray-500">Code valide pendant :</span>
+                                <div class="text-2xl font-bold text-primary" id="timer">05:00</div>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="space-y-4">
+                            <button type="submit" class="btn btn-primary btn-lg w-full hover-glow transition-all">
+                                <i class="fas fa-check mr-2"></i>
+                                Vérifier le code
+                            </button>
+                            
+                            <div class="divider">OU</div>
+                            
+                            <button type="button" 
+                                    class="btn btn-outline btn-secondary w-full hover-scale transition-all"
+                                    onclick="resendCode()">
+                                <i class="fas fa-redo mr-2"></i>
+                                Renvoyer le code
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Backup Codes -->
+                    <div class="mt-8 p-4 bg-base-200 rounded-lg">
+                        <h4 class="font-semibold mb-2 flex items-center gap-2">
+                            <i class="fas fa-key text-warning"></i>
+                            Codes de sauvegarde
+                        </h4>
+                        <p class="text-sm text-gray-600 mb-3">
+                            Si vous n'avez pas reçu le code, vous pouvez utiliser un code de sauvegarde :
+                        </p>
+                        <a href="{% url 'users:two_factor_backup_codes' %}" class="btn btn-outline btn-warning btn-sm">
+                            <i class="fas fa-unlock mr-2"></i>
+                            Utiliser un code de sauvegarde
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Help Section -->
+            <div class="card bg-white dark:bg-gray-800 shadow-xl mt-6 animate-slide-in">
+                <div class="card-body">
+                    <h3 class="card-title text-lg mb-4">
+                        <i class="fas fa-question-circle text-primary mr-2"></i>
+                        Problème avec le code ?
+                    </h3>
+                    <div class="space-y-3 text-sm">
+                        <div class="flex items-start gap-2">
+                            <i class="fas fa-check text-green-500 mt-1"></i>
+                            <span>Vérifiez que votre numéro de téléphone est correct</span>
+                        </div>
+                        <div class="flex items-start gap-2">
+                            <i class="fas fa-check text-green-500 mt-1"></i>
+                            <span>Le code peut prendre quelques minutes à arriver</span>
+                        </div>
+                        <div class="flex items-start gap-2">
+                            <i class="fas fa-check text-green-500 mt-1"></i>
+                            <span>Vérifiez vos messages indésirables</span>
+                        </div>
+                        <div class="flex items-start gap-2">
+                            <i class="fas fa-exclamation-triangle text-yellow-500 mt-1"></i>
+                            <span>Le code expire après 5 minutes</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Timer countdown
+    let timeLeft = 300; // 5 minutes in seconds
+    const timerElement = document.getElementById('timer');
+    
+    const timer = setInterval(() => {
+        const minutes = Math.floor(timeLeft / 60);
+        const seconds = timeLeft % 60;
+        timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        
+        if (timeLeft <= 0) {
+            clearInterval(timer);
+            timerElement.textContent = 'Expiré';
+            timerElement.classList.add('text-error');
+            // Disable form submission
+            document.querySelector('button[type="submit"]').disabled = true;
+        }
+        timeLeft--;
+    }, 1000);
+
+    // Auto-format verification code input
+    const codeInput = document.querySelector('input[name="verification_code"]');
+    if (codeInput) {
+        codeInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length > 6) {
+                value = value.substring(0, 6);
+            }
+            e.target.value = value;
+            
+            // Auto-submit when 6 digits are entered
+            if (value.length === 6) {
+                setTimeout(() => {
+                    document.getElementById('verify-form').submit();
+                }, 500);
+            }
+        });
+
+        // Focus on input
+        codeInput.focus();
+    }
+
+    // Add ripple effect to buttons
+    document.querySelectorAll('.btn').forEach(button => {
+        button.addEventListener('click', function(e) {
+            createRipple(e, this);
+        });
+    });
+});
+
+function resendCode() {
+    const button = event.target.closest('button');
+    const originalText = button.innerHTML;
+    
+    button.innerHTML = '<span class="loading loading-spinner loading-sm mr-2"></span>Envoi...';
+    button.disabled = true;
+    
+    // Simulate API call
+    fetch('{% url "users:send_verification_code" %}', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            'Content-Type': 'application/json',
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Reset timer
+            timeLeft = 300;
+            timerElement.classList.remove('text-error');
+            document.querySelector('button[type="submit"]').disabled = false;
+            
+            // Show success message
+            showToast('Code renvoyé avec succès', 'success');
+        } else {
+            showToast('Erreur lors de l\'envoi du code', 'error');
+        }
+    })
+    .catch(error => {
+        showToast('Erreur lors de l\'envoi du code', 'error');
+    })
+    .finally(() => {
+        button.innerHTML = originalText;
+        button.disabled = false;
+    });
+}
+</script>
+{% endblock %}

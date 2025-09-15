@@ -1,0 +1,481 @@
+{% extends 'manager/base.html' %}
+{% load static %}
+
+{% block navbar_title %}Gestion des Produits{% endblock %}
+{% block header_title %}Gestion des Produits{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header avec actions -->
+        <div class="mb-8">
+            <div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+                <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+                    <div class="flex items-center space-x-4">
+                        <div class="p-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl shadow-lg">
+                            <i class="fas fa-box text-white text-xl"></i>
+                        </div>
+                        <div>
+                            <h1 class="text-3xl font-bold text-gray-900 mb-2">Gestion des Produits</h1>
+                            <p class="text-gray-600 text-lg">Gérez votre catalogue de produits, stocks et variants</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex flex-wrap gap-3">
+                        <a href="{% url 'products:product_create' %}" 
+                           class="btn btn-primary btn-lg hover:shadow-lg transition-all duration-300">
+                            <i class="fas fa-plus mr-2"></i>
+                            Nouveau Produit
+                        </a>
+                        <a href="{% url 'products:category_list' %}" 
+                           class="btn btn-secondary btn-lg hover:shadow-lg transition-all duration-300">
+                            <i class="fas fa-tags mr-2"></i>
+                            Catégories
+                        </a>
+                        <a href="{% url 'products:stock:stock_list' %}" 
+                           class="btn btn-outline btn-lg hover:shadow-lg transition-all duration-300">
+                            <i class="fas fa-warehouse mr-2"></i>
+                            Gestion Stock
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistiques rapides -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-blue-100 text-blue-600">
+                        <i class="fas fa-boxes text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Total Produits</p>
+                        <p class="text-2xl font-bold text-gray-900">{{ products|length }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-green-100 text-green-600">
+                        <i class="fas fa-check-circle text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">En Stock</p>
+                        <p class="text-2xl font-bold text-gray-900">{{ stats.available_products|default:0 }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-yellow-100 text-yellow-600">
+                        <i class="fas fa-exclamation-triangle text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Stock Faible</p>
+                        <p class="text-2xl font-bold text-gray-900">{{ stats.low_stock_products|default:0 }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-red-100 text-red-600">
+                        <i class="fas fa-times-circle text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Rupture</p>
+                        <p class="text-2xl font-bold text-gray-900">{{ stats.out_of_stock_products|default:0 }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filtres et recherche -->
+        <div class="bg-white rounded-2xl shadow-xl border border-gray-100 mb-8">
+            <div class="p-6">
+                <form method="get" class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-semibold">Recherche</span>
+                        </label>
+                        <div class="relative">
+                            <input type="text" 
+                                   name="search" 
+                                   value="{{ request.GET.search }}" 
+                                   placeholder="Nom ou description..." 
+                                   class="input input-bordered w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                <i class="fas fa-search text-gray-400"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-semibold">Catégorie</span>
+                        </label>
+                        <select name="category" class="select select-bordered w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">Toutes les catégories</option>
+                            {% for category in categories %}
+                            <option value="{{ category.id }}" {% if request.GET.category == category.id|stringformat:"s" %}selected{% endif %}>
+                                {{ category.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-semibold">Statut Stock</span>
+                        </label>
+                        <select name="stock_status" class="select select-bordered w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">Tous les statuts</option>
+                            <option value="available" {% if request.GET.stock_status == 'available' %}selected{% endif %}>En stock</option>
+                            <option value="low_stock" {% if request.GET.stock_status == 'low_stock' %}selected{% endif %}>Stock faible</option>
+                            <option value="out_of_stock" {% if request.GET.stock_status == 'out_of_stock' %}selected{% endif %}>Rupture</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-semibold">Trier par</span>
+                        </label>
+                        <select name="sort" class="select select-bordered w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">Sélectionner</option>
+                            <option value="name" {% if request.GET.sort == 'name' %}selected{% endif %}>Nom (A-Z)</option>
+                            <option value="-name" {% if request.GET.sort == '-name' %}selected{% endif %}>Nom (Z-A)</option>
+                            <option value="price" {% if request.GET.sort == 'price' %}selected{% endif %}>Prix (croissant)</option>
+                            <option value="-price" {% if request.GET.sort == '-price' %}selected{% endif %}>Prix (décroissant)</option>
+                            <option value="-created_at" {% if request.GET.sort == '-created_at' %}selected{% endif %}>Plus récent</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-semibold">Actions</span>
+                        </label>
+                        <div class="flex gap-2">
+                            <button type="submit" class="btn btn-primary flex-1">
+                                <i class="fas fa-search mr-2"></i>
+                                Filtrer
+                            </button>
+                            <a href="{% url 'products:home' %}" class="btn btn-outline">
+                                <i class="fas fa-times"></i>
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Liste des produits -->
+        <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="table table-zebra w-full">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="font-semibold text-gray-900">Produit</th>
+                            <th class="font-semibold text-gray-900">Catégorie</th>
+                            <th class="font-semibold text-gray-900">Prix</th>
+                            <th class="font-semibold text-gray-900">Stock</th>
+                            <th class="font-semibold text-gray-900">Statut</th>
+                            <th class="font-semibold text-gray-900">Créé le</th>
+                            <th class="font-semibold text-gray-900">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for product in products %}
+                        <tr class="hover:bg-gray-50 transition-colors duration-200">
+                            <td>
+                                <div class="flex items-center space-x-4">
+                                    {% if product.image %}
+                                    <div class="avatar">
+                                        <div class="mask mask-squircle w-16 h-16">
+                                            <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                                        </div>
+                                    </div>
+                                    {% else %}
+                                    <div class="w-16 h-16 bg-gray-200 rounded-xl flex items-center justify-center">
+                                        <i class="fas fa-image text-gray-400 text-xl"></i>
+                                    </div>
+                                    {% endif %}
+                                    <div>
+                                        <div class="font-bold text-gray-900">{{ product.name }}</div>
+                                        <div class="text-sm text-gray-500 line-clamp-2">{{ product.description|truncatewords:10 }}</div>
+                                        <div class="text-xs text-gray-400 mt-1">SKU: {{ product.sku }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge badge-outline">{{ product.category.name }}</span>
+                            </td>
+                            <td>
+                                <div class="text-lg font-bold text-gray-900">{{ product.price|floatformat:0 }} GNF</div>
+                                {% if product.cost_price %}
+                                <div class="text-sm text-gray-500">Coût: {{ product.cost_price|floatformat:0 }} GNF</div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if product.stock %}
+                                    <div class="text-lg font-bold text-gray-900">{{ product.stock.current_quantity }}</div>
+                                    <div class="text-sm text-gray-500">Disponible: {{ product.stock.available_quantity }}</div>
+                                {% else %}
+                                    <div class="text-lg font-bold text-gray-400">-</div>
+                                    <div class="text-sm text-gray-400">Stock non créé</div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if product.stock %}
+                                    {% if product.stock.status == 'available' %}
+                                    <span class="badge badge-success">
+                                        <i class="fas fa-check-circle mr-1"></i>
+                                        En stock
+                                    </span>
+                                    {% elif product.stock.status == 'low_stock' %}
+                                    <span class="badge badge-warning">
+                                        <i class="fas fa-exclamation-triangle mr-1"></i>
+                                        Stock faible
+                                    </span>
+                                    {% elif product.stock.status == 'out_of_stock' %}
+                                    <span class="badge badge-error">
+                                        <i class="fas fa-times-circle mr-1"></i>
+                                        Rupture
+                                    </span>
+                                    {% else %}
+                                    <span class="badge badge-neutral">
+                                        {{ product.stock.get_status_display }}
+                                    </span>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="badge badge-ghost">
+                                        <i class="fas fa-question-circle mr-1"></i>
+                                        Non initialisé
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="text-sm text-gray-900">{{ product.created_at|date:"d/m/Y" }}</div>
+                                <div class="text-xs text-gray-500">{{ product.created_at|time:"H:i" }}</div>
+                            </td>
+                            <td>
+                                <div class="flex space-x-2">
+                                    <a href="{% url 'products:product_detail' product.uid %}" 
+                                       class="btn btn-ghost btn-xs hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200"
+                                       title="Voir le produit">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{% url 'products:product_update' product.uid %}" 
+                                       class="btn btn-ghost btn-xs hover:bg-green-50 hover:text-green-600 transition-colors duration-200"
+                                       title="Modifier le produit">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    {% if product.stock %}
+                                        <a href="{% url 'products:stock:stock_detail' product.stock.id %}" 
+                                           class="btn btn-ghost btn-xs hover:bg-purple-50 hover:text-purple-600 transition-colors duration-200"
+                                           title="Gérer le stock">
+                                            <i class="fas fa-warehouse"></i>
+                                        </a>
+                                    {% else %}
+                                        <span class="btn btn-ghost btn-xs btn-disabled" title="Stock non créé">
+                                            <i class="fas fa-warehouse"></i>
+                                        </span>
+                                    {% endif %}
+                                    <button class="btn btn-ghost btn-xs hover:bg-red-50 hover:text-red-600 transition-colors duration-200"
+                                            onclick="confirmDelete('{{ product.id }}', '{{ product.name }}')"
+                                            title="Supprimer le produit">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center py-16">
+                                <div class="text-gray-500">
+                                    <i class="fas fa-box-open text-6xl mb-4"></i>
+                                    <h3 class="text-xl font-semibold mb-2">Aucun produit trouvé</h3>
+                                    <p class="mb-4">Commencez par créer votre premier produit</p>
+                                    <a href="{% url 'products:product_create' %}" class="btn btn-primary">
+                                        <i class="fas fa-plus mr-2"></i>
+                                        Créer un produit
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        {% if is_paginated %}
+        <div class="flex justify-center mt-8">
+            <div class="btn-group">
+                {% if page_obj.has_previous %}
+                <a href="?page=1" class="btn btn-outline">
+                    <i class="fas fa-angle-double-left"></i>
+                </a>
+                <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-outline">
+                    <i class="fas fa-angle-left"></i>
+                </a>
+                {% endif %}
+                
+                <span class="btn btn-active">
+                    Page {{ page_obj.number }} sur {{ page_obj.paginator.num_pages }}
+                </span>
+                
+                {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}" class="btn btn-outline">
+                    <i class="fas fa-angle-right"></i>
+                </a>
+                <a href="?page={{ page_obj.paginator.num_pages }}" class="btn btn-outline">
+                    <i class="fas fa-angle-double-right"></i>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modal de confirmation de suppression -->
+<div id="delete-modal" class="modal">
+    <div class="modal-box">
+        <h3 class="font-bold text-lg text-red-600 mb-4">
+            <i class="fas fa-exclamation-triangle mr-2"></i>
+            Confirmer la suppression
+        </h3>
+        <p class="mb-4">
+            Êtes-vous sûr de vouloir supprimer le produit <strong id="product-name"></strong> ?
+        </p>
+        <p class="text-sm text-gray-600 mb-6">
+            Cette action est irréversible et supprimera également toutes les données associées au produit.
+        </p>
+        <div class="modal-action">
+            <button class="btn btn-error" id="confirm-delete">
+                <i class="fas fa-trash mr-2"></i>
+                Supprimer
+            </button>
+            <button class="btn btn-outline" onclick="document.getElementById('delete-modal').close()">
+                Annuler
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Line clamp utility */
+.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Hover effects */
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Table row hover effect */
+tbody tr:hover {
+    background-color: #f8fafc !important;
+}
+
+/* Badge animations */
+.badge {
+    transition: all 0.2s ease-in-out;
+}
+
+.badge:hover {
+    transform: scale(1.05);
+}
+
+/* Card hover effects */
+.card {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Loading animation */
+.loading {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .table {
+        font-size: 0.875rem;
+    }
+    
+    .btn {
+        padding: 0.5rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function confirmDelete(productId, productName) {
+    document.getElementById('product-name').textContent = productName;
+    document.getElementById('confirm-delete').onclick = function() {
+        deleteProduct(productId);
+    };
+    document.getElementById('delete-modal').showModal();
+}
+
+function deleteProduct(productId) {
+    // Create a form to submit the delete request
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = `/products/${productId}/delete/`;
+    
+    // Add CSRF token
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+    if (csrfToken) {
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = 'csrfmiddlewaretoken';
+        csrfInput.value = csrfToken.value;
+        form.appendChild(csrfInput);
+    }
+    
+    // Add to document and submit
+    document.body.appendChild(form);
+    form.submit();
+}
+
+// Auto-submit form on filter change
+document.addEventListener('DOMContentLoaded', function() {
+    const filterSelects = document.querySelectorAll('select[name="category"], select[name="stock_status"], select[name="sort"]');
+    filterSelects.forEach(select => {
+        select.addEventListener('change', function() {
+            this.form.submit();
+        });
+    });
+});
+</script>
+{% endblock %}

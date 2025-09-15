@@ -1,0 +1,377 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Finaliser la commande - Boutique{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-primary/5 via-base-100 to-secondary/5 py-8">
+    <div class="container mx-auto px-4">
+        <!-- Breadcrumb -->
+        <div class="breadcrumbs text-sm mb-6 animate-fade-in">
+            <ul>
+                <li><a href="{% url 'products:home' %}" class="link link-hover">Accueil</a></li>
+                <li><a href="{% url 'orders:list_cart_orders' %}" class="link link-hover">Panier</a></li>
+                <li>Finaliser la commande</li>
+            </ul>
+        </div>
+
+        <!-- Header -->
+        <div class="text-center mb-8 animate-slide-in">
+            <h1 class="text-4xl font-bold gradient-text mb-2">Finaliser votre commande</h1>
+            <p class="text-base-content/70">Vérifiez vos informations et confirmez votre achat</p>
+        </div>
+
+        <!-- Messages -->
+        {% if messages %}
+            <div class="max-w-6xl mx-auto mb-6">
+                <div class="space-y-2">
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags|default:'info' }} animate-slide-in" role="alert">
+                            <i class="fas fa-info-circle"></i>
+                            <span>{{ message }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+
+        <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Checkout Form -->
+            <div class="lg:col-span-2">
+                <div class="card bg-base-100 shadow-xl animate-slide-in">
+                    <div class="card-body">
+                        <h2 class="card-title text-2xl mb-6">
+                            <i class="fas fa-shipping-fast text-primary"></i>
+                            Informations de livraison et paiement
+                        </h2>
+
+                        <form method="post" class="space-y-6">
+                            {% csrf_token %}
+                            
+                            <!-- Delivery Information -->
+                            <div class="space-y-4">
+                                <h3 class="text-lg font-semibold text-base-content/80 mb-4">
+                                    <i class="fas fa-map-marker-alt text-secondary mr-2"></i>
+                                    Adresse de livraison
+                                </h3>
+
+                                <div class="form-control">
+                                    <label for="{{ form.delivery_address.id_for_label }}" class="label">
+                                        <span class="label-text font-medium">
+                                            <i class="fas fa-home mr-2"></i>{{ form.delivery_address.label }}
+                                        </span>
+                                    </label>
+                                    <textarea 
+                                        name="{{ form.delivery_address.name }}" 
+                                        id="{{ form.delivery_address.id_for_label }}"
+                                        class="textarea textarea-bordered w-full focus-ring transition-all hover-scale {% if form.delivery_address.errors %}textarea-error{% endif %}" 
+                                        rows="3"
+                                        placeholder="Entrez votre adresse complète de livraison"
+                                        required
+                                    >{{ form.delivery_address.value|default_if_none:"" }}</textarea>
+                                    {% if form.delivery_address.errors %}
+                                        <div class="label">
+                                            {% for error in form.delivery_address.errors %}
+                                                <span class="label-text-alt text-error animate-shake">
+                                                    <i class="fas fa-exclamation-circle mr-1"></i>{{ error }}
+                                                </span>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="form-control">
+                                    <label for="{{ form.delivery_phone.id_for_label }}" class="label">
+                                        <span class="label-text font-medium">
+                                            <i class="fas fa-phone mr-2"></i>{{ form.delivery_phone.label }}
+                                        </span>
+                                    </label>
+                                    <input 
+                                        type="tel" 
+                                        name="{{ form.delivery_phone.name }}" 
+                                        id="{{ form.delivery_phone.id_for_label }}"
+                                        class="input input-bordered w-full focus-ring transition-all hover-scale {% if form.delivery_phone.errors %}input-error{% endif %}" 
+                                        placeholder="+224 XXX XX XX XX"
+                                        value="{{ form.delivery_phone.value|default_if_none:"" }}"
+                                        required
+                                    >
+                                    {% if form.delivery_phone.errors %}
+                                        <div class="label">
+                                            {% for error in form.delivery_phone.errors %}
+                                                <span class="label-text-alt text-error animate-shake">
+                                                    <i class="fas fa-exclamation-circle mr-1"></i>{{ error }}
+                                                </span>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="form-control">
+                                    <label for="{{ form.delivery_notes.id_for_label }}" class="label">
+                                        <span class="label-text font-medium">
+                                            <i class="fas fa-sticky-note mr-2"></i>{{ form.delivery_notes.label }}
+                                        </span>
+                                    </label>
+                                    <textarea 
+                                        name="{{ form.delivery_notes.name }}" 
+                                        id="{{ form.delivery_notes.id_for_label }}"
+                                        class="textarea textarea-bordered w-full focus-ring transition-all hover-scale {% if form.delivery_notes.errors %}textarea-error{% endif %}" 
+                                        rows="2"
+                                        placeholder="Instructions spéciales pour la livraison (optionnel)"
+                                    >{{ form.delivery_notes.value|default_if_none:"" }}</textarea>
+                                    {% if form.delivery_notes.errors %}
+                                        <div class="label">
+                                            {% for error in form.delivery_notes.errors %}
+                                                <span class="label-text-alt text-error animate-shake">
+                                                    <i class="fas fa-exclamation-circle mr-1"></i>{{ error }}
+                                                </span>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Payment Method -->
+                            <div class="space-y-4">
+                                <h3 class="text-lg font-semibold text-base-content/80 mb-4">
+                                    <i class="fas fa-credit-card text-accent mr-2"></i>
+                                    Méthode de paiement
+                                </h3>
+
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <!-- Orange Money -->
+                                    <div class="form-control">
+                                        <label class="label cursor-pointer justify-start p-4 border-2 border-base-300 rounded-lg hover:border-primary transition-all hover-scale">
+                                            {{ form.payment_method.0 }}
+                                            <div class="ml-3">
+                                                <div class="flex items-center">
+                                                    <i class="fas fa-mobile-alt text-warning text-xl mr-2"></i>
+                                                    <span class="font-medium">Orange Money</span>
+                                                </div>
+                                                <div class="text-sm text-base-content/70">Paiement mobile</div>
+                                            </div>
+                                        </label>
+                                    </div>
+
+                                    <!-- Visa/Mastercard -->
+                                    <div class="form-control">
+                                        <label class="label cursor-pointer justify-start p-4 border-2 border-base-300 rounded-lg hover:border-primary transition-all hover-scale">
+                                            {{ form.payment_method.1 }}
+                                            <div class="ml-3">
+                                                <div class="flex items-center">
+                                                    <i class="fas fa-credit-card text-primary text-xl mr-2"></i>
+                                                    <span class="font-medium">Carte bancaire</span>
+                                                </div>
+                                                <div class="text-sm text-base-content/70">Visa/Mastercard</div>
+                                            </div>
+                                        </label>
+                                    </div>
+
+                                    <!-- Cash on Delivery -->
+                                    <div class="form-control">
+                                        <label class="label cursor-pointer justify-start p-4 border-2 border-base-300 rounded-lg hover:border-primary transition-all hover-scale">
+                                            {{ form.payment_method.2 }}
+                                            <div class="ml-3">
+                                                <div class="flex items-center">
+                                                    <i class="fas fa-money-bill-wave text-success text-xl mr-2"></i>
+                                                    <span class="font-medium">À la livraison</span>
+                                                </div>
+                                                <div class="text-sm text-base-content/70">Paiement cash</div>
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                {% if form.payment_method.errors %}
+                                    <div class="alert alert-error animate-shake">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                        <div>
+                                            {% for error in form.payment_method.errors %}
+                                                <span>{{ error }}</span>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Terms and Conditions -->
+                            <div class="form-control">
+                                <label class="label cursor-pointer justify-start">
+                                    {{ form.accept_terms }}
+                                    <span class="label-text ml-3">
+                                        J'accepte les 
+                                        <a href="#" class="link link-primary hover-scale transition-transform">conditions générales</a>
+                                        et la 
+                                        <a href="#" class="link link-primary hover-scale transition-transform">politique de confidentialité</a>
+                                    </span>
+                                </label>
+                                {% if form.accept_terms.errors %}
+                                    <div class="label">
+                                        {% for error in form.accept_terms.errors %}
+                                            <span class="label-text-alt text-error animate-shake">
+                                                <i class="fas fa-exclamation-circle mr-1"></i>{{ error }}
+                                            </span>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Submit Button -->
+                            <div class="form-control mt-8">
+                                <button 
+                                    type="submit" 
+                                    class="btn btn-primary btn-lg w-full hover-glow transition-all animate-pulse-slow"
+                                    id="checkout-btn"
+                                >
+                                    <i class="fas fa-check-circle mr-2"></i>
+                                    Confirmer la commande
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Summary -->
+            <div class="lg:col-span-1">
+                <div class="card bg-base-100 shadow-xl sticky top-4 animate-slide-in">
+                    <div class="card-body">
+                        <h3 class="card-title text-xl mb-6">
+                            <i class="fas fa-receipt text-primary"></i>
+                            Résumé de la commande
+                        </h3>
+
+                        <!-- Cart Items -->
+                        <div class="space-y-3 mb-6">
+                            {% for item in cart.items.all %}
+                            <div class="flex items-center space-x-3 p-3 bg-base-200 rounded-lg hover-scale transition-all">
+                                <div class="avatar placeholder">
+                                    <div class="bg-neutral text-neutral-content rounded w-12">
+                                        <i class="fas fa-box text-lg"></i>
+                                    </div>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="font-medium text-sm">{{ item.product.name }}</div>
+                                    <div class="text-xs text-base-content/70">Quantité: {{ item.quantity }}</div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="font-bold text-sm">{{ item.product.price|floatformat:0 }} FCFA</div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Price Breakdown -->
+                        <div class="space-y-2 mb-4">
+                            <div class="flex justify-between">
+                                <span class="text-base-content/70">Sous-total:</span>
+                                <span class="font-medium">{{ cart.amount|floatformat:0 }} FCFA</span>
+                            </div>
+                            
+                            <div class="flex justify-between">
+                                <span class="text-base-content/70">Frais de livraison:</span>
+                                <span class="font-medium">{{ delivery_fee|floatformat:0 }} FCFA</span>
+                            </div>
+                            
+                            {% if dropship_shipping_cost > 0 %}
+                            <div class="flex justify-between">
+                                <span class="text-base-content/70">Frais dropshipping:</span>
+                                <span class="font-medium">{{ dropship_shipping_cost|floatformat:0 }} FCFA</span>
+                            </div>
+                            {% endif %}
+                            
+                            <div class="divider my-2"></div>
+                            
+                            <div class="flex justify-between text-lg font-bold">
+                                <span>Total:</span>
+                                <span class="text-primary">{{ cart.amount|add:delivery_fee|add:dropship_shipping_cost|floatformat:0 }} FCFA</span>
+                            </div>
+                        </div>
+
+                        <!-- Security Badge -->
+                        <div class="alert alert-success">
+                            <i class="fas fa-shield-alt"></i>
+                            <div>
+                                <div class="font-medium">Paiement sécurisé</div>
+                                <div class="text-sm">Vos données sont protégées</div>
+                            </div>
+                        </div>
+
+                        <!-- Delivery Info -->
+                        {% if dropship_delivery_time %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-truck"></i>
+                            <div>
+                                <div class="font-medium">Livraison dropshipping</div>
+                                <div class="text-sm">Délai: {{ dropship_delivery_time }} jours</div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Form validation and loading state
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const checkoutBtn = document.getElementById('checkout-btn');
+    
+    form.addEventListener('submit', function(e) {
+        // Add loading state
+        checkoutBtn.innerHTML = '<span class="loading loading-spinner loading-sm mr-2"></span>Traitement de la commande...';
+        checkoutBtn.disabled = true;
+        checkoutBtn.classList.add('loading');
+        
+        // Re-enable after 10 seconds (in case of error)
+        setTimeout(() => {
+            checkoutBtn.innerHTML = '<i class="fas fa-check-circle mr-2"></i>Confirmer la commande';
+            checkoutBtn.disabled = false;
+            checkoutBtn.classList.remove('loading');
+        }, 10000);
+    });
+    
+    // Payment method selection animation
+    document.querySelectorAll('input[name="payment_method"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            // Remove active class from all labels
+            document.querySelectorAll('label[for*="payment_method"]').forEach(label => {
+                label.classList.remove('border-primary', 'bg-primary/10');
+                label.classList.add('border-base-300');
+            });
+            
+            // Add active class to selected label
+            const selectedLabel = document.querySelector(`label[for="${this.id}"]`);
+            if (selectedLabel) {
+                selectedLabel.classList.remove('border-base-300');
+                selectedLabel.classList.add('border-primary', 'bg-primary/10');
+            }
+        });
+    });
+    
+    // Add ripple effect to buttons
+    document.querySelectorAll('.btn').forEach(button => {
+        button.addEventListener('click', function(e) {
+            createRipple(e, this);
+        });
+    });
+    
+    // Phone number formatting
+    const phoneInput = document.getElementById('{{ form.delivery_phone.id_for_label }}');
+    phoneInput.addEventListener('input', function() {
+        let value = this.value.replace(/\D/g, '');
+        if (value.startsWith('224')) {
+            value = '+' + value;
+        } else if (value.startsWith('0')) {
+            value = '+224' + value.substring(1);
+        } else if (value.length > 0 && !value.startsWith('+')) {
+            value = '+224' + value;
+        }
+        this.value = value;
+    });
+});
+</script>
+{% endblock %}

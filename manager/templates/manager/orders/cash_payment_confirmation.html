@@ -1,0 +1,473 @@
+{% extends 'manager/base.html' %}
+{% load static %}
+
+{% block title %}Confirmer le paiement - Commande #{{ order.uid }}{% endblock %}
+{% block page_title %}Confirmer le paiement{% endblock %}
+{% block page_description %}Confirmer le paiement en espèces pour la commande #{{ order.uid }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-slate-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 py-8">
+    <div class="container mx-auto px-4 max-w-4xl">
+        <!-- Header -->
+        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 animate-fade-in">
+            <div>
+                <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-3">
+                    <div class="w-12 h-12 bg-gradient-to-r from-success to-green-500 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-money-bill-wave text-2xl text-white"></i>
+                    </div>
+                    Confirmer le paiement
+                </h1>
+                <p class="text-gray-600 dark:text-gray-300">Confirmer le paiement en espèces pour la commande #{{ order.uid }}</p>
+            </div>
+            <div class="flex flex-wrap gap-3 mt-4 lg:mt-0">
+                <a href="{% url 'manager:order_detail' order.uid %}" class="btn btn-outline btn-secondary hover-scale transition-all">
+                    <i class="fas fa-arrow-left mr-2"></i>
+                    Retour
+                </a>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Formulaire de confirmation -->
+            <div class="lg:col-span-2">
+                <div class="card bg-white dark:bg-gray-800 shadow-xl animate-slide-in">
+                    <div class="card-body">
+                        <h2 class="card-title text-xl mb-6">
+                            <i class="fas fa-cash-register text-primary mr-2"></i>
+                            Confirmation de paiement
+                        </h2>
+                        
+                        <form method="post" class="space-y-6">
+                            {% csrf_token %}
+                            
+                            <!-- Informations de la commande -->
+                            <div class="bg-gray-50 dark:bg-gray-700 p-6 rounded-lg mb-6">
+                                <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                                    <i class="fas fa-info-circle text-primary"></i>
+                                    Informations de la commande
+                                </h3>
+                                
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="label">
+                                            <span class="label-text font-semibold">Client</span>
+                                        </label>
+                                        <div class="text-lg">
+                                            {{ order.customer.first_name }} {{ order.customer.last_name }}
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="label">
+                                            <span class="label-text font-semibold">Email</span>
+                                        </label>
+                                        <div class="text-lg">
+                                            <i class="fas fa-envelope text-primary mr-2"></i>
+                                            {{ order.customer.email }}
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="label">
+                                            <span class="label-text font-semibold">Date de commande</span>
+                                        </label>
+                                        <div class="text-lg">
+                                            {{ order.created_at|date:"d/m/Y à H:i" }}
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="label">
+                                            <span class="label-text font-semibold">Statut</span>
+                                        </label>
+                                        <span class="badge badge-{% if order.status == 'pending' %}warning{% elif order.status == 'paid' %}info{% elif order.status == 'shipped' %}primary{% elif order.status == 'delivered' %}success{% elif order.status == 'cancelled' %}error{% endif %} badge-lg">
+                                            {{ order.get_status_display }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Adresse de livraison -->
+                            <div class="bg-gray-50 dark:bg-gray-700 p-6 rounded-lg mb-6">
+                                <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                                    <i class="fas fa-map-marker-alt text-primary"></i>
+                                    Adresse de livraison
+                                </h3>
+                                
+                                <div class="space-y-2">
+                                    <div class="text-lg">
+                                        <strong>{{ order.delivery_address }}</strong>
+                                    </div>
+                                    <div class="text-gray-600 dark:text-gray-300">
+                                        <i class="fas fa-phone mr-2"></i>
+                                        {{ order.delivery_phone }}
+                                    </div>
+                                    {% if order.delivery_notes %}
+                                        <div class="text-gray-600 dark:text-gray-300">
+                                            <strong>Notes :</strong> {{ order.delivery_notes }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Articles commandés -->
+                            <div class="bg-gray-50 dark:bg-gray-700 p-6 rounded-lg mb-6">
+                                <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                                    <i class="fas fa-box text-primary"></i>
+                                    Articles commandés
+                                </h3>
+                                
+                                <div class="space-y-3">
+                                    {% for item in order.items.all %}
+                                    <div class="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg">
+                                        <div class="flex items-center gap-3">
+                                            {% if item.product.image %}
+                                                <div class="avatar">
+                                                    <div class="w-12 h-12 rounded-lg">
+                                                        <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="object-cover">
+                                                    </div>
+                                                </div>
+                                            {% endif %}
+                                            <div>
+                                                <div class="font-semibold">{{ item.product.name }}</div>
+                                                <div class="text-sm text-gray-500">{{ item.product.category.name }}</div>
+                                            </div>
+                                        </div>
+                                        <div class="text-right">
+                                            <div class="font-semibold">{{ item.quantity }} × {{ item.price|floatformat:0 }} FCFA</div>
+                                            <div class="text-primary font-bold">{{ item.total_price|floatformat:0 }} FCFA</div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                
+                                <div class="divider"></div>
+                                
+                                <div class="flex justify-end">
+                                    <div class="text-right space-y-2">
+                                        <div class="flex justify-between gap-8">
+                                            <span>Sous-total :</span>
+                                            <span class="font-semibold">{{ order.subtotal|floatformat:0 }} FCFA</span>
+                                        </div>
+                                        <div class="flex justify-between gap-8">
+                                            <span>Frais de livraison :</span>
+                                            <span class="font-semibold">{{ order.delivery_fee|floatformat:0 }} FCFA</span>
+                                        </div>
+                                        <div class="divider my-2"></div>
+                                        <div class="flex justify-between gap-8 text-xl">
+                                            <span class="font-bold">Total à payer :</span>
+                                            <span class="font-bold text-primary text-2xl">{{ order.total_amount|floatformat:0 }} FCFA</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Montant reçu -->
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text font-semibold text-lg">Montant reçu du client</span>
+                                </label>
+                                <div class="relative">
+                                    <input type="number" name="amount_received" id="amount_received" 
+                                           class="input input-bordered input-lg w-full pr-16" 
+                                           placeholder="0" step="100" min="0" required>
+                                    <span class="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 font-semibold">
+                                        FCFA
+                                    </span>
+                                </div>
+                                <label class="label">
+                                    <span class="label-text-alt">Entrez le montant exact reçu du client</span>
+                                </label>
+                            </div>
+
+                            <!-- Montant de la monnaie -->
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text font-semibold text-lg">Monnaie à rendre</span>
+                                </label>
+                                <div class="relative">
+                                    <input type="number" name="change_amount" id="change_amount" 
+                                           class="input input-bordered input-lg w-full pr-16 bg-gray-100 dark:bg-gray-700" 
+                                           readonly>
+                                    <span class="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 font-semibold">
+                                        FCFA
+                                    </span>
+                                </div>
+                                <label class="label">
+                                    <span class="label-text-alt">Calculé automatiquement</span>
+                                </label>
+                            </div>
+
+                            <!-- Notes optionnelles -->
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text font-semibold">Notes (optionnel)</span>
+                                </label>
+                                <textarea name="notes" class="textarea textarea-bordered h-24" placeholder="Ajoutez des notes sur ce paiement..."></textarea>
+                                <label class="label">
+                                    <span class="label-text-alt">Ces notes seront visibles dans l'historique de la commande</span>
+                                </label>
+                            </div>
+                            
+                            <!-- Boutons d'action -->
+                            <div class="flex flex-col sm:flex-row gap-4 pt-6">
+                                <button type="submit" class="btn btn-success btn-lg flex-1 hover-glow transition-all">
+                                    <i class="fas fa-check mr-2"></i>
+                                    Confirmer le paiement
+                                </button>
+                                
+                                <a href="{% url 'manager:order_detail' order.uid %}" class="btn btn-outline btn-lg flex-1 hover-scale transition-all">
+                                    <i class="fas fa-times mr-2"></i>
+                                    Annuler
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Informations contextuelles -->
+            <div class="space-y-6">
+                <!-- Instructions -->
+                <div class="card bg-white dark:bg-gray-800 shadow-xl animate-slide-in">
+                    <div class="card-body">
+                        <h2 class="card-title text-xl mb-6">
+                            <i class="fas fa-info-circle text-primary mr-2"></i>
+                            Instructions
+                        </h2>
+                        
+                        <div class="space-y-4">
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle"></i>
+                                <div>
+                                    <div class="font-semibold">Paiement à la livraison</div>
+                                    <div class="text-sm">Le client paie en espèces lors de la livraison</div>
+                                </div>
+                            </div>
+                            
+                            <div class="space-y-3">
+                                <div class="flex items-start gap-3">
+                                    <div class="w-6 h-6 bg-primary text-primary-content rounded-full flex items-center justify-center text-xs font-bold">1</div>
+                                    <div class="text-sm">
+                                        <div class="font-semibold">Vérifiez le montant</div>
+                                        <div class="text-gray-500">Assurez-vous que le montant reçu correspond au total de la commande</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-start gap-3">
+                                    <div class="w-6 h-6 bg-primary text-primary-content rounded-full flex items-center justify-center text-xs font-bold">2</div>
+                                    <div class="text-sm">
+                                        <div class="font-semibold">Calculez la monnaie</div>
+                                        <div class="text-gray-500">Le système calcule automatiquement la monnaie à rendre</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-start gap-3">
+                                    <div class="w-6 h-6 bg-primary text-primary-content rounded-full flex items-center justify-center text-xs font-bold">3</div>
+                                    <div class="text-sm">
+                                        <div class="font-semibold">Confirmez le paiement</div>
+                                        <div class="text-gray-500">Cliquez sur "Confirmer le paiement" pour finaliser</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Résumé du paiement -->
+                <div class="card bg-white dark:bg-gray-800 shadow-xl animate-slide-in">
+                    <div class="card-body">
+                        <h2 class="card-title text-xl mb-6">
+                            <i class="fas fa-calculator text-primary mr-2"></i>
+                            Résumé du paiement
+                        </h2>
+                        
+                        <div class="space-y-3">
+                            <div class="flex justify-between">
+                                <span>Total à payer :</span>
+                                <span class="font-bold text-primary" id="total-amount">{{ order.total_amount|floatformat:0 }} FCFA</span>
+                            </div>
+                            
+                            <div class="flex justify-between">
+                                <span>Montant reçu :</span>
+                                <span class="font-semibold" id="received-amount">0 FCFA</span>
+                            </div>
+                            
+                            <div class="divider my-2"></div>
+                            
+                            <div class="flex justify-between text-lg">
+                                <span class="font-bold">Monnaie à rendre :</span>
+                                <span class="font-bold text-success" id="change-display">0 FCFA</span>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4 p-3 rounded-lg" id="payment-status">
+                            <div class="text-center text-gray-500">
+                                <i class="fas fa-info-circle mb-2"></i>
+                                <div class="text-sm">Entrez le montant reçu</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actions rapides -->
+                <div class="card bg-white dark:bg-gray-800 shadow-xl animate-slide-in">
+                    <div class="card-body">
+                        <h2 class="card-title text-xl mb-6">
+                            <i class="fas fa-bolt text-primary mr-2"></i>
+                            Actions rapides
+                        </h2>
+                        
+                        <div class="space-y-3">
+                            <a href="{% url 'manager:order_invoice_pdf' order.uid %}" class="btn btn-outline btn-info w-full hover-scale transition-all" target="_blank">
+                                <i class="fas fa-file-pdf mr-2"></i>
+                                Générer facture
+                            </a>
+                            
+                            <a href="{% url 'manager:order_receipt_pdf' order.uid %}" class="btn btn-outline btn-info w-full hover-scale transition-all" target="_blank">
+                                <i class="fas fa-receipt mr-2"></i>
+                                Générer reçu
+                            </a>
+                            
+                            <a href="{% url 'manager:order_detail' order.uid %}" class="btn btn-outline btn-secondary w-full hover-scale transition-all">
+                                <i class="fas fa-eye mr-2"></i>
+                                Voir détails
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const amountReceivedInput = document.getElementById('amount_received');
+    const changeAmountInput = document.getElementById('change_amount');
+    const totalAmount = {{ order.total_amount }};
+    
+    // Add ripple effect to buttons
+    document.querySelectorAll('.btn').forEach(button => {
+        button.addEventListener('click', function(e) {
+            createRipple(e, this);
+        });
+    });
+
+    // Calculate change when amount received changes
+    amountReceivedInput.addEventListener('input', function() {
+        const received = parseFloat(this.value) || 0;
+        const change = received - totalAmount;
+        
+        // Update change amount
+        changeAmountInput.value = change > 0 ? change.toFixed(0) : 0;
+        
+        // Update display
+        document.getElementById('received-amount').textContent = received.toFixed(0) + ' FCFA';
+        document.getElementById('change-display').textContent = (change > 0 ? change.toFixed(0) : 0) + ' FCFA';
+        
+        // Update payment status
+        const statusDiv = document.getElementById('payment-status');
+        if (received === 0) {
+            statusDiv.innerHTML = `
+                <div class="text-center text-gray-500">
+                    <i class="fas fa-info-circle mb-2"></i>
+                    <div class="text-sm">Entrez le montant reçu</div>
+                </div>
+            `;
+            statusDiv.className = 'mt-4 p-3 rounded-lg';
+        } else if (received < totalAmount) {
+            statusDiv.innerHTML = `
+                <div class="text-center text-warning">
+                    <i class="fas fa-exclamation-triangle mb-2"></i>
+                    <div class="text-sm font-semibold">Montant insuffisant</div>
+                    <div class="text-xs">Il manque ${(totalAmount - received).toFixed(0)} FCFA</div>
+                </div>
+            `;
+            statusDiv.className = 'mt-4 p-3 rounded-lg bg-warning/10 border border-warning/20';
+        } else if (received === totalAmount) {
+            statusDiv.innerHTML = `
+                <div class="text-center text-success">
+                    <i class="fas fa-check-circle mb-2"></i>
+                    <div class="text-sm font-semibold">Montant exact</div>
+                    <div class="text-xs">Aucune monnaie à rendre</div>
+                </div>
+            `;
+            statusDiv.className = 'mt-4 p-3 rounded-lg bg-success/10 border border-success/20';
+        } else {
+            statusDiv.innerHTML = `
+                <div class="text-center text-info">
+                    <i class="fas fa-coins mb-2"></i>
+                    <div class="text-sm font-semibold">Monnaie à rendre</div>
+                    <div class="text-xs">${change.toFixed(0)} FCFA</div>
+                </div>
+            `;
+            statusDiv.className = 'mt-4 p-3 rounded-lg bg-info/10 border border-info/20';
+        }
+    });
+
+    // Form validation
+    const form = document.querySelector('form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const received = parseFloat(amountReceivedInput.value) || 0;
+            
+            if (received < totalAmount) {
+                e.preventDefault();
+                amountReceivedInput.focus();
+                amountReceivedInput.classList.add('input-error');
+                
+                showToast('Le montant reçu doit être supérieur ou égal au montant total', 'error');
+                
+                setTimeout(() => {
+                    amountReceivedInput.classList.remove('input-error');
+                }, 3000);
+            } else {
+                // Confirmation before submit
+                const change = received - totalAmount;
+                let message = `Confirmer le paiement de ${totalAmount.toFixed(0)} FCFA ?`;
+                
+                if (change > 0) {
+                    message += `\nMonnaie à rendre : ${change.toFixed(0)} FCFA`;
+                }
+                
+                if (!confirm(message)) {
+                    e.preventDefault();
+                }
+            }
+        });
+    }
+
+    // Quick amount buttons
+    const quickAmounts = [totalAmount, totalAmount + 1000, totalAmount + 2000, totalAmount + 5000];
+    
+    // Add quick amount buttons if needed
+    const quickButtonsContainer = document.createElement('div');
+    quickButtonsContainer.className = 'flex flex-wrap gap-2 mt-2';
+    quickButtonsContainer.innerHTML = `
+        <div class="text-sm text-gray-500 w-full mb-2">Montants rapides :</div>
+        ${quickAmounts.map(amount => `
+            <button type="button" class="btn btn-xs btn-outline" onclick="setAmount(${amount})">
+                ${amount.toFixed(0)} FCFA
+            </button>
+        `).join('')}
+    `;
+    
+    amountReceivedInput.parentNode.appendChild(quickButtonsContainer);
+    
+    // Set amount function
+    window.setAmount = function(amount) {
+        amountReceivedInput.value = amount;
+        amountReceivedInput.dispatchEvent(new Event('input'));
+    };
+});
+
+// Fonction de secours pour éviter les erreurs JavaScript
+function updateCartCount() {
+    // Fonction vide pour éviter les erreurs si elle est appelée
+    console.log('updateCartCount called but not implemented in this context');
+}
+</script>
+{% endblock %}

@@ -1,0 +1,357 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load product_filters %}
+
+{% block title %}Demande de remboursement - {{ order.uid }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-orange-50 to-yellow-100 dark:from-gray-900 dark:to-gray-800 py-12">
+    <div class="container mx-auto px-4">
+        <div class="max-w-4xl mx-auto">
+            <!-- Header -->
+            <div class="text-center mb-8 animate-fade-in">
+                <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-orange-500 to-yellow-500 rounded-full mb-4">
+                    <i class="fas fa-undo text-3xl text-white"></i>
+                </div>
+                <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2">Demande de remboursement</h1>
+                <p class="text-gray-600 dark:text-gray-300">Remplissez le formulaire pour demander un remboursement</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Main Form -->
+                <div class="lg:col-span-2 space-y-6">
+                    <!-- Order Information -->
+                    <div class="card bg-white dark:bg-gray-800 shadow-2xl animate-slide-in">
+                        <div class="card-body">
+                            <h2 class="card-title text-2xl mb-6">
+                                <i class="fas fa-info-circle text-primary mr-2"></i>
+                                Informations de la commande
+                            </h2>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="space-y-4">
+                                    <div class="flex justify-between items-center p-3 bg-base-200 rounded-lg">
+                                        <span class="font-semibold">N° Commande:</span>
+                                        <span class="font-mono text-sm">{{ order.uid }}</span>
+                                    </div>
+                                    
+                                    <div class="flex justify-between items-center p-3 bg-base-200 rounded-lg">
+                                        <span class="font-semibold">Date:</span>
+                                        <span>{{ order.created_at|date:"d/m/Y H:i" }}</span>
+                                    </div>
+                                    
+                                    <div class="flex justify-between items-center p-3 bg-base-200 rounded-lg">
+                                        <span class="font-semibold">Statut:</span>
+                                        <span class="badge badge-{{ order.status|yesno:'success,warning' }}">
+                                            {{ order.get_status_display }}
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                <div class="space-y-4">
+                                    <div class="flex justify-between items-center p-3 bg-base-200 rounded-lg">
+                                        <span class="font-semibold">Montant total:</span>
+                                        <span class="font-bold text-lg">{{ order.total_amount|floatformat:0 }} FCFA</span>
+                                    </div>
+                                    
+                                    <div class="flex justify-between items-center p-3 bg-base-200 rounded-lg">
+                                        <span class="font-semibold">Méthode de paiement:</span>
+                                        <span class="font-medium">{{ order.get_payment_method_display }}</span>
+                                    </div>
+                                    
+                                    <div class="flex justify-between items-center p-3 bg-base-200 rounded-lg">
+                                        <span class="font-semibold">Statut paiement:</span>
+                                        <span class="badge badge-{{ order.payment_status|yesno:'success,warning' }}">
+                                            {{ order.get_payment_status_display }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Order Items -->
+                    <div class="card bg-white dark:bg-gray-800 shadow-2xl animate-slide-in">
+                        <div class="card-body">
+                            <h2 class="card-title text-2xl mb-6">
+                                <i class="fas fa-shopping-cart text-primary mr-2"></i>
+                                Articles commandés
+                            </h2>
+                            
+                            <div class="overflow-x-auto">
+                                <table class="table table-zebra w-full">
+                                    <thead>
+                                        <tr>
+                                            <th>Produit</th>
+                                            <th class="text-center">Quantité</th>
+                                            <th class="text-end">Prix unitaire</th>
+                                            <th class="text-end">Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for item in order.items.all %}
+                                        <tr>
+                                            <td>
+                                                <div class="flex items-center gap-3">
+                                                    {% if item.product.image %}
+                                                    <div class="avatar">
+                                                        <div class="w-12 h-12 rounded">
+                                                            <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}">
+                                                        </div>
+                                                    </div>
+                                                    {% endif %}
+                                                    <div>
+                                                        <div class="font-bold">{{ item.product.name }}</div>
+                                                        <div class="text-sm text-base-content/70">{{ item.product.category.name }}</div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="text-center">
+                                                <span class="badge badge-primary">{{ item.quantity }}</span>
+                                            </td>
+                                            <td class="text-end">
+                                                <span class="font-semibold">{{ item.price_at_time|floatformat:0 }} FCFA</span>
+                                            </td>
+                                            <td class="text-end">
+                                                <span class="font-bold">{{ item.price_at_time|floatformat:0|mul:item.quantity }} FCFA</span>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                    <tfoot>
+                                        <tr class="bg-info text-info-content">
+                                            <th colspan="3" class="text-lg">Total de la commande:</th>
+                                            <th class="text-end text-xl font-bold">{{ order.total_amount|floatformat:0 }} FCFA</th>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Refund Request Form -->
+                    <div class="card bg-white dark:bg-gray-800 shadow-2xl animate-slide-in">
+                        <div class="card-body">
+                            <h2 class="card-title text-2xl mb-6">
+                                <i class="fas fa-undo text-primary mr-2"></i>
+                                Formulaire de demande de remboursement
+                            </h2>
+                            
+                            <form method="post" class="space-y-6" id="refund-form">
+                                {% csrf_token %}
+                                
+                                <div class="form-control">
+                                    <label class="label">
+                                        <span class="label-text font-semibold">
+                                            <i class="fas fa-exclamation-triangle text-orange-500 mr-2"></i>
+                                            {{ form.reason.label }} *
+                                        </span>
+                                    </label>
+                                    {{ form.reason }}
+                                    {% if form.reason.errors %}
+                                        <label class="label">
+                                            <span class="label-text-alt text-error">{{ form.reason.errors.0 }}</span>
+                                        </label>
+                                    {% endif %}
+                                </div>
+
+                                <div class="form-control">
+                                    <label class="label">
+                                        <span class="label-text font-semibold">
+                                            <i class="fas fa-comment text-blue-500 mr-2"></i>
+                                            {{ form.reason_description.label }}
+                                        </span>
+                                    </label>
+                                    {{ form.reason_description }}
+                                    {% if form.reason_description.errors %}
+                                        <label class="label">
+                                            <span class="label-text-alt text-error">{{ form.reason_description.errors.0 }}</span>
+                                        </label>
+                                    {% endif %}
+                                    <label class="label">
+                                        <span class="label-text-alt text-gray-500">Décrivez en détail la raison de votre demande de remboursement.</span>
+                                    </label>
+                                </div>
+
+                                <div class="form-control">
+                                    <label class="label">
+                                        <span class="label-text font-semibold">
+                                            <i class="fas fa-money-bill-wave text-green-500 mr-2"></i>
+                                            {{ form.amount.label }} *
+                                        </span>
+                                    </label>
+                                    {{ form.amount }}
+                                    {% if form.amount.errors %}
+                                        <label class="label">
+                                            <span class="label-text-alt text-error">{{ form.amount.errors.0 }}</span>
+                                        </label>
+                                    {% endif %}
+                                    {% if form.amount.help_text %}
+                                        <label class="label">
+                                            <span class="label-text-alt text-gray-500">{{ form.amount.help_text }}</span>
+                                        </label>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Warning -->
+                                <div class="alert alert-warning">
+                                    <div class="flex items-start gap-3">
+                                        <i class="fas fa-exclamation-triangle text-2xl text-yellow-500 mt-1"></i>
+                                        <div>
+                                            <h3 class="font-bold text-lg mb-2">Important</h3>
+                                            <ul class="space-y-1 text-sm">
+                                                <li class="flex items-center gap-2">
+                                                    <i class="fas fa-check text-green-500"></i>
+                                                    Le remboursement sera traité dans les 24-48 heures
+                                                </li>
+                                                <li class="flex items-center gap-2">
+                                                    <i class="fas fa-check text-green-500"></i>
+                                                    Vous serez contacté par téléphone ou email pour confirmer les détails
+                                                </li>
+                                                <li class="flex items-center gap-2">
+                                                    <i class="fas fa-check text-green-500"></i>
+                                                    Le remboursement sera effectué selon la méthode de paiement utilisée
+                                                </li>
+                                                <li class="flex items-center gap-2">
+                                                    <i class="fas fa-exclamation-triangle text-yellow-500"></i>
+                                                    Une fois la demande acceptée, la commande sera automatiquement annulée
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Action Buttons -->
+                                <div class="flex flex-col sm:flex-row gap-4 pt-6">
+                                    <a href="{% url 'orders:order_detail' order.uid %}" class="btn btn-outline btn-secondary hover-scale transition-all">
+                                        <i class="fas fa-arrow-left mr-2"></i>
+                                        Annuler
+                                    </a>
+                                    <button type="submit" class="btn btn-warning btn-lg flex-1 hover-glow transition-all">
+                                        <i class="fas fa-paper-plane mr-2"></i>
+                                        Envoyer la demande
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sidebar -->
+                <div class="lg:col-span-1 space-y-6">
+                    <!-- Refund Process -->
+                    <div class="card bg-white dark:bg-gray-800 shadow-xl animate-slide-in">
+                        <div class="card-body">
+                            <h2 class="card-title text-xl mb-6">
+                                <i class="fas fa-timeline text-primary mr-2"></i>
+                                Processus de remboursement
+                            </h2>
+                            
+                            <div class="steps steps-vertical">
+                                <div class="step step-primary">
+                                    <div class="step-content">
+                                        <div class="font-semibold">1. Demande</div>
+                                        <div class="text-sm text-gray-500">Vous soumettez votre demande</div>
+                                    </div>
+                                </div>
+                                <div class="step">
+                                    <div class="step-content">
+                                        <div class="font-semibold">2. Examen</div>
+                                        <div class="text-sm text-gray-500">Nous examinons votre demande (24-48h)</div>
+                                    </div>
+                                </div>
+                                <div class="step">
+                                    <div class="step-content">
+                                        <div class="font-semibold">3. Traitement</div>
+                                        <div class="text-sm text-gray-500">Remboursement en cours</div>
+                                    </div>
+                                </div>
+                                <div class="step">
+                                    <div class="step-content">
+                                        <div class="font-semibold">4. Terminé</div>
+                                        <div class="text-sm text-gray-500">Remboursement effectué</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contact Info -->
+                    <div class="card bg-white dark:bg-gray-800 shadow-xl animate-slide-in">
+                        <div class="card-body">
+                            <h2 class="card-title text-xl mb-6">
+                                <i class="fas fa-headset text-primary mr-2"></i>
+                                Besoin d'aide ?
+                            </h2>
+                            
+                            <div class="space-y-4">
+                                <div class="flex items-center gap-3">
+                                    <i class="fas fa-phone text-green-500"></i>
+                                    <div>
+                                        <div class="font-semibold">Téléphone</div>
+                                        <div class="text-sm text-gray-500">+224 XXX XX XX XX</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-center gap-3">
+                                    <i class="fas fa-envelope text-blue-500"></i>
+                                    <div>
+                                        <div class="font-semibold">Email</div>
+                                        <div class="text-sm text-gray-500">support@example.com</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-center gap-3">
+                                    <i class="fas fa-clock text-orange-500"></i>
+                                    <div>
+                                        <div class="font-semibold">Horaires</div>
+                                        <div class="text-sm text-gray-500">Lun-Ven: 8h-18h</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Validation en temps réel
+    const form = document.getElementById('refund-form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<span class="loading loading-spinner loading-sm mr-2"></span>Envoi en cours...';
+            submitBtn.disabled = true;
+            
+            // Re-enable after 10 seconds as fallback
+            setTimeout(() => {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }, 10000);
+        });
+    }
+
+    // Add ripple effect to buttons
+    document.querySelectorAll('.btn').forEach(button => {
+        button.addEventListener('click', function(e) {
+            createRipple(e, this);
+        });
+    });
+
+    // Animate timeline steps
+    const steps = document.querySelectorAll('.step');
+    steps.forEach((step, index) => {
+        setTimeout(() => {
+            step.classList.add('animate-fade-in');
+        }, index * 200);
+    });
+});
+</script>
+{% endblock %}

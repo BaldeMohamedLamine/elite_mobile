@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Remboursement traité</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        
+        .email-container {
+            background-color: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .header.failed {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        }
+        
+        .header.cancelled {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="0.5" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+        }
+        
+        .header-content {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .company-name {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header-subtitle {
+            font-size: 16px;
+            opacity: 0.9;
+            margin: 0;
+        }
+        
+        .content {
+            padding: 30px 20px;
+        }
+        
+        .refund-icon {
+            text-align: center;
+            margin: 30px 0;
+        }
+        
+        .refund-icon div {
+            display: inline-block;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: white;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        
+        .refund-icon.completed div {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            animation: pulse 2s infinite;
+        }
+        
+        .refund-icon.failed div {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            animation: shake 0.5s ease-in-out infinite alternate;
+        }
+        
+        .refund-icon.cancelled div {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(5px); }
+        }
+        
+        .greeting {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #495057;
+        }
+        
+        .refund-info {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            border: 1px solid #c3e6cb;
+            padding: 25px;
+            border-radius: 10px;
+            margin: 25px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .refund-info.failed {
+            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+            border: 1px solid #f5c6cb;
+        }
+        
+        .refund-info.cancelled {
+            background: linear-gradient(135deg, #e2e3e5 0%, #d6d8db 100%);
+            border: 1px solid #d6d8db;
+        }
+        
+        .refund-info h3 {
+            color: #155724;
+            margin-bottom: 20px;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .refund-info.failed h3 {
+            color: #721c24;
+        }
+        
+        .refund-info.cancelled h3 {
+            color: #495057;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 12px 0;
+            padding: 10px 0;
+            border-bottom: 1px solid #c3e6cb;
+        }
+        
+        .refund-info.failed .info-row {
+            border-bottom: 1px solid #f5c6cb;
+        }
+        
+        .refund-info.cancelled .info-row {
+            border-bottom: 1px solid #d6d8db;
+        }
+        
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        
+        .info-label {
+            font-weight: 600;
+            color: #155724;
+        }
+        
+        .refund-info.failed .info-label {
+            color: #721c24;
+        }
+        
+        .refund-info.cancelled .info-label {
+            color: #495057;
+        }
+        
+        .info-value {
+            color: #155724;
+            font-weight: 500;
+        }
+        
+        .refund-info.failed .info-value {
+            color: #721c24;
+        }
+        
+        .refund-info.cancelled .info-value {
+            color: #495057;
+        }
+        
+        .amount-highlight {
+            font-size: 20px;
+            font-weight: bold;
+            color: #28a745;
+        }
+        
+        .refund-info.failed .amount-highlight {
+            color: #dc3545;
+        }
+        
+        .refund-info.cancelled .amount-highlight {
+            color: #6c757d;
+        }
+        
+        .order-info {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 25px;
+            border-radius: 10px;
+            margin: 25px 0;
+            border-left: 4px solid #28a745;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .order-info.failed {
+            border-left: 4px solid #dc3545;
+        }
+        
+        .order-info.cancelled {
+            border-left: 4px solid #6c757d;
+        }
+        
+        .order-info h3 {
+            color: #495057;
+            margin-bottom: 20px;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .timeline-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .timeline-list li {
+            display: flex;
+            align-items: center;
+            margin: 12px 0;
+            padding: 12px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .timeline-list li::before {
+            content: '⏱️';
+            margin-right: 10px;
+            font-size: 16px;
+        }
+        
+        .contact-info {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border: 1px solid #bbdefb;
+        }
+        
+        .contact-info h4 {
+            color: #1976d2;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        
+        .contact-info p {
+            color: #1976d2;
+            margin: 5px 0;
+        }
+        
+        .cta-section {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            padding: 25px;
+            border-radius: 10px;
+            margin: 25px 0;
+            text-align: center;
+            border: 1px solid #bbdefb;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: bold;
+            font-size: 16px;
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
+            transition: all 0.3s ease;
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(40, 167, 69, 0.6);
+        }
+        
+        .footer {
+            background: linear-gradient(135deg, #343a40 0%, #495057 100%);
+            color: white;
+            padding: 25px 20px;
+            text-align: center;
+        }
+        
+        .footer p {
+            margin: 5px 0;
+        }
+        
+        .footer-company {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .footer-contact {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .icon {
+            font-size: 20px;
+            margin-right: 8px;
+        }
+        
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            
+            .content {
+                padding: 20px 15px;
+            }
+            
+            .header {
+                padding: 25px 15px;
+            }
+            
+            .company-name {
+                font-size: 24px;
+            }
+            
+            .refund-icon div {
+                width: 60px;
+                height: 60px;
+                font-size: 30px;
+            }
+            
+            .amount-highlight {
+                font-size: 18px;
+            }
+            
+            .info-row {
+                flex-direction: column;
+                gap: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header {% if refund.status == 'failed' %}failed{% elif refund.status == 'cancelled' %}cancelled{% endif %}">
+            <div class="header-content">
+                <div class="company-name">{{ company_name }}</div>
+                <p class="header-subtitle">Remboursement traité</p>
+            </div>
+        </div>
+        
+        <div class="content">
+            {% if refund.status == 'completed' %}
+            <div class="refund-icon completed">
+                <div>✓</div>
+            </div>
+            {% elif refund.status == 'failed' %}
+            <div class="refund-icon failed">
+                <div>✗</div>
+            </div>
+            {% else %}
+            <div class="refund-icon cancelled">
+                <div>⏸</div>
+            </div>
+            {% endif %}
+            
+            <div class="greeting">
+                Bonjour <strong>{{ refund.requested_by.first_name }} {{ refund.requested_by.last_name }}</strong>,
+            </div>
+            
+            {% if refund.status == 'completed' %}
+            <p style="font-size: 18px; color: #495057; margin-bottom: 25px;">
+                <strong>Excellente nouvelle !</strong> Votre remboursement a été traité avec succès. 🎉
+            </p>
+            {% elif refund.status == 'failed' %}
+            <p style="font-size: 18px; color: #495057; margin-bottom: 25px;">
+                <strong>Nous nous excusons.</strong> Le traitement de votre remboursement a échoué. 😔
+            </p>
+            {% else %}
+            <p style="font-size: 18px; color: #495057; margin-bottom: 25px;">
+                Votre demande de remboursement a été annulée. ℹ️
+            </p>
+            {% endif %}
+            
+            <div class="refund-info {% if refund.status == 'failed' %}failed{% elif refund.status == 'cancelled' %}cancelled{% endif %}">
+                <h3>
+                    <span class="icon">📋</span>
+                    Détails du remboursement
+                </h3>
+                <div class="info-row">
+                    <span class="info-label">N° Demande :</span>
+                    <span class="info-value"><strong>{{ refund.uid }}</strong></span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Commande concernée :</span>
+                    <span class="info-value">#{{ refund.order.uid }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Montant :</span>
+                    <span class="info-value amount-highlight">{{ refund.amount|floatformat:0 }} FCFA</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Statut :</span>
+                    <span class="info-value" style="font-weight: bold;">
+                        {% if refund.status == 'completed' %}✅ {{ refund.get_status_display }}{% elif refund.status == 'failed' %}❌ {{ refund.get_status_display }}{% else %}⏸ {{ refund.get_status_display }}{% endif %}
+                    </span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Date de traitement :</span>
+                    <span class="info-value">{{ refund.processed_at|date:"d/m/Y H:i" }}</span>
+                </div>
+                {% if refund.refund_transaction_id %}
+                <div class="info-row">
+                    <span class="info-label">ID Transaction :</span>
+                    <span class="info-value"><code>{{ refund.refund_transaction_id }}</code></span>
+                </div>
+                {% endif %}
+            </div>
+            
+            {% if refund.status == 'completed' %}
+            <div class="order-info">
+                <h3>
+                    <span class="icon">💰</span>
+                    Remboursement effectué
+                </h3>
+                <p style="margin-bottom: 15px; color: #495057;">
+                    Le remboursement de <strong>{{ refund.amount|floatformat:0 }} FCFA</strong> a été effectué avec succès.
+                </p>
+                <p style="margin-bottom: 15px; color: #495057;">
+                    Le montant devrait apparaître sur votre compte sous <strong>2-5 jours ouvrés</strong> selon votre méthode de paiement :
+                </p>
+                <ul class="timeline-list">
+                    <li><strong>Orange Money :</strong> 24-48 heures</li>
+                    <li><strong>Carte Visa/Mastercard :</strong> 3-5 jours ouvrés</li>
+                    <li><strong>Paiement à la livraison :</strong> Remboursement en espèces lors de la collecte</li>
+                </ul>
+            </div>
+            {% elif refund.status == 'failed' %}
+            <div class="order-info failed">
+                <h3>
+                    <span class="icon">⚠️</span>
+                    Échec du remboursement
+                </h3>
+                <p style="margin-bottom: 15px; color: #495057;">
+                    Nous nous excusons, mais le remboursement a échoué pour des raisons techniques.
+                </p>
+                <div class="contact-info">
+                    <h4>📞 Contactez-nous</h4>
+                    <p>Veuillez nous contacter au <strong>{{ company_phone }}</strong> ou par email à <strong>{{ company_email }}</strong> pour plus d'informations et pour organiser un nouveau remboursement.</p>
+                </div>
+            </div>
+            {% else %}
+            <div class="order-info cancelled">
+                <h3>
+                    <span class="icon">ℹ️</span>
+                    Remboursement annulé
+                </h3>
+                <p style="margin-bottom: 15px; color: #495057;">
+                    Votre demande de remboursement a été annulée.
+                </p>
+                <p style="color: #495057;">
+                    Si vous avez des questions, n'hésitez pas à nous contacter.
+                </p>
+            </div>
+            {% endif %}
+            
+            <div class="cta-section">
+                <h3 style="color: #1976d2; margin-bottom: 15px;">
+                    <span class="icon">👀</span>
+                    Suivi de votre demande
+                </h3>
+                <p style="margin-bottom: 20px; color: #1976d2;">
+                    Vous pouvez consulter les détails de votre demande en cliquant sur le bouton ci-dessous :
+                </p>
+                <a href="{{ request.scheme }}://{{ request.get_host }}{% url 'orders:refund_detail' refund.uid %}" class="cta-button">
+                    📋 Voir les détails
+                </a>
+            </div>
+            
+            {% if refund.status == 'completed' %}
+            <p style="font-size: 16px; color: #495057; margin: 25px 0;">
+                Merci pour votre patience et nous nous excusons pour tout désagrément. 🙏
+            </p>
+            {% else %}
+            <p style="font-size: 16px; color: #495057; margin: 25px 0;">
+                Nous nous excusons pour tout désagrément et restons à votre disposition. 🙏
+            </p>
+            {% endif %}
+            
+            <p style="font-size: 16px; color: #495057; font-weight: 500;">
+                L'équipe <strong>{{ company_name }}</strong>
+            </p>
+        </div>
+        
+        <div class="footer">
+            <p class="footer-company">{{ company_name }}</p>
+            <p class="footer-contact">Tél : {{ company_phone }} | Email : {{ company_email }}</p>
+            <p class="footer-contact">Conakry, Guinée</p>
+        </div>
+    </div>
+</body>
+</html>

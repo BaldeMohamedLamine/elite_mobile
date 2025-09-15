@@ -1,0 +1,353 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Détail du log d'audit{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-slate-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 py-8">
+    <div class="container mx-auto px-4">
+        <!-- Header -->
+        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 animate-fade-in">
+            <div>
+                <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-3">
+                    <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-clipboard-list text-2xl text-white"></i>
+                    </div>
+                    Détail du log d'audit
+                </h1>
+                <p class="text-gray-600 dark:text-gray-300">Informations détaillées sur l'action d'audit</p>
+            </div>
+            <div class="flex flex-wrap gap-3 mt-4 lg:mt-0">
+                <a href="{% url 'orders:audit_log_list' %}" class="btn btn-outline btn-secondary hover-scale transition-all">
+                    <i class="fas fa-arrow-left mr-2"></i>
+                    Retour à la liste
+                </a>
+                <a href="{% url 'orders:audit_dashboard' %}" class="btn btn-outline btn-primary hover-scale transition-all">
+                    <i class="fas fa-tachometer-alt mr-2"></i>
+                    Tableau de bord
+                </a>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Contenu principal -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Informations principales -->
+                <div class="card bg-white dark:bg-gray-800 shadow-xl animate-slide-in">
+                    <div class="card-body">
+                        <h2 class="card-title text-2xl mb-6">
+                            <i class="fas fa-info-circle text-primary mr-2"></i>
+                            Informations principales
+                        </h2>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="space-y-4">
+                                <div class="flex justify-between items-center p-3 bg-base-200 rounded-lg">
+                                    <span class="font-semibold">ID unique :</span>
+                                    <code class="text-sm bg-base-300 px-2 py-1 rounded">{{ audit_log.uid }}</code>
+                                </div>
+                                
+                                <div class="flex justify-between items-center p-3 bg-base-200 rounded-lg">
+                                    <span class="font-semibold">Type d'action :</span>
+                                    <span class="badge badge-{% if audit_log.severity == 'critical' %}error{% elif audit_log.severity == 'high' %}warning{% elif audit_log.severity == 'medium' %}info{% else %}neutral{% endif %} badge-lg">
+                                        {{ audit_log.get_action_type_display }}
+                                    </span>
+                                </div>
+                                
+                                <div class="flex justify-between items-center p-3 bg-base-200 rounded-lg">
+                                    <span class="font-semibold">Sévérité :</span>
+                                    <span class="badge badge-{% if audit_log.severity == 'critical' %}error{% elif audit_log.severity == 'high' %}warning{% elif audit_log.severity == 'medium' %}info{% else %}neutral{% endif %} badge-lg">
+                                        {{ audit_log.get_severity_display }}
+                                    </span>
+                                </div>
+                                
+                                <div class="flex justify-between items-center p-3 bg-base-200 rounded-lg">
+                                    <span class="font-semibold">Utilisateur :</span>
+                                    {% if audit_log.user %}
+                                        <div class="flex items-center gap-2">
+                                            <div class="avatar placeholder">
+                                                <div class="bg-primary text-primary-content rounded-full w-8">
+                                                    <span class="text-xs">{{ audit_log.user.email|first|upper }}</span>
+                                                </div>
+                                            </div>
+                                            <span class="text-sm">{{ audit_log.user.email }}</span>
+                                        </div>
+                                    {% else %}
+                                        <span class="text-gray-500 italic">Système</span>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="flex justify-between items-center p-3 bg-base-200 rounded-lg">
+                                    <span class="font-semibold">Date/Heure :</span>
+                                    <span class="text-sm">{{ audit_log.created_at|date:"d/m/Y H:i:s" }}</span>
+                                </div>
+                            </div>
+                            
+                            <div class="space-y-4">
+                                <div class="flex justify-between items-center p-3 bg-base-200 rounded-lg">
+                                    <span class="font-semibold">Statut :</span>
+                                    {% if audit_log.success %}
+                                        <div class="flex items-center gap-2">
+                                            <i class="fas fa-check text-success"></i>
+                                            <span class="text-success font-medium">Succès</span>
+                                        </div>
+                                    {% else %}
+                                        <div class="flex items-center gap-2">
+                                            <i class="fas fa-times text-error"></i>
+                                            <span class="text-error font-medium">Échec</span>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="flex justify-between items-center p-3 bg-base-200 rounded-lg">
+                                    <span class="font-semibold">Adresse IP :</span>
+                                    {% if audit_log.ip_address %}
+                                        <code class="text-sm bg-base-300 px-2 py-1 rounded">{{ audit_log.ip_address }}</code>
+                                    {% else %}
+                                        <span class="text-gray-500">Non disponible</span>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="flex justify-between items-center p-3 bg-base-200 rounded-lg">
+                                    <span class="font-semibold">Chemin de requête :</span>
+                                    {% if audit_log.request_path %}
+                                        <code class="text-sm bg-base-300 px-2 py-1 rounded">{{ audit_log.request_path }}</code>
+                                    {% else %}
+                                        <span class="text-gray-500">Non disponible</span>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="flex justify-between items-center p-3 bg-base-200 rounded-lg">
+                                    <span class="font-semibold">Méthode HTTP :</span>
+                                    {% if audit_log.request_method %}
+                                        <span class="badge badge-info">{{ audit_log.request_method }}</span>
+                                    {% else %}
+                                        <span class="text-gray-500">Non disponible</span>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="flex justify-between items-center p-3 bg-base-200 rounded-lg">
+                                    <span class="font-semibold">Objet concerné :</span>
+                                    {% if audit_log.object_type and audit_log.object_id %}
+                                        <div class="flex items-center gap-2">
+                                            <span class="badge badge-secondary">{{ audit_log.object_type }}</span>
+                                            <code class="text-sm bg-base-300 px-2 py-1 rounded">{{ audit_log.object_id }}</code>
+                                        </div>
+                                    {% else %}
+                                        <span class="text-gray-500">Aucun</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Description -->
+                <div class="card bg-white dark:bg-gray-800 shadow-xl animate-slide-in">
+                    <div class="card-body">
+                        <h2 class="card-title text-2xl mb-6">
+                            <i class="fas fa-align-left text-primary mr-2"></i>
+                            Description
+                        </h2>
+                        <div class="prose max-w-none">
+                            <p class="text-base-content/80 leading-relaxed">{{ audit_log.description }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Changements effectués -->
+                {% if audit_log.old_values or audit_log.new_values %}
+                <div class="card bg-white dark:bg-gray-800 shadow-xl animate-slide-in">
+                    <div class="card-body">
+                        <h2 class="card-title text-2xl mb-6">
+                            <i class="fas fa-exchange-alt text-primary mr-2"></i>
+                            Changements effectués
+                        </h2>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {% if audit_log.old_values %}
+                            <div>
+                                <h3 class="text-lg font-semibold text-error mb-4 flex items-center gap-2">
+                                    <i class="fas fa-minus"></i>
+                                    Anciennes valeurs
+                                </h3>
+                                <div class="bg-base-200 p-4 rounded-lg">
+                                    <pre class="text-sm overflow-x-auto"><code>{{ audit_log.old_values|pprint }}</code></pre>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            {% if audit_log.new_values %}
+                            <div>
+                                <h3 class="text-lg font-semibold text-success mb-4 flex items-center gap-2">
+                                    <i class="fas fa-plus"></i>
+                                    Nouvelles valeurs
+                                </h3>
+                                <div class="bg-base-200 p-4 rounded-lg">
+                                    <pre class="text-sm overflow-x-auto"><code>{{ audit_log.new_values|pprint }}</code></pre>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        {% if audit_log.old_values and audit_log.new_values %}
+                        <div class="mt-6 p-4 bg-base-200 rounded-lg">
+                            <h3 class="text-lg font-semibold mb-2 flex items-center gap-2">
+                                <i class="fas fa-list"></i>
+                                Résumé des changements
+                            </h3>
+                            <p class="text-base-content/80">{{ audit_log.get_changes_summary }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Message d'erreur -->
+                {% if audit_log.error_message %}
+                <div class="card bg-white dark:bg-gray-800 shadow-xl animate-slide-in">
+                    <div class="card-body">
+                        <h2 class="card-title text-2xl mb-6 text-error">
+                            <i class="fas fa-exclamation-triangle mr-2"></i>
+                            Message d'erreur
+                        </h2>
+                        <div class="bg-error/10 border border-error/20 p-4 rounded-lg">
+                            <pre class="text-error text-sm overflow-x-auto"><code>{{ audit_log.error_message }}</code></pre>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Métadonnées -->
+                {% if audit_log.metadata %}
+                <div class="card bg-white dark:bg-gray-800 shadow-xl animate-slide-in">
+                    <div class="card-body">
+                        <h2 class="card-title text-2xl mb-6">
+                            <i class="fas fa-database text-primary mr-2"></i>
+                            Métadonnées
+                        </h2>
+                        <div class="bg-base-200 p-4 rounded-lg">
+                            <pre class="text-sm overflow-x-auto"><code>{{ audit_log.metadata|pprint }}</code></pre>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Sidebar -->
+            <div class="space-y-6">
+                <!-- User-Agent -->
+                {% if audit_log.user_agent %}
+                <div class="card bg-white dark:bg-gray-800 shadow-xl animate-slide-in">
+                    <div class="card-body">
+                        <h3 class="card-title text-lg mb-4">
+                            <i class="fas fa-desktop text-primary mr-2"></i>
+                            User-Agent
+                        </h3>
+                        <div class="bg-base-200 p-3 rounded-lg">
+                            <p class="text-sm text-base-content/80 break-words">{{ audit_log.user_agent }}</p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Actions rapides -->
+                <div class="card bg-white dark:bg-gray-800 shadow-xl animate-slide-in">
+                    <div class="card-body">
+                        <h3 class="card-title text-lg mb-6">
+                            <i class="fas fa-bolt text-warning mr-2"></i>
+                            Actions rapides
+                        </h3>
+                        
+                        <div class="space-y-3">
+                            <a href="{% url 'orders:audit_log_list' %}?action_type={{ audit_log.action_type }}" class="btn btn-outline btn-primary w-full hover-scale transition-all">
+                                <i class="fas fa-filter mr-2"></i>
+                                Voir les actions similaires
+                            </a>
+                            
+                            {% if audit_log.user %}
+                            <a href="{% url 'orders:audit_log_list' %}?user={{ audit_log.user.id }}" class="btn btn-outline btn-info w-full hover-scale transition-all">
+                                <i class="fas fa-user mr-2"></i>
+                                Voir les actions de cet utilisateur
+                            </a>
+                            {% endif %}
+                            
+                            {% if audit_log.ip_address %}
+                            <a href="{% url 'orders:audit_log_list' %}?search={{ audit_log.ip_address }}" class="btn btn-outline btn-warning w-full hover-scale transition-all">
+                                <i class="fas fa-globe mr-2"></i>
+                                Voir les actions de cette IP
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Informations de sécurité -->
+                <div class="card bg-white dark:bg-gray-800 shadow-xl animate-slide-in">
+                    <div class="card-body">
+                        <h3 class="card-title text-lg mb-4">
+                            <i class="fas fa-shield-alt text-success mr-2"></i>
+                            Informations de sécurité
+                        </h3>
+                        
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm">Niveau de risque :</span>
+                                <span class="badge badge-{% if audit_log.severity == 'critical' %}error{% elif audit_log.severity == 'high' %}warning{% elif audit_log.severity == 'medium' %}info{% else %}neutral{% endif %} badge-sm">
+                                    {{ audit_log.get_severity_display }}
+                                </span>
+                            </div>
+                            
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm">Statut :</span>
+                                {% if audit_log.success %}
+                                    <span class="badge badge-success badge-sm">Sécurisé</span>
+                                {% else %}
+                                    <span class="badge badge-error badge-sm">Risqué</span>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm">Source :</span>
+                                {% if audit_log.user %}
+                                    <span class="badge badge-info badge-sm">Utilisateur</span>
+                                {% else %}
+                                    <span class="badge badge-secondary badge-sm">Système</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add ripple effect to buttons
+    document.querySelectorAll('.btn').forEach(button => {
+        button.addEventListener('click', function(e) {
+            createRipple(e, this);
+        });
+    });
+
+    // Copy to clipboard functionality
+    document.querySelectorAll('code').forEach(code => {
+        code.addEventListener('click', function() {
+            navigator.clipboard.writeText(this.textContent).then(() => {
+                showToast('Copié dans le presse-papiers', 'success');
+            });
+        });
+        
+        // Add copy icon
+        const copyIcon = document.createElement('i');
+        copyIcon.className = 'fas fa-copy ml-2 text-gray-400 hover:text-gray-600 cursor-pointer';
+        copyIcon.title = 'Cliquer pour copier';
+        code.parentNode.appendChild(copyIcon);
+    });
+});
+</script>
+{% endblock %}

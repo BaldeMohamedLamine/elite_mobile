@@ -1,0 +1,246 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Analytics des avis - {{ product.name }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Breadcrumb -->
+    <div class="breadcrumbs text-sm mb-6">
+        <ul>
+            <li><a href="{% url 'products:home' %}" class="link link-hover">Accueil</a></li>
+            <li><a href="{% url 'products:product_detail' product.uid %}" class="link link-hover">{{ product.name }}</a></li>
+            <li>Analytics des avis</li>
+        </ul>
+    </div>
+
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+        <div>
+            <h1 class="text-3xl font-bold mb-2">Analytics des avis</h1>
+            <div class="flex items-center gap-4">
+                {% if product.image %}
+                    <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-12 h-12 object-cover rounded-lg">
+                {% endif %}
+                <div>
+                    <h2 class="text-xl font-semibold">{{ product.name }}</h2>
+                    <p class="text-base-content/70">{{ product.category.name }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="flex gap-2">
+            <a href="/products/reviews/product/{{ product.uid }}/" class="btn btn-outline">
+                <i class="fas fa-comments mr-2"></i>
+                Voir les avis
+            </a>
+            <a href="{% url 'products:product_detail' product.uid %}" class="btn btn-primary">
+                <i class="fas fa-eye mr-2"></i>
+                Voir le produit
+            </a>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Main Analytics -->
+        <div class="lg:col-span-2 space-y-6">
+            <!-- Overview Stats -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="stat bg-base-100 shadow rounded-lg">
+                    <div class="stat-figure text-primary">
+                        <i class="fas fa-star text-3xl"></i>
+                    </div>
+                    <div class="stat-title">Note moyenne</div>
+                    <div class="stat-value text-primary">{{ analytics.average_rating|floatformat:1 }}</div>
+                    <div class="stat-desc">sur 5 étoiles</div>
+                </div>
+                
+                <div class="stat bg-base-100 shadow rounded-lg">
+                    <div class="stat-figure text-secondary">
+                        <i class="fas fa-comments text-3xl"></i>
+                    </div>
+                    <div class="stat-title">Total avis</div>
+                    <div class="stat-value text-secondary">{{ analytics.total_reviews }}</div>
+                    <div class="stat-desc">avis publiés</div>
+                </div>
+                
+                <div class="stat bg-base-100 shadow rounded-lg">
+                    <div class="stat-figure text-accent">
+                        <i class="fas fa-check-circle text-3xl"></i>
+                    </div>
+                    <div class="stat-title">Achats vérifiés</div>
+                    <div class="stat-value text-accent">{{ analytics.verified_purchase_ratio|floatformat:0 }}%</div>
+                    <div class="stat-desc">des avis</div>
+                </div>
+            </div>
+
+            <!-- Rating Distribution -->
+            <div class="card bg-base-100 shadow-xl">
+                <div class="card-body">
+                    <h3 class="card-title mb-4">
+                        <i class="fas fa-chart-bar mr-2"></i>
+                        Répartition des notes
+                    </h3>
+                    
+                    <div class="space-y-3">
+                        {% for rating in "54321" %}
+                            <div class="flex items-center gap-3">
+                                <span class="text-sm font-medium w-8">{{ rating }}</span>
+                                <div class="rating rating-sm">
+                                    <input type="radio" class="mask mask-star-2 bg-orange-400" checked disabled>
+                                </div>
+                                <div class="flex-1 bg-base-200 rounded-full h-3">
+                                    <div class="bg-gradient-to-r from-orange-400 to-orange-500 h-3 rounded-full transition-all duration-500" 
+                                         style="width: 0%"></div>
+                                </div>
+                                <div class="text-sm font-medium w-16 text-right">
+                                    {% if rating == "5" %}{{ analytics.rating_5_count }}{% endif %}
+                                    {% if rating == "4" %}{{ analytics.rating_4_count }}{% endif %}
+                                    {% if rating == "3" %}{{ analytics.rating_3_count }}{% endif %}
+                                    {% if rating == "2" %}{{ analytics.rating_2_count }}{% endif %}
+                                    {% if rating == "1" %}{{ analytics.rating_1_count }}{% endif %}
+                                </div>
+                                <div class="text-xs text-base-content/70 w-12 text-right">
+                                    {% if rating == "5" %}{{ analytics.rating_5_percentage|default:0|floatformat:0 }}{% elif rating == "4" %}{{ analytics.rating_4_percentage|default:0|floatformat:0 }}{% elif rating == "3" %}{{ analytics.rating_3_percentage|default:0|floatformat:0 }}{% elif rating == "2" %}{{ analytics.rating_2_percentage|default:0|floatformat:0 }}{% elif rating == "1" %}{{ analytics.rating_1_percentage|default:0|floatformat:0 }}{% else %}0{% endif %}%
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Engagement Metrics -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="stat bg-base-100 shadow rounded-lg">
+                    <div class="stat-figure text-info">
+                        <i class="fas fa-thumbs-up text-2xl"></i>
+                    </div>
+                    <div class="stat-title">Votes utiles</div>
+                    <div class="stat-value text-info">{{ analytics.total_helpful_votes }}</div>
+                    <div class="stat-desc">votes positifs</div>
+                </div>
+                
+                <div class="stat bg-base-100 shadow rounded-lg">
+                    <div class="stat-figure text-warning">
+                        <i class="fas fa-flag text-2xl"></i>
+                    </div>
+                    <div class="stat-title">Signalements</div>
+                    <div class="stat-value text-warning">{{ analytics.total_reports }}</div>
+                    <div class="stat-desc">avis signalés</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="space-y-6">
+            <!-- Recent Reviews -->
+            <div class="card bg-base-100 shadow-xl">
+                <div class="card-body">
+                    <h3 class="card-title mb-4">
+                        <i class="fas fa-clock mr-2"></i>
+                        Avis récents
+                    </h3>
+                    
+                    {% if recent_reviews %}
+                        <div class="space-y-3">
+                            {% for review in recent_reviews %}
+                                <div class="flex items-start gap-3 p-3 bg-base-200 rounded-lg">
+                                    <div class="avatar placeholder">
+                                        <div class="bg-neutral text-neutral-content rounded-full w-8">
+                                            <span class="text-xs">{{ review.user.username|first|upper }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <h4 class="font-semibold text-sm truncate">{{ review.title }}</h4>
+                                        <div class="flex items-center gap-2 mt-1">
+                                            <div class="rating rating-xs">
+                                                {% for i in "12345" %}
+                                                    {% if forloop.counter <= review.rating %}
+                                                        <input type="radio" class="mask mask-star-2 bg-orange-400" checked disabled>
+                                                    {% else %}
+                                                        <input type="radio" class="mask mask-star-2 bg-gray-300" disabled>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </div>
+                                            <span class="text-xs text-base-content/70">{{ review.created_at|date:"d/m" }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="card-actions justify-end mt-4">
+                            <a href="/products/reviews/product/{{ product.uid }}/" class="btn btn-outline btn-sm">
+                                Voir tous les avis
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-comments text-3xl text-base-content/30 mb-2"></i>
+                            <p class="text-sm text-base-content/70">Aucun avis récent</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Reports -->
+            <div class="card bg-base-100 shadow-xl">
+                <div class="card-body">
+                    <h3 class="card-title mb-4">
+                        <i class="fas fa-flag mr-2"></i>
+                        Signalements récents
+                    </h3>
+                    
+                    {% if reports %}
+                        <div class="space-y-3">
+                            {% for report in reports %}
+                                <div class="p-3 bg-base-200 rounded-lg">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <span class="text-sm font-semibold">{{ report.get_reason_display }}</span>
+                                        <span class="badge badge-sm {% if report.status == 'pending' %}badge-warning{% elif report.status == 'resolved' %}badge-success{% else %}badge-error{% endif %}">
+                                            {{ report.get_status_display }}
+                                        </span>
+                                    </div>
+                                    <p class="text-xs text-base-content/70">{{ report.created_at|date:"d/m/Y H:i" }}</p>
+                                    {% if report.description %}
+                                        <p class="text-xs mt-1">{{ report.description|truncatewords:10 }}</p>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-shield-alt text-3xl text-base-content/30 mb-2"></i>
+                            <p class="text-sm text-base-content/70">Aucun signalement récent</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Last Updated -->
+            <div class="card bg-base-100 shadow-xl">
+                <div class="card-body">
+                    <h3 class="card-title mb-4">
+                        <i class="fas fa-sync-alt mr-2"></i>
+                        Dernière mise à jour
+                    </h3>
+                    <p class="text-sm text-base-content/70">
+                        {{ analytics.last_calculated|date:"d/m/Y à H:i" }}
+                    </p>
+                    <button class="btn btn-outline btn-sm mt-2" onclick="refreshAnalytics()">
+                        <i class="fas fa-refresh mr-2"></i>
+                        Actualiser
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function refreshAnalytics() {
+    // Reload the page to refresh analytics
+    window.location.reload();
+}
+</script>
+{% endblock %}

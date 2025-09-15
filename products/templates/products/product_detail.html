@@ -1,57 +1,546 @@
+{% extends 'base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="fr" dir="ltr">
-  <head>
-    <meta charset="utf-8">
-    <title>Online Shop - Home page</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-      integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
-      crossorigin="anonymous">
-    <link rel="stylesheet" href="{% static 'registration/main.css' %}">
-  </head>
-  <body>
-    <div class="container container-sm container-md">
-      <nav class="navbar navbar-dark bg-dark">
-        <div class="container-fluid">
-          <a href="{% url 'home' %}" class="navbar-brand">Acceuil</a>
 
-          <div class="d-flex">
-            {% if request.user.is_authenticated %}
-              <a href="{% url 'logout' %}" class="navbar-brand">Deconnexion ({{  request.user.first_name }})</a>
-            {% else %}
-              <a href="{% url 'login' %}" class="navbar-brand">Connexion</a>
-            {% endif %}
-          </div>
-        </div>
-      </nav>
-        <div class="container form">
-          {% if messages %}
-            <ul class="messages">
-              {% for message in messages %}
-                <li class="alert alert-success">{{ message }}</li>
-              {% endfor %}
-            </ul>
-          {% endif %}
-        </div>
-        <div class="container">
-          <div class="row">
-            <div class="card w-75">
-              <div class="card-body">
-                <img src="{{ product.image.url }}" alt="L'image d'un produit">
-                <h5 class="card-title">{{ product.name }}</h5>
-                <p class="card-text">{{ product.price }}</p>
-                <p class="card-text">{{ product.quantity }}</p>
-                <p class="card-text">{{ product.description }}</p>
-              </div>
+{% block title %}{{ product.name }} - Boutique E-commerce{% endblock %}
+{% block description %}{{ product.description|truncatewords:20 }}{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+<!-- Breadcrumb -->
+<div class="breadcrumbs text-sm bg-base-200 py-4">
+    <div class="container mx-auto px-4">
+        <ul class="flex items-center space-x-2">
+            <li><a href="{% url 'products:home' %}" class="link link-hover">Accueil</a></li>
+            <li><i class="fas fa-chevron-right text-base-content/50"></i></li>
+            <li><a href="{% url 'products:home' %}" class="link link-hover">Produits</a></li>
+            <li><i class="fas fa-chevron-right text-base-content/50"></i></li>
+            <li><a href="#" class="link link-hover">{{ product.category.name }}</a></li>
+            <li><i class="fas fa-chevron-right text-base-content/50"></i></li>
+            <li class="text-base-content/70">{{ product.name }}</li>
+        </ul>
+    </div>
+</div>
+
+<!-- Product Detail Section -->
+<section class="py-12 bg-base-100">
+    <div class="container mx-auto px-4">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+            <!-- Product Images -->
+            <div class="space-y-4">
+                <div class="aspect-square bg-base-200 rounded-2xl overflow-hidden">
+                    {% if product.image %}
+                    <img src="{{ product.image.url }}" 
+                         alt="{{ product.name }}" 
+                         class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                         id="main-image">
+                    {% else %}
+                    <div class="w-full h-full flex items-center justify-center">
+                        <i class="fas fa-image text-6xl text-base-content/30"></i>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Thumbnail Images (if multiple images) -->
+                <div class="grid grid-cols-4 gap-2">
+                    {% if product.image %}
+                    <div class="aspect-square bg-base-200 rounded-lg overflow-hidden cursor-pointer border-2 border-primary" 
+                         onclick="changeMainImage('{{ product.image.url }}')">
+                        <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-full h-full object-cover">
+                    </div>
+                    {% endif %}
+                    <!-- Add more thumbnails here if you have multiple images -->
+                </div>
             </div>
+            
+            <!-- Product Info -->
+            <div class="space-y-6">
+                <div>
+                    <div class="flex items-center gap-2 mb-2">
+                        <div class="badge badge-primary">{{ product.category.name }}</div>
+                        {% if product.created_at|timesince|slice:":1" == "0" %}
+                        <div class="badge badge-secondary">Nouveau</div>
+                        {% endif %}
+                    </div>
+                    <h1 class="text-4xl font-bold mb-4">{{ product.name }}</h1>
+                    <p class="text-lg text-base-content/70 leading-relaxed">{{ product.description }}</p>
+                </div>
+                
+                <!-- Price Section -->
+                <div class="bg-base-200 p-6 rounded-2xl">
+                    <div class="flex items-center gap-4 mb-4">
+                        <div class="text-4xl font-bold text-primary">
+                            {{ product.price|floatformat:0 }} GNF
+                        </div>
+                        {% if product.reduce_price %}
+                        <div class="text-2xl text-base-content/50 line-through">
+                            {{ product.reduce_price|floatformat:0 }} GNF
+                        </div>
+                        <div class="badge badge-error">
+                            -{{ product.discount_percentage|floatformat:0 }}%
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Stock Status -->
+                    <div class="flex items-center gap-2 mb-4">
+                        {% if product.stock_quantity > 0 %}
+                        <div class="flex items-center gap-2 text-success">
+                            <i class="fas fa-check-circle"></i>
+                            <span class="font-medium">En stock ({{ product.stock_quantity }} disponibles)</span>
+                        </div>
+                        {% else %}
+                        <div class="flex items-center gap-2 text-error">
+                            <i class="fas fa-times-circle"></i>
+                            <span class="font-medium">Rupture de stock</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Quantity Selector -->
+                    {% if product.stock_quantity > 0 %}
+                    <div class="flex items-center gap-4 mb-6">
+                        <label class="font-medium">Quantité:</label>
+                        <div class="flex items-center border border-base-300 rounded-lg">
+                            <button class="btn btn-ghost btn-sm" onclick="decreaseQuantity()">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <input type="number" 
+                                   id="quantity" 
+                                   value="1" 
+                                   min="1" 
+                                   max="{% if product.stock %}{{ product.stock.available_quantity }}{% else %}0{% endif %}"
+                                   class="input input-bordered w-20 text-center">
+                            <button class="btn btn-ghost btn-sm" onclick="increaseQuantity()">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="flex gap-4">
+            {% if request.user.is_authenticated and product.stock and product.stock.available_quantity > 0 %}
+                        <button class="btn btn-primary btn-lg flex-1 add-to-cart" 
+                                data-product-id="{{ product.id }}"
+                                data-product-name="{{ product.name }}">
+                            <i class="fas fa-cart-plus"></i>
+                            Ajouter au panier
+                        </button>
+                        <button class="btn btn-outline btn-lg" onclick="addToWishlist()">
+                            <i class="fas fa-heart"></i>
+                        </button>
+                        {% else %}
+                        <a href="{% url 'login' %}" class="btn btn-primary btn-lg flex-1">
+                            <i class="fas fa-sign-in-alt"></i>
+                            Connectez-vous pour acheter
+                        </a>
+                        {% endif %}
+                    </div>
+            {% else %}
+                    <div class="text-center py-8">
+                        <i class="fas fa-exclamation-triangle text-4xl text-warning mb-4"></i>
+                        <p class="text-lg font-medium">Ce produit n'est actuellement pas disponible</p>
+                        <button class="btn btn-outline mt-4" onclick="notifyWhenAvailable()">
+                            <i class="fas fa-bell"></i>
+                            Me notifier quand disponible
+                        </button>
+                    </div>
+            {% endif %}
+                </div>
+                
+                <!-- Product Features -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="flex items-center gap-3 p-4 bg-base-200 rounded-lg">
+                        <i class="fas fa-shipping-fast text-primary text-xl"></i>
+                        <div>
+                            <div class="font-medium">Livraison rapide</div>
+                            <div class="text-sm text-base-content/70">Sous 24-48h</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3 p-4 bg-base-200 rounded-lg">
+                        <i class="fas fa-shield-alt text-primary text-xl"></i>
+                        <div>
+                            <div class="font-medium">Garantie</div>
+                            <div class="text-sm text-base-content/70">1 an</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3 p-4 bg-base-200 rounded-lg">
+                        <i class="fas fa-undo text-primary text-xl"></i>
+                        <div>
+                            <div class="font-medium">Retour gratuit</div>
+                            <div class="text-sm text-base-content/70">Sous 14 jours</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3 p-4 bg-base-200 rounded-lg">
+                        <i class="fas fa-headset text-primary text-xl"></i>
+                        <div>
+                            <div class="font-medium">Support 24/7</div>
+                            <div class="text-sm text-base-content/70">Assistance client</div>
+                        </div>
+                    </div>
+                </div>
           </div>
         </div>
     </div>
+</section>
 
-    <script
-      src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
-      integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
-      crossorigin="anonymous"></script>
+<!-- Reviews Section -->
+<section class="py-12">
+    <div class="container mx-auto px-4">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+            <h2 class="text-3xl font-bold">Avis clients</h2>
+            <a href="/products/reviews/product/{{ product.uid }}/" class="btn btn-outline">
+                <i class="fas fa-comments mr-2"></i>
+                Voir tous les avis
+            </a>
+        </div>
+
+        <!-- Reviews Summary -->
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
+            <!-- Rating Overview -->
+            <div class="lg:col-span-1">
+                <div class="card bg-base-100 shadow-xl">
+                    <div class="card-body text-center">
+                        <div class="text-4xl font-bold text-primary mb-2">
+                            {% if product.review_analytics.average_rating %}
+                                {{ product.review_analytics.average_rating|floatformat:1 }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </div>
+                        <div class="rating rating-lg justify-center mb-2">
+                            {% for i in "12345" %}
+                                {% if forloop.counter <= product.review_analytics.average_rating %}
+                                    <input type="radio" class="mask mask-star-2 bg-orange-400" checked disabled>
+                                {% else %}
+                                    <input type="radio" class="mask mask-star-2 bg-gray-300" disabled>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        <p class="text-sm text-base-content/70">
+                            {% if product.review_analytics.total_reviews %}
+                                Basé sur {{ product.review_analytics.total_reviews }} avis
+                            {% else %}
+                                Aucun avis pour le moment
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rating Distribution -->
+            <div class="lg:col-span-3">
+                <div class="card bg-base-100 shadow-xl">
+              <div class="card-body">
+                        <h3 class="card-title mb-4">Répartition des notes</h3>
+                        {% if product.review_analytics.total_reviews > 0 %}
+                            <div class="space-y-2">
+                                {% for rating in "54321" %}
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-sm font-medium w-8">{{ rating }}</span>
+                                        <div class="rating rating-sm">
+                                            <input type="radio" class="mask mask-star-2 bg-orange-400" checked disabled>
+                                        </div>
+                                        <div class="flex-1 bg-base-200 rounded-full h-2">
+                                            <div class="bg-orange-400 h-2 rounded-full" 
+                                                 style="width: 0%"></div>
+                                        </div>
+                                        <span class="text-sm w-8 text-right">0</span>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="text-center py-8">
+                                <i class="fas fa-comments text-4xl text-base-content/30 mb-4"></i>
+                                <p class="text-base-content/70">Aucun avis pour le moment</p>
+                                {% if user.is_authenticated %}
+                                    <a href="/products/reviews/product/{{ product.uid }}/create/" class="btn btn-primary btn-sm mt-4">
+                                        <i class="fas fa-plus mr-2"></i>
+                                        Soyez le premier à laisser un avis
+                                    </a>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                    </div>
+              </div>
+            </div>
+        </div>
+
+        <!-- Recent Reviews -->
+        {% if product.reviews.all %}
+            <div class="space-y-4">
+                <h3 class="text-xl font-semibold">Avis récents</h3>
+                {% for review in product.reviews.all|slice:":3" %}
+                    {% if review.status == 'approved' %}
+                    <div class="card bg-base-100 shadow-sm">
+                        <div class="card-body">
+                            <div class="flex items-center gap-3 mb-3">
+                                <div class="avatar placeholder">
+                                    <div class="bg-neutral text-neutral-content rounded-full w-10">
+                                        <span class="text-sm">{{ review.user.username|first|upper }}</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold">{{ review.title }}</h4>
+                                    <div class="flex items-center gap-2">
+                                        <div class="rating rating-sm">
+                                            {% for i in "12345" %}
+                                                {% if forloop.counter <= review.rating %}
+                                                    <input type="radio" class="mask mask-star-2 bg-orange-400" checked disabled>
+                                                {% else %}
+                                                    <input type="radio" class="mask mask-star-2 bg-gray-300" disabled>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                        <span class="text-sm text-base-content/70">{{ review.user.username }}</span>
+                                        {% if review.is_verified_purchase %}
+                                            <span class="badge badge-success badge-sm">Achat vérifié</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="text-base-content/80 mb-3">{{ review.content|truncatewords:30 }}</p>
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-base-content/70">{{ review.created_at|date:"d/m/Y" }}</span>
+                                <a href="/products/reviews/detail/{{ review.uid }}/" class="btn btn-ghost btn-xs">
+                                    Lire la suite
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <!-- Write Review Button -->
+        {% if user.is_authenticated %}
+            <div class="text-center mt-8">
+                <a href="/products/reviews/product/{{ product.uid }}/create/" class="btn btn-primary btn-lg">
+                    <i class="fas fa-edit mr-2"></i>
+                    Laisser un avis
+                </a>
+            </div>
+        {% else %}
+            <div class="text-center mt-8">
+                <p class="text-base-content/70 mb-4">Connectez-vous pour laisser un avis</p>
+                <a href="{% url 'users:login' %}" class="btn btn-outline">
+                    <i class="fas fa-sign-in-alt mr-2"></i>
+                    Se connecter
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Related Products Section -->
+<section class="py-12 bg-base-200">
+    <div class="container mx-auto px-4">
+        <h2 class="text-3xl font-bold text-center mb-12">Produits similaires</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <!-- Related products will be loaded here -->
+            <div class="text-center py-12">
+                <i class="fas fa-spinner fa-spin text-4xl text-primary mb-4"></i>
+                <p class="text-base-content/70">Chargement des produits similaires...</p>
+          </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Quantity controls
+    window.increaseQuantity = function() {
+        const quantityInput = document.getElementById('quantity');
+        const maxQuantity = parseInt(quantityInput.getAttribute('max'));
+        const currentQuantity = parseInt(quantityInput.value);
+        
+        if (currentQuantity < maxQuantity) {
+            quantityInput.value = currentQuantity + 1;
+        }
+    };
+
+    window.decreaseQuantity = function() {
+        const quantityInput = document.getElementById('quantity');
+        const currentQuantity = parseInt(quantityInput.value);
+        
+        if (currentQuantity > 1) {
+            quantityInput.value = currentQuantity - 1;
+        }
+    };
+
+    // Change main image
+    window.changeMainImage = function(imageUrl) {
+        const mainImage = document.getElementById('main-image');
+        if (mainImage) {
+            mainImage.src = imageUrl;
+        }
+        
+        // Update thumbnail borders
+        document.querySelectorAll('.grid.grid-cols-4 .aspect-square').forEach(thumb => {
+            thumb.classList.remove('border-primary');
+            thumb.classList.add('border-base-300');
+        });
+        event.target.closest('.aspect-square').classList.add('border-primary');
+        event.target.closest('.aspect-square').classList.remove('border-base-300');
+    };
+
+    // Add to cart functionality
+    document.querySelectorAll('.add-to-cart').forEach(button => {
+        button.addEventListener('click', function(event) {
+            const productId = event.target.getAttribute('data-product-id');
+            const productName = event.target.getAttribute('data-product-name');
+            const quantity = document.getElementById('quantity').value;
+            
+            // Show loading state
+            const originalText = button.innerHTML;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ajout...';
+            button.disabled = true;
+            
+            fetch('{% url "products:add_to_cart" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({
+                    'product_id': productId,
+                    'quantity': parseInt(quantity),
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Show success toast
+                    showToast('success', `"${productName}" (x${quantity}) ajouté au panier !`);
+                    
+                    // Update cart count
+                    updateCartCount();
+                    
+                    // Update button state
+                    button.innerHTML = '<i class="fas fa-check"></i> Ajouté';
+                    button.classList.remove('btn-primary');
+                    button.classList.add('btn-success');
+                    
+                    setTimeout(() => {
+                        button.innerHTML = originalText;
+                        button.classList.remove('btn-success');
+                        button.classList.add('btn-primary');
+                        button.disabled = false;
+                    }, 2000);
+                } else {
+                    showToast('error', data.message || 'Erreur lors de l\'ajout au panier');
+                    button.innerHTML = originalText;
+                    button.disabled = false;
+                }
+            })
+            .catch(error => {
+                console.error('Error adding to cart:', error);
+                showToast('error', 'Erreur de connexion');
+                button.innerHTML = originalText;
+                button.disabled = false;
+            });
+        });
+    });
+
+    // Wishlist functionality
+    window.addToWishlist = function() {
+        showToast('info', 'Fonctionnalité de wishlist bientôt disponible !');
+    };
+
+    // Notify when available
+    window.notifyWhenAvailable = function() {
+        showToast('info', 'Vous serez notifié quand ce produit sera disponible !');
+    };
+
+    // Show toast notification
+    function showToast(type, message) {
+        const toast = document.createElement('div');
+        toast.className = `alert alert-${type} animate-fade-in`;
+        toast.innerHTML = `
+            <span>${message}</span>
+            <button class="btn btn-sm btn-circle btn-ghost" onclick="this.parentElement.remove()">✕</button>
+        `;
+        
+        const toastContainer = document.querySelector('.toast') || createToastContainer();
+        toastContainer.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+
+    function createToastContainer() {
+        const container = document.createElement('div');
+        container.className = 'toast toast-top toast-end z-50';
+        document.body.appendChild(container);
+        return container;
+    }
+
+    // Update cart count
+    function updateCartCount() {
+        const cartCount = document.getElementById('cart-count');
+        if (cartCount) {
+            fetch('{% url "products:cart_count" %}')
+                .then(response => response.json())
+                .then(data => {
+                    cartCount.textContent = data.cart_count;
+                    cartCount.style.display = data.cart_count > 0 ? 'inline' : 'none';
+                })
+                .catch(error => console.error('Error updating cart count:', error));
+        }
+    }
+
+    // Load related products
+    loadRelatedProducts();
+
+    function loadRelatedProducts() {
+        // This would typically make an AJAX call to get related products
+        // For now, we'll just hide the loading state
+        setTimeout(() => {
+            const relatedSection = document.querySelector('.grid.grid-cols-1.sm\\:grid-cols-2.lg\\:grid-cols-4');
+            if (relatedSection) {
+                relatedSection.innerHTML = `
+                    <div class="col-span-full text-center py-12">
+                        <i class="fas fa-info-circle text-4xl text-primary mb-4"></i>
+                        <p class="text-base-content/70">Aucun produit similaire trouvé</p>
+                    </div>
+                `;
+            }
+        }, 2000);
+    }
+
+    // Image zoom on hover
+    const mainImage = document.getElementById('main-image');
+    if (mainImage) {
+        mainImage.addEventListener('mouseenter', function() {
+            this.style.transform = 'scale(1.05)';
+        });
+        
+        mainImage.addEventListener('mouseleave', function() {
+            this.style.transform = 'scale(1)';
+        });
+    }
+
+    // Smooth scroll for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        });
+    });
+    // Load initial cart count
+    updateCartCount();
+});
+</script>
+{% endblock %}
   </body>
 </html>

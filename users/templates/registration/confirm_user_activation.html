@@ -1,1 +1,182 @@
-<h1>Votre compte a ete active, vous pouvez vous connecter</h1>
+{% extends 'theme/templates/base.html' %}
+{% load static %}
+
+{% block title %}Compte activé{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 dark:from-gray-900 dark:to-gray-800 py-12">
+    <div class="container mx-auto px-4">
+        <div class="max-w-2xl mx-auto">
+            <!-- Header -->
+            <div class="text-center mb-8 animate-fade-in">
+                <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full mb-4">
+                    <i class="fas fa-check-circle text-3xl text-white"></i>
+                </div>
+                <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2">Compte activé !</h1>
+                <p class="text-gray-600 dark:text-gray-300">Votre compte a été activé avec succès</p>
+            </div>
+
+            <div class="card bg-white dark:bg-gray-800 shadow-2xl animate-slide-in">
+                <div class="card-body">
+                    <!-- Success Message -->
+                    <div class="text-center py-8">
+                        <div class="avatar placeholder mb-6">
+                            <div class="bg-success text-success-content rounded-full w-24">
+                                <i class="fas fa-check text-4xl"></i>
+                            </div>
+                        </div>
+                        
+                        <h2 class="text-2xl font-bold text-success mb-4">Félicitations !</h2>
+                        <p class="text-lg text-base-content/70 mb-6">
+                            Votre compte a été activé avec succès. Vous pouvez maintenant vous connecter et profiter de tous nos services.
+                        </p>
+                    </div>
+
+                    <!-- Next Steps -->
+                    <div class="bg-base-200 p-6 rounded-lg mb-6">
+                        <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                            <i class="fas fa-list text-primary"></i>
+                            Prochaines étapes
+                        </h3>
+                        <div class="space-y-3">
+                            <div class="flex items-center gap-3">
+                                <div class="w-6 h-6 bg-primary text-primary-content rounded-full flex items-center justify-center text-sm font-bold">1</div>
+                                <div>
+                                    <div class="font-semibold">Connectez-vous</div>
+                                    <div class="text-sm text-gray-600">Utilisez vos identifiants pour accéder à votre compte</div>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <div class="w-6 h-6 bg-primary text-primary-content rounded-full flex items-center justify-center text-sm font-bold">2</div>
+                                <div>
+                                    <div class="font-semibold">Complétez votre profil</div>
+                                    <div class="text-sm text-gray-600">Ajoutez vos informations personnelles</div>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <div class="w-6 h-6 bg-primary text-primary-content rounded-full flex items-center justify-center text-sm font-bold">3</div>
+                                <div>
+                                    <div class="font-semibold">Activez la 2FA</div>
+                                    <div class="text-sm text-gray-600">Sécurisez votre compte avec l'authentification à deux facteurs</div>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <div class="w-6 h-6 bg-primary text-primary-content rounded-full flex items-center justify-center text-sm font-bold">4</div>
+                                <div>
+                                    <div class="font-semibold">Commencez à acheter</div>
+                                    <div class="text-sm text-gray-600">Explorez nos produits et faites vos premiers achats</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Security Tips -->
+                    <div class="bg-base-200 p-6 rounded-lg mb-6">
+                        <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                            <i class="fas fa-shield-alt text-success"></i>
+                            Conseils de sécurité
+                        </h3>
+                        <div class="space-y-2">
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-check text-success"></i>
+                                <span class="text-sm">Utilisez un mot de passe fort et unique</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-check text-success"></i>
+                                <span class="text-sm">Activez l'authentification à deux facteurs</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-check text-success"></i>
+                                <span class="text-sm">Ne partagez jamais vos identifiants</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-exclamation-triangle text-warning"></i>
+                                <span class="text-sm">Déconnectez-vous après chaque session</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex flex-col sm:flex-row gap-4 pt-6">
+                        <a href="{% url 'users:login' %}" class="btn btn-primary btn-lg flex-1 hover-glow transition-all">
+                            <i class="fas fa-sign-in-alt mr-2"></i>
+                            Se connecter
+                        </a>
+                        
+                        <a href="{% url 'products:home' %}" class="btn btn-outline btn-secondary hover-scale transition-all">
+                            <i class="fas fa-shopping-bag mr-2"></i>
+                            Voir les produits
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Welcome Message -->
+            <div class="card bg-white dark:bg-gray-800 shadow-xl mt-6 animate-slide-in">
+                <div class="card-body text-center">
+                    <h3 class="card-title text-xl mb-4 justify-center">
+                        <i class="fas fa-heart text-red-500 mr-2"></i>
+                        Bienvenue chez nous !
+                    </h3>
+                    <p class="text-base-content/70 mb-4">
+                        Nous sommes ravis de vous compter parmi nos clients. Découvrez nos produits de qualité 
+                        et profitez d'une expérience d'achat exceptionnelle.
+                    </p>
+                    <div class="flex justify-center gap-4">
+                        <div class="stat bg-base-200 rounded-lg p-4">
+                            <div class="stat-figure text-primary">
+                                <i class="fas fa-shipping-fast text-2xl"></i>
+                            </div>
+                            <div class="stat-title text-xs">Livraison rapide</div>
+                            <div class="stat-desc text-xs">2-3 jours</div>
+                        </div>
+                        <div class="stat bg-base-200 rounded-lg p-4">
+                            <div class="stat-figure text-success">
+                                <i class="fas fa-shield-alt text-2xl"></i>
+                            </div>
+                            <div class="stat-title text-xs">Paiement sécurisé</div>
+                            <div class="stat-desc text-xs">100% sûr</div>
+                        </div>
+                        <div class="stat bg-base-200 rounded-lg p-4">
+                            <div class="stat-figure text-info">
+                                <i class="fas fa-headset text-2xl"></i>
+                            </div>
+                            <div class="stat-title text-xs">Support 24/7</div>
+                            <div class="stat-desc text-xs">Toujours là</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add ripple effect to buttons
+    document.querySelectorAll('.btn').forEach(button => {
+        button.addEventListener('click', function(e) {
+            createRipple(e, this);
+        });
+    });
+
+    // Animate success icon
+    const successIcon = document.querySelector('.bg-success');
+    if (successIcon) {
+        setTimeout(() => {
+            successIcon.style.animation = 'bounceIn 1s ease-out';
+        }, 500);
+    }
+
+    // Animate steps
+    const steps = document.querySelectorAll('.w-6.h-6.bg-primary');
+    steps.forEach((step, index) => {
+        setTimeout(() => {
+            step.style.animation = 'fadeIn 0.5s ease-out';
+        }, 1000 + (index * 200));
+    });
+});
+</script>
+{% endblock %}

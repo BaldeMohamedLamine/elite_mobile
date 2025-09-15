@@ -1,0 +1,303 @@
+{% extends 'manager/base.html' %}
+{% load static %}
+
+{% block title %}Gestion des Variantes - {{ product.name }}{% endblock %}
+{% block page_title %}Gestion des Variantes{% endblock %}
+{% block page_description %}{{ product.name }}{% endblock %}
+
+{% block content %}
+<!-- Informations du produit -->
+<div class="row mb-4">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header">
+        <h5><i class="fas fa-box"></i> Informations du Produit</h5>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-6">
+            <strong>Produit:</strong> {{ product.name }}<br>
+            <strong>SKU:</strong> {{ product.sku|default:"N/A" }}<br>
+            <strong>Catégorie:</strong> {{ product.category.name }}
+          </div>
+          <div class="col-md-6">
+            <strong>Prix de base:</strong> {{ product.price|floatformat:0 }} GNF<br>
+            <strong>Stock total:</strong> {{ product.quantity }} unités<br>
+            <strong>Statut:</strong> 
+            <span class="badge bg-{% if product.is_active %}success{% else %}danger{% endif %}">
+              {% if product.is_active %}Actif{% else %}Inactif{% endif %}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Statistiques des variantes -->
+<div class="row mb-4">
+  <div class="col-md-3 mb-3">
+    <div class="card stat-card">
+      <div class="card-body text-center">
+        <i class="fas fa-layer-group fa-2x mb-2"></i>
+        <h3>{{ stats.total_variants }}</h3>
+        <p class="mb-0">Variantes Total</p>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-3 mb-3">
+    <div class="card stat-card success">
+      <div class="card-body text-center">
+        <i class="fas fa-check-circle fa-2x mb-2"></i>
+        <h3>{{ stats.active_variants }}</h3>
+        <p class="mb-0">Variantes Actives</p>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-3 mb-3">
+    <div class="card stat-card warning">
+      <div class="card-body text-center">
+        <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+        <h3>{{ stats.low_stock_variants }}</h3>
+        <p class="mb-0">Stock Faible</p>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-3 mb-3">
+    <div class="card stat-card danger">
+      <div class="card-body text-center">
+        <i class="fas fa-times-circle fa-2x mb-2"></i>
+        <h3>{{ stats.out_of_stock_variants }}</h3>
+        <p class="mb-0">Rupture de Stock</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Actions -->
+<div class="row mb-4">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header">
+        <h5><i class="fas fa-tools"></i> Actions</h5>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-3 mb-2">
+            <a href="/products/variants/product/{{ product.uid }}/option/create/" class="btn btn-primary w-100">
+              <i class="fas fa-plus"></i> Ajouter une Variante
+            </a>
+          </div>
+          <div class="col-md-3 mb-2">
+            <a href="/products/variants/" class="btn btn-info w-100">
+              <i class="fas fa-list"></i> Gérer les Variantes
+            </a>
+          </div>
+          <div class="col-md-3 mb-2">
+            <a href="{% url 'manager:product_detail' product.uid %}" class="btn btn-secondary w-100">
+              <i class="fas fa-arrow-left"></i> Retour au Produit
+            </a>
+          </div>
+          <div class="col-md-3 mb-2">
+            <button type="button" class="btn btn-success w-100" onclick="refreshVariants()">
+              <i class="fas fa-refresh"></i> Actualiser
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Liste des variantes -->
+<div class="row">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5><i class="fas fa-layer-group"></i> Variantes du Produit</h5>
+        <div>
+          <span class="badge bg-primary">{{ variant_options.count }} variante(s)</span>
+        </div>
+      </div>
+      <div class="card-body">
+        {% if variant_options %}
+        <div class="table-responsive">
+          <table class="table table-hover" id="variants-table">
+            <thead>
+              <tr>
+                <th>Variante</th>
+                <th>Type</th>
+                <th>SKU</th>
+                <th>Prix</th>
+                <th>Stock</th>
+                <th>Statut</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for option in variant_options %}
+              <tr data-option-id="{{ option.uid }}">
+                <td>
+                  <strong>{{ option.variant.name }}</strong>
+                  <br><small class="text-muted">{{ option.variant.value }}</small>
+                </td>
+                <td>
+                  <span class="badge bg-info">{{ option.variant.get_variant_type_display }}</span>
+                </td>
+                <td>
+                  <code>{{ option.sku }}</code>
+                </td>
+                <td>
+                  <strong>{{ option.final_price|floatformat:0 }} GNF</strong>
+                  {% if option.price_modifier != 0 %}
+                  <br><small class="text-{% if option.price_modifier > 0 %}danger{% else %}success{% endif %}">
+                    {% if option.price_modifier > 0 %}+{% endif %}{{ option.price_modifier|floatformat:0 }} GNF
+                  </small>
+                  {% endif %}
+                </td>
+                <td>
+                  <div class="d-flex align-items-center">
+                    <span class="badge bg-{% if option.is_out_of_stock %}danger{% elif option.is_low_stock %}warning{% else %}success{% endif %} me-2">
+                      {{ option.available_quantity }}
+                    </span>
+                    <small class="text-muted">
+                      / {{ option.stock_quantity }}
+                      {% if option.reserved_quantity > 0 %}
+                      <br>({{ option.reserved_quantity }} réservé)
+                      {% endif %}
+                    </small>
+                  </div>
+                </td>
+                <td>
+                  <div class="d-flex flex-column">
+                    <span class="badge bg-{% if option.is_active %}success{% else %}danger{% endif %} mb-1">
+                      {% if option.is_active %}Actif{% else %}Inactif{% endif %}
+                    </span>
+                    <span class="badge bg-{% if option.stock_status == 'Rupture' %}danger{% elif option.stock_status == 'Stock faible' %}warning{% else %}success{% endif %}">
+                      {{ option.stock_status }}
+                    </span>
+                  </div>
+                </td>
+                <td>
+                  <div class="btn-group" role="group">
+                    <a href="/products/variants/option/{{ option.uid }}/edit/" class="btn btn-sm btn-outline-primary" title="Modifier">
+                      <i class="fas fa-edit"></i>
+                    </a>
+                    <a href="/products/variants/option/{{ option.uid }}/stock/" class="btn btn-sm btn-outline-warning" title="Ajuster le stock">
+                      <i class="fas fa-warehouse"></i>
+                    </a>
+                    <button type="button" class="btn btn-sm btn-outline-{% if option.is_active %}danger{% else %}success{% endif %}" 
+                            onclick="toggleVariantActive('{{ option.uid }}')" 
+                            title="{% if option.is_active %}Désactiver{% else %}Activer{% endif %}">
+                      <i class="fas fa-{% if option.is_active %}times{% else %}check{% endif %}"></i>
+                    </button>
+                    <a href="/products/variants/option/{{ option.uid }}/delete/" class="btn btn-sm btn-outline-danger" title="Supprimer">
+                      <i class="fas fa-trash"></i>
+                    </a>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+          <i class="fas fa-layer-group fa-3x text-muted mb-3"></i>
+          <h5 class="text-muted">Aucune variante configurée</h5>
+          <p class="text-muted">Ce produit n'a pas encore de variantes (couleur, taille, etc.).</p>
+          <a href="/products/variants/product/{{ product.uid }}/option/create/" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Ajouter la première variante
+          </a>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Scripts -->
+<script>
+function toggleVariantActive(optionUid) {
+    fetch(`/products/variants/api/product/{{ product.uid }}/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+            action: 'toggle_active',
+            option_uid: optionUid
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Erreur: ' + (data.error || 'Action échouée'));
+        }
+    })
+    .catch(error => {
+        console.error('Erreur:', error);
+        alert('Erreur lors de l\'action sur la variante');
+    });
+}
+
+function adjustVariantStock(optionUid, newQuantity) {
+    fetch(`/products/variants/api/product/{{ product.uid }}/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+            action: 'adjust_stock',
+            option_uid: optionUid,
+            quantity: newQuantity
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Mettre à jour l'affichage
+            const row = document.querySelector(`tr[data-option-id="${optionUid}"]`);
+            if (row) {
+                // Mettre à jour les badges de stock
+                const stockBadge = row.querySelector('.badge');
+                if (stockBadge) {
+                    stockBadge.textContent = data.available_quantity;
+                    stockBadge.className = `badge bg-${data.stock_status === 'Rupture' ? 'danger' : data.stock_status === 'Stock faible' ? 'warning' : 'success'} me-2`;
+                }
+            }
+        } else {
+            alert('Erreur: ' + (data.error || 'Action échouée'));
+        }
+    })
+    .catch(error => {
+        console.error('Erreur:', error);
+        alert('Erreur lors de l\'ajustement du stock');
+    });
+}
+
+function refreshVariants() {
+    location.reload();
+}
+
+// Auto-refresh toutes les 30 secondes
+setInterval(function() {
+    fetch(`/products/variants/api/product/{{ product.uid }}/`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.variants) {
+                // Mettre à jour les statistiques si nécessaire
+                console.log('Variantes mises à jour:', data.variants.length);
+            }
+        })
+        .catch(error => console.log('Erreur lors de la mise à jour des variantes:', error));
+}, 30000);
+</script>
+{% endblock %}

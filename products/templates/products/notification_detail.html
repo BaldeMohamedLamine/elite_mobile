@@ -1,0 +1,207 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ notification.title }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Breadcrumb -->
+    <div class="breadcrumbs text-sm mb-6">
+        <ul>
+            <li><a href="{% url 'notifications:list' %}">Notifications</a></li>
+            <li>{{ notification.title|truncatechars:30 }}</li>
+        </ul>
+    </div>
+
+    <!-- Notification Header -->
+    <div class="card bg-base-100 shadow-xl mb-6">
+        <div class="card-body">
+            <div class="flex flex-col lg:flex-row gap-4">
+                <!-- Notification Icon -->
+                <div class="flex-shrink-0">
+                    <div class="avatar placeholder">
+                        <div class="bg-{% if notification.notification_type == 'email' %}blue{% elif notification.notification_type == 'sms' %}green{% elif notification.notification_type == 'push' %}purple{% else %}gray{% endif %} text-white rounded-full w-16">
+                            <i class="fas fa-{% if notification.notification_type == 'email' %}envelope{% elif notification.notification_type == 'sms' %}sms{% elif notification.notification_type == 'push' %}bell{% else %}info{% endif %} text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notification Info -->
+                <div class="flex-1">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-4">
+                        <h1 class="text-2xl font-bold {% if notification.status == 'sent' %}text-primary{% endif %}">
+                            {{ notification.title }}
+                        </h1>
+                        
+                        <div class="flex items-center gap-2">
+                            <span class="badge {% if notification.status == 'sent' %}badge-primary{% elif notification.status == 'read' %}badge-success{% else %}badge-error{% endif %}">
+                                {{ notification.get_status_display }}
+                            </span>
+                            
+                            {% if notification.priority == 'high' %}
+                                <span class="badge badge-warning">Priorité élevée</span>
+                            {% elif notification.priority == 'urgent' %}
+                                <span class="badge badge-error">Urgent</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-4 text-sm text-base-content/70 mb-4">
+                        <span>
+                            <i class="fas fa-{% if notification.notification_type == 'email' %}envelope{% elif notification.notification_type == 'sms' %}sms{% elif notification.notification_type == 'push' %}bell{% else %}info{% endif %} mr-1"></i>
+                            {{ notification.get_notification_type_display }}
+                        </span>
+                        <span>
+                            <i class="fas fa-clock mr-1"></i>
+                            {{ notification.created_at|date:"d/m/Y H:i" }}
+                        </span>
+                        {% if notification.sent_at %}
+                            <span>
+                                <i class="fas fa-paper-plane mr-1"></i>
+                                Envoyée le {{ notification.sent_at|date:"d/m/Y H:i" }}
+                            </span>
+                        {% endif %}
+                        {% if notification.read_at %}
+                            <span>
+                                <i class="fas fa-check mr-1"></i>
+                                Lue le {{ notification.read_at|date:"d/m/Y H:i" }}
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="flex gap-2">
+                        {% if notification.status == 'sent' %}
+                            <button class="btn btn-primary btn-sm" onclick="markAsRead()">
+                                <i class="fas fa-check mr-1"></i>
+                                Marquer comme lu
+                            </button>
+                        {% endif %}
+                        
+                        <a href="{% url 'notifications:list' %}" class="btn btn-outline btn-sm">
+                            <i class="fas fa-arrow-left mr-1"></i>
+                            Retour à la liste
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Content -->
+    <div class="card bg-base-100 shadow-xl mb-6">
+        <div class="card-body">
+            <h2 class="card-title mb-4">
+                <i class="fas fa-file-text mr-2"></i>
+                Contenu de la notification
+            </h2>
+            
+            <div class="prose max-w-none">
+                <p class="text-base-content/80 whitespace-pre-wrap">{{ notification.message }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Template Information -->
+    {% if notification.template %}
+        <div class="card bg-base-100 shadow-xl mb-6">
+            <div class="card-body">
+                <h2 class="card-title mb-4">
+                    <i class="fas fa-template mr-2"></i>
+                    Informations du template
+                </h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="label">
+                            <span class="label-text font-semibold">Nom du template</span>
+                        </label>
+                        <p class="text-base-content/80">{{ notification.template.name }}</p>
+                    </div>
+                    
+                    <div>
+                        <label class="label">
+                            <span class="label-text font-semibold">Type de déclencheur</span>
+                        </label>
+                        <p class="text-base-content/80">{{ notification.template.get_trigger_type_display }}</p>
+                    </div>
+                    
+                    {% if notification.template.delay_minutes > 0 %}
+                        <div>
+                            <label class="label">
+                                <span class="label-text font-semibold">Délai de notification</span>
+                            </label>
+                            <p class="text-base-content/80">{{ notification.template.delay_minutes }} minutes</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Context Data -->
+    {% if notification.context_data %}
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title mb-4">
+                    <i class="fas fa-database mr-2"></i>
+                    Données contextuelles
+                </h2>
+                
+                <div class="mockup-code">
+                    <pre><code>{{ notification.context_data|pprint }}</code></pre>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+function markAsRead() {
+    fetch('{% url "notifications:mark_read" notification.uid %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Mettre à jour l'affichage
+            const statusBadge = document.querySelector('.badge');
+            statusBadge.textContent = 'Lue';
+            statusBadge.className = 'badge badge-success';
+            
+            // Masquer le bouton "Marquer comme lu"
+            const markReadBtn = document.querySelector('button[onclick="markAsRead()"]');
+            if (markReadBtn) {
+                markReadBtn.style.display = 'none';
+            }
+            
+            // Afficher un message de succès
+            const toast = document.createElement('div');
+            toast.className = 'toast toast-top toast-end';
+            toast.innerHTML = `
+                <div class="alert alert-success">
+                    <i class="fas fa-check mr-2"></i>
+                    Notification marquée comme lue
+                </div>
+            `;
+            document.body.appendChild(toast);
+            
+            // Supprimer le toast après 3 secondes
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        } else {
+            alert('Erreur lors de la mise à jour de la notification');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Erreur lors de la mise à jour de la notification');
+    });
+}
+</script>
+{% endblock %}

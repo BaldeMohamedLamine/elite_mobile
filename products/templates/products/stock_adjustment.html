@@ -1,0 +1,247 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Ajuster le Stock - {{ stock.product.name }}{% endblock %}
+
+{% block description %}Ajuster la quantité en stock pour {{ stock.product.name }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- En-tête -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Ajuster le Stock</h1>
+            <p class="text-gray-600">{{ stock.product.name }} - {{ stock.product.category.name }}</p>
+        </div>
+        <div class="mt-4 md:mt-0">
+            <a href="{% url 'products:stock:stock_detail' stock.id %}" 
+               class="btn btn-outline">
+                <i class="fas fa-arrow-left mr-2"></i>
+                Retour au Détail
+            </a>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Informations actuelles -->
+        <div class="lg:col-span-1">
+            <div class="card bg-white shadow-lg">
+                <div class="card-header">
+                    <h3 class="text-lg font-semibold text-gray-900">Stock Actuel</h3>
+                </div>
+                <div class="card-body">
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">Quantité actuelle</span>
+                            <span class="text-2xl font-bold text-gray-900">{{ stock.current_quantity }}</span>
+                        </div>
+                        
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">Quantité disponible</span>
+                            <span class="text-xl font-semibold text-blue-600">{{ stock.available_quantity }}</span>
+                        </div>
+                        
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">Statut</span>
+                            {% if stock.status == 'available' %}
+                            <span class="badge badge-success">{{ stock.get_status_display }}</span>
+                            {% elif stock.status == 'low_stock' %}
+                            <span class="badge badge-warning">{{ stock.get_status_display }}</span>
+                            {% elif stock.status == 'out_of_stock' %}
+                            <span class="badge badge-error">{{ stock.get_status_display }}</span>
+                            {% else %}
+                            <span class="badge badge-neutral">{{ stock.get_status_display }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions rapides -->
+            <div class="card bg-white shadow-lg mt-6">
+                <div class="card-header">
+                    <h3 class="text-lg font-semibold text-gray-900">Actions Rapides</h3>
+                </div>
+                <div class="card-body">
+                    <div class="space-y-2">
+                        <button onclick="setQuantity({{ stock.current_quantity|add:10 }})" 
+                                class="btn btn-outline btn-sm w-full">
+                            <i class="fas fa-plus mr-2"></i>
+                            +10 unités
+                        </button>
+                        <button onclick="setQuantity({{ stock.current_quantity|add:50 }})" 
+                                class="btn btn-outline btn-sm w-full">
+                            <i class="fas fa-plus mr-2"></i>
+                            +50 unités
+                        </button>
+                        <button onclick="setQuantity({{ stock.current_quantity|add:100 }})" 
+                                class="btn btn-outline btn-sm w-full">
+                            <i class="fas fa-plus mr-2"></i>
+                            +100 unités
+                        </button>
+                        <button onclick="setQuantity(0)" 
+                                class="btn btn-error btn-sm w-full">
+                            <i class="fas fa-times mr-2"></i>
+                            Mettre à zéro
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Formulaire d'ajustement -->
+        <div class="lg:col-span-2">
+            <div class="card bg-white shadow-lg">
+                <div class="card-header">
+                    <h3 class="text-lg font-semibold text-gray-900">Ajustement du Stock</h3>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="space-y-6">
+                            <!-- Nouvelle quantité -->
+                            <div>
+                                <label for="{{ form.new_quantity.id_for_label }}" class="label">
+                                    <span class="label-text font-medium">Nouvelle quantité</span>
+                                </label>
+                                <input type="number" 
+                                       id="{{ form.new_quantity.id_for_label }}"
+                                       name="{{ form.new_quantity.name }}"
+                                       value="{{ form.new_quantity.value|default:stock.current_quantity }}"
+                                       min="0"
+                                       class="input input-bordered w-full {% if form.new_quantity.errors %}input-error{% endif %}"
+                                       required>
+                                {% if form.new_quantity.errors %}
+                                <div class="text-error text-sm mt-1">
+                                    {% for error in form.new_quantity.errors %}
+                                    <p>{{ error }}</p>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                                <div class="text-sm text-gray-500 mt-1">
+                                    Quantité actuelle: <span class="font-semibold">{{ stock.current_quantity }}</span>
+                                </div>
+                            </div>
+
+                            <!-- Raison -->
+                            <div>
+                                <label for="{{ form.reason.id_for_label }}" class="label">
+                                    <span class="label-text font-medium">Raison de l'ajustement</span>
+                                </label>
+                                <input type="text" 
+                                       id="{{ form.reason.id_for_label }}"
+                                       name="{{ form.reason.name }}"
+                                       value="{{ form.reason.value|default:'' }}"
+                                       placeholder="Ex: Réception de marchandise, Inventaire, Ajustement manuel..."
+                                       class="input input-bordered w-full {% if form.reason.errors %}input-error{% endif %}"
+                                       required>
+                                {% if form.reason.errors %}
+                                <div class="text-error text-sm mt-1">
+                                    {% for error in form.reason.errors %}
+                                    <p>{{ error }}</p>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Seuils -->
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label for="{{ form.min_quantity.id_for_label }}" class="label">
+                                        <span class="label-text font-medium">Seuil minimum</span>
+                                    </label>
+                                    <input type="number" 
+                                           id="{{ form.min_quantity.id_for_label }}"
+                                           name="{{ form.min_quantity.name }}"
+                                           value="{{ form.min_quantity.value|default:stock.min_quantity }}"
+                                           min="0"
+                                           class="input input-bordered w-full {% if form.min_quantity.errors %}input-error{% endif %}">
+                                    {% if form.min_quantity.errors %}
+                                    <div class="text-error text-sm mt-1">
+                                        {% for error in form.min_quantity.errors %}
+                                        <p>{{ error }}</p>
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+
+                                <div>
+                                    <label for="{{ form.max_quantity.id_for_label }}" class="label">
+                                        <span class="label-text font-medium">Seuil maximum</span>
+                                    </label>
+                                    <input type="number" 
+                                           id="{{ form.max_quantity.id_for_label }}"
+                                           name="{{ form.max_quantity.name }}"
+                                           value="{{ form.max_quantity.value|default:stock.max_quantity }}"
+                                           min="0"
+                                           class="input input-bordered w-full {% if form.max_quantity.errors %}input-error{% endif %}">
+                                    {% if form.max_quantity.errors %}
+                                    <div class="text-error text-sm mt-1">
+                                        {% for error in form.max_quantity.errors %}
+                                        <p>{{ error }}</p>
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+
+                                <div>
+                                    <label for="{{ form.reorder_quantity.id_for_label }}" class="label">
+                                        <span class="label-text font-medium">Réapprovisionnement</span>
+                                    </label>
+                                    <input type="number" 
+                                           id="{{ form.reorder_quantity.id_for_label }}"
+                                           name="{{ form.reorder_quantity.name }}"
+                                           value="{{ form.reorder_quantity.value|default:stock.reorder_quantity }}"
+                                           min="0"
+                                           class="input input-bordered w-full {% if form.reorder_quantity.errors %}input-error{% endif %}">
+                                    {% if form.reorder_quantity.errors %}
+                                    <div class="text-error text-sm mt-1">
+                                        {% for error in form.reorder_quantity.errors %}
+                                        <p>{{ error }}</p>
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Réapprovisionnement automatique -->
+                            <div class="form-control">
+                                <label class="label cursor-pointer">
+                                    <span class="label-text font-medium">Réapprovisionnement automatique</span>
+                                    <input type="checkbox" 
+                                           name="{{ form.auto_reorder.name }}"
+                                           {% if form.auto_reorder.value %}checked{% endif %}
+                                           class="checkbox checkbox-primary">
+                                </label>
+                                <div class="text-sm text-gray-500 mt-1">
+                                    Active les alertes automatiques quand le stock atteint le seuil de réapprovisionnement
+                                </div>
+                            </div>
+
+                            <!-- Boutons d'action -->
+                            <div class="flex flex-col sm:flex-row gap-4 pt-4">
+                                <button type="submit" class="btn btn-primary flex-1">
+                                    <i class="fas fa-save mr-2"></i>
+                                    Ajuster le Stock
+                                </button>
+                                <a href="{% url 'products:stock:stock_detail' stock.id %}" 
+                                   class="btn btn-outline flex-1">
+                                    <i class="fas fa-times mr-2"></i>
+                                    Annuler
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function setQuantity(quantity) {
+    document.getElementById('{{ form.new_quantity.id_for_label }}').value = quantity;
+}
+</script>
+{% endblock %}

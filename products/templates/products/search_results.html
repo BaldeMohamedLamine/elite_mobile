@@ -1,0 +1,788 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Recherche{% if query %} - {{ query }}{% endif %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .search-filters {
+        transition: all 0.3s ease;
+    }
+    
+    .filter-section {
+        border: 1px solid #e5e7eb;
+        border-radius: 0.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .filter-header {
+        background: #f9fafb;
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid #e5e7eb;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .filter-content {
+        padding: 1rem;
+        max-height: 300px;
+        overflow-y: auto;
+    }
+    
+    .filter-content.collapsed {
+        display: none;
+    }
+    
+    .search-result-card {
+        transition: all 0.3s ease;
+        border: 1px solid #e5e7eb;
+    }
+    
+    .search-result-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+    
+    .price-range-slider {
+        -webkit-appearance: none;
+        appearance: none;
+        height: 6px;
+        border-radius: 3px;
+        background: #ddd;
+        outline: none;
+    }
+    
+    .price-range-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: #3b82f6;
+        cursor: pointer;
+    }
+    
+    .search-suggestions {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.5rem;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        z-index: 50;
+        max-height: 300px;
+        overflow-y: auto;
+    }
+    
+    .suggestion-item {
+        padding: 0.75rem 1rem;
+        cursor: pointer;
+        border-bottom: 1px solid #f3f4f6;
+    }
+    
+    .suggestion-item:hover {
+        background: #f9fafb;
+    }
+    
+    .suggestion-item:last-child {
+        border-bottom: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Header de recherche -->
+    <div class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                <!-- Barre de recherche -->
+                <div class="flex-1 max-w-2xl">
+                    <div class="relative">
+                        <form method="GET" action="{% url 'search:search' %}" class="flex">
+                            <div class="relative flex-1">
+                                <input 
+                                    type="text" 
+                                    name="q" 
+                                    value="{{ query }}"
+                                    placeholder="Rechercher des produits..."
+                                    class="w-full pl-4 pr-12 py-3 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    id="search-input"
+                                    autocomplete="off"
+                                >
+                                <button 
+                                    type="submit"
+                                    class="absolute right-2 top-1/2 transform -translate-y-1/2 p-2 text-gray-400 hover:text-gray-600"
+                                >
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                            <button 
+                                type="submit"
+                                class="px-6 py-3 bg-blue-600 text-white rounded-r-lg hover:bg-blue-700 transition-colors"
+                            >
+                                Rechercher
+                            </button>
+                        </form>
+                        
+                        <!-- Suggestions de recherche -->
+                        <div id="search-suggestions" class="search-suggestions hidden">
+                            <!-- Les suggestions seront chargées via AJAX -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Actions -->
+                <div class="flex items-center gap-4">
+                    <a href="{% url 'search:advanced_search' %}" class="text-blue-600 hover:text-blue-700 flex items-center gap-2">
+                        <i class="fas fa-sliders-h"></i>
+                        Recherche avancée
+                    </a>
+                    
+                    {% if user.is_authenticated %}
+                    <button id="search-history-btn" class="text-gray-600 hover:text-gray-700 flex items-center gap-2">
+                        <i class="fas fa-history"></i>
+                        Historique
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="flex flex-col lg:flex-row gap-8">
+            <!-- Sidebar des filtres -->
+            <div class="lg:w-1/4">
+                <div class="bg-white rounded-lg shadow-sm p-6 sticky top-4">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Filtres</h3>
+                    
+                    <!-- Filtres par catégorie -->
+                    {% if available_filters.categories %}
+                    <div class="filter-section">
+                        <div class="filter-header" onclick="toggleFilter('categories')">
+                            <span class="font-medium">Catégories</span>
+                            <i class="fas fa-chevron-down transform transition-transform" id="categories-icon"></i>
+                        </div>
+                        <div class="filter-content" id="categories-content">
+                            {% for category in available_filters.categories %}
+                            <label class="flex items-center gap-2 py-2 cursor-pointer">
+                                <input 
+                                    type="checkbox" 
+                                    name="category" 
+                                    value="{{ category.uid }}"
+                                    class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                    {% if category.uid in current_filters.category %}checked{% endif %}
+                                    onchange="applyFilters()"
+                                >
+                                <span class="text-sm text-gray-700">{{ category.name }}</span>
+                                <span class="text-xs text-gray-500 ml-auto">({{ category.count }})</span>
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Filtres par prix -->
+                    {% if available_filters.price_ranges %}
+                    <div class="filter-section">
+                        <div class="filter-header" onclick="toggleFilter('price')">
+                            <span class="font-medium">Prix</span>
+                            <i class="fas fa-chevron-down transform transition-transform" id="price-icon"></i>
+                        </div>
+                        <div class="filter-content" id="price-content">
+                            <div class="space-y-3">
+                                <div class="flex items-center gap-2">
+                                    <input 
+                                        type="number" 
+                                        name="price_min" 
+                                        placeholder="Min"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                                        value="{{ current_filters.price_min|default:'' }}"
+                                        onchange="applyFilters()"
+                                    >
+                                    <span class="text-gray-500">-</span>
+                                    <input 
+                                        type="number" 
+                                        name="price_max" 
+                                        placeholder="Max"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                                        value="{{ current_filters.price_max|default:'' }}"
+                                        onchange="applyFilters()"
+                                    >
+                                </div>
+                                
+                                <!-- Gammes de prix prédéfinies -->
+                                {% for range in available_filters.price_ranges %}
+                                <label class="flex items-center gap-2 py-1 cursor-pointer">
+                                    <input 
+                                        type="radio" 
+                                        name="price_range" 
+                                        value="{{ range.min }}-{{ range.max }}"
+                                        class="text-blue-600 focus:ring-blue-500"
+                                        onchange="setPriceRange({{ range.min }}, {{ range.max }})"
+                                    >
+                                    <span class="text-sm text-gray-700">{{ range.label }}</span>
+                                    <span class="text-xs text-gray-500 ml-auto">({{ range.count }})</span>
+                                </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Filtres par disponibilité -->
+                    {% if available_filters.availability %}
+                    <div class="filter-section">
+                        <div class="filter-header" onclick="toggleFilter('availability')">
+                            <span class="font-medium">Disponibilité</span>
+                            <i class="fas fa-chevron-down transform transition-transform" id="availability-icon"></i>
+                        </div>
+                        <div class="filter-content" id="availability-content">
+                            {% for option in available_filters.availability %}
+                            <label class="flex items-center gap-2 py-2 cursor-pointer">
+                                <input 
+                                    type="radio" 
+                                    name="availability" 
+                                    value="{{ option.value }}"
+                                    class="text-blue-600 focus:ring-blue-500"
+                                    {% if current_filters.availability == option.value %}checked{% endif %}
+                                    onchange="applyFilters()"
+                                >
+                                <span class="text-sm text-gray-700">{{ option.label }}</span>
+                                <span class="text-xs text-gray-500 ml-auto">({{ option.count }})</span>
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Bouton de réinitialisation -->
+                    <button 
+                        onclick="resetFilters()"
+                        class="w-full mt-4 px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                    >
+                        Réinitialiser les filtres
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Contenu principal -->
+            <div class="lg:w-3/4">
+                <!-- En-tête des résultats -->
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                    <div>
+                        {% if query %}
+                        <h1 class="text-2xl font-bold text-gray-900">
+                            Résultats pour "{{ query }}"
+                        </h1>
+                        <p class="text-gray-600 mt-1">
+                            {{ search_results.total_count }} produit{{ search_results.total_count|pluralize }} trouvé{{ search_results.total_count|pluralize }}
+                        </p>
+                        {% else %}
+                        <h1 class="text-2xl font-bold text-gray-900">Tous les produits</h1>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Options de tri -->
+                    <div class="flex items-center gap-2">
+                        <label class="text-sm text-gray-700">Trier par:</label>
+                        <select 
+                            name="sort" 
+                            class="px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            onchange="applySorting(this.value)"
+                        >
+                            {% for option in sort_options %}
+                            <option value="{{ option.value }}" {% if option.value == current_sort %}selected{% endif %}>
+                                {{ option.label }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- Résultats de recherche -->
+                {% if search_results.products %}
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                    {% for product in search_results.products %}
+                    <div class="search-result-card bg-white rounded-lg overflow-hidden">
+                        <div class="aspect-w-16 aspect-h-12">
+                            {% if product.image %}
+                            <img 
+                                src="{{ product.image.url }}" 
+                                alt="{{ product.name }}"
+                                class="w-full h-48 object-cover"
+                            >
+                            {% else %}
+                            <div class="w-full h-48 bg-gray-200 flex items-center justify-center">
+                                <i class="fas fa-image text-gray-400 text-3xl"></i>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="p-4">
+                            <h3 class="font-semibold text-gray-900 mb-2 line-clamp-2">
+                                {{ product.name }}
+                            </h3>
+                            
+                            {% if product.category %}
+                            <p class="text-sm text-gray-500 mb-2">{{ product.category.name }}</p>
+                            {% endif %}
+                            
+                            <p class="text-gray-600 text-sm mb-3 line-clamp-2">
+                                {{ product.description|truncatewords:15 }}
+                            </p>
+                            
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-lg font-bold text-blue-600">
+                                        {{ product.price|floatformat:0 }} FCFA
+                                    </span>
+                                    {% if product.discount_price %}
+                                    <span class="text-sm text-gray-500 line-through">
+                                        {{ product.discount_price|floatformat:0 }} FCFA
+                                    </span>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="flex items-center gap-1">
+                                    {% if product.quantity > 0 %}
+                                    <span class="text-xs text-green-600 bg-green-100 px-2 py-1 rounded-full">
+                                        En stock
+                                    </span>
+                                    {% else %}
+                                    <span class="text-xs text-red-600 bg-red-100 px-2 py-1 rounded-full">
+                                        Rupture
+                                    </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="mt-4 flex gap-2">
+                                <a 
+                                    href="{% url 'products:product_detail' product.uid %}"
+                                    class="flex-1 text-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
+                                >
+                                    Voir détails
+                                </a>
+                                
+                                {% if product.quantity > 0 %}
+                                <button 
+                                    class="px-4 py-2 border border-blue-600 text-blue-600 rounded-md hover:bg-blue-50 transition-colors text-sm add-to-cart"
+                                    data-product-id="{{ product.uid }}"
+                                    data-product-name="{{ product.name }}"
+                                >
+                                    <i class="fas fa-cart-plus"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <!-- Pagination -->
+                {% if search_results.total_pages > 1 %}
+                <div class="flex justify-center">
+                    <nav class="flex items-center gap-2">
+                        {% if search_results.has_previous %}
+                        <a 
+                            href="?{% if query %}q={{ query }}&{% endif %}page={{ search_results.page|add:'-1' }}{% if current_sort %}&sort={{ current_sort }}{% endif %}"
+                            class="px-3 py-2 text-sm text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
+                        >
+                            Précédent
+                        </a>
+                        {% endif %}
+                        
+                        {% for page_num in search_results.page|add:'-2'|floatformat:0|add:0|range:search_results.page|add:3 %}
+                        {% if page_num > 0 and page_num <= search_results.total_pages %}
+                        <a 
+                            href="?{% if query %}q={{ query }}&{% endif %}page={{ page_num }}{% if current_sort %}&sort={{ current_sort }}{% endif %}"
+                            class="px-3 py-2 text-sm {% if page_num == search_results.page %}bg-blue-600 text-white{% else %}text-gray-600 border border-gray-300 hover:bg-gray-50{% endif %} rounded-md"
+                        >
+                            {{ page_num }}
+                        </a>
+                        {% endif %}
+                        {% endfor %}
+                        
+                        {% if search_results.has_next %}
+                        <a 
+                            href="?{% if query %}q={{ query }}&{% endif %}page={{ search_results.page|add:1 }}{% if current_sort %}&sort={{ current_sort }}{% endif %}"
+                            class="px-3 py-2 text-sm text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
+                        >
+                            Suivant
+                        </a>
+                        {% endif %}
+                    </nav>
+                </div>
+                {% endif %}
+                
+                {% else %}
+                <!-- Aucun résultat -->
+                <div class="text-center py-12">
+                    <div class="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                        <i class="fas fa-search text-gray-400 text-3xl"></i>
+                    </div>
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">
+                        {% if query %}Aucun résultat trouvé{% else %}Aucun produit disponible{% endif %}
+                    </h3>
+                    <p class="text-gray-600 mb-6">
+                        {% if query %}
+                        Essayez de modifier vos critères de recherche ou utilisez des mots-clés différents.
+                        {% else %}
+                        Il n'y a actuellement aucun produit disponible dans le catalogue.
+                        {% endif %}
+                    </p>
+                    
+                    {% if query %}
+                    <div class="space-y-2">
+                        <p class="text-sm text-gray-500">Suggestions :</p>
+                        <div class="flex flex-wrap gap-2 justify-center">
+                            {% for suggestion in search_results.suggestions %}
+                            <a 
+                                href="?q={{ suggestion }}"
+                                class="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-full hover:bg-gray-200 transition-colors"
+                            >
+                                {{ suggestion }}
+                            </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal d'historique de recherche -->
+{% if user.is_authenticated %}
+<div id="search-history-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-lg max-w-md w-full max-h-96 overflow-hidden">
+            <div class="flex items-center justify-between p-4 border-b">
+                <h3 class="text-lg font-semibold">Historique de recherche</h3>
+                <button onclick="closeSearchHistory()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div id="search-history-content" class="p-4 overflow-y-auto max-h-80">
+                <!-- Le contenu sera chargé via AJAX -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Variables globales
+let currentFilters = {{ current_filters|safe }};
+let currentQuery = '{{ query|escapejs }}';
+let currentSort = '{{ current_sort }}';
+
+// Fonctions de filtrage
+function toggleFilter(filterId) {
+    const content = document.getElementById(filterId + '-content');
+    const icon = document.getElementById(filterId + '-icon');
+    
+    if (content.classList.contains('collapsed')) {
+        content.classList.remove('collapsed');
+        icon.style.transform = 'rotate(180deg)';
+    } else {
+        content.classList.add('collapsed');
+        icon.style.transform = 'rotate(0deg)';
+    }
+}
+
+function applyFilters() {
+    const form = document.createElement('form');
+    form.method = 'GET';
+    form.action = window.location.pathname;
+    
+    // Ajouter la requête de recherche
+    if (currentQuery) {
+        const queryInput = document.createElement('input');
+        queryInput.type = 'hidden';
+        queryInput.name = 'q';
+        queryInput.value = currentQuery;
+        form.appendChild(queryInput);
+    }
+    
+    // Ajouter le tri
+    if (currentSort) {
+        const sortInput = document.createElement('input');
+        sortInput.type = 'hidden';
+        sortInput.name = 'sort';
+        sortInput.value = currentSort;
+        form.appendChild(sortInput);
+    }
+    
+    // Ajouter les filtres
+    const checkboxes = document.querySelectorAll('input[type="checkbox"]:checked');
+    checkboxes.forEach(checkbox => {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = checkbox.name;
+        input.value = checkbox.value;
+        form.appendChild(input);
+    });
+    
+    const radios = document.querySelectorAll('input[type="radio"]:checked');
+    radios.forEach(radio => {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = radio.name;
+        input.value = radio.value;
+        form.appendChild(input);
+    });
+    
+    // Ajouter les champs de prix
+    const priceMin = document.querySelector('input[name="price_min"]');
+    const priceMax = document.querySelector('input[name="price_max"]');
+    
+    if (priceMin && priceMin.value) {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'price_min';
+        input.value = priceMin.value;
+        form.appendChild(input);
+    }
+    
+    if (priceMax && priceMax.value) {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'price_max';
+        input.value = priceMax.value;
+        form.appendChild(input);
+    }
+    
+    document.body.appendChild(form);
+    form.submit();
+}
+
+function applySorting(sortValue) {
+    currentSort = sortValue;
+    applyFilters();
+}
+
+function setPriceRange(min, max) {
+    document.querySelector('input[name="price_min"]').value = min;
+    document.querySelector('input[name="price_max"]').value = max;
+    applyFilters();
+}
+
+function resetFilters() {
+    // Décocher toutes les cases
+    document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+    document.querySelectorAll('input[type="radio"]').forEach(radio => radio.checked = false);
+    
+    // Vider les champs de prix
+    document.querySelector('input[name="price_min"]').value = '';
+    document.querySelector('input[name="price_max"]').value = '';
+    
+    // Recharger la page sans filtres
+    const url = new URL(window.location);
+    url.searchParams.delete('category');
+    url.searchParams.delete('price_min');
+    url.searchParams.delete('price_max');
+    url.searchParams.delete('availability');
+    url.searchParams.delete('featured');
+    url.searchParams.delete('discount');
+    
+    window.location.href = url.toString();
+}
+
+// Autocomplétion de recherche
+let searchTimeout;
+document.getElementById('search-input').addEventListener('input', function(e) {
+    const query = e.target.value.trim();
+    
+    clearTimeout(searchTimeout);
+    
+    if (query.length >= 2) {
+        searchTimeout = setTimeout(() => {
+            loadSearchSuggestions(query);
+        }, 300);
+    } else {
+        hideSearchSuggestions();
+    }
+});
+
+function loadSearchSuggestions(query) {
+    fetch(`{% url 'search:suggestions' %}?q=${encodeURIComponent(query)}`)
+        .then(response => response.json())
+        .then(data => {
+            showSearchSuggestions(data.suggestions);
+        })
+        .catch(error => {
+            console.error('Erreur lors du chargement des suggestions:', error);
+        });
+}
+
+function showSearchSuggestions(suggestions) {
+    const container = document.getElementById('search-suggestions');
+    container.innerHTML = '';
+    
+    if (suggestions.length === 0) {
+        container.classList.add('hidden');
+        return;
+    }
+    
+    suggestions.forEach(suggestion => {
+        const item = document.createElement('div');
+        item.className = 'suggestion-item';
+        item.textContent = suggestion;
+        item.onclick = () => {
+            document.getElementById('search-input').value = suggestion;
+            hideSearchSuggestions();
+            document.querySelector('form').submit();
+        };
+        container.appendChild(item);
+    });
+    
+    container.classList.remove('hidden');
+}
+
+function hideSearchSuggestions() {
+    document.getElementById('search-suggestions').classList.add('hidden');
+}
+
+// Cacher les suggestions quand on clique ailleurs
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('#search-input') && !e.target.closest('#search-suggestions')) {
+        hideSearchSuggestions();
+    }
+});
+
+// Historique de recherche
+{% if user.is_authenticated %}
+document.getElementById('search-history-btn').addEventListener('click', function() {
+    loadSearchHistory();
+    document.getElementById('search-history-modal').classList.remove('hidden');
+});
+
+function loadSearchHistory() {
+    fetch('{% url "search:search_history" %}')
+        .then(response => response.json())
+        .then(data => {
+            const container = document.getElementById('search-history-content');
+            
+            if (data.history.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-center">Aucun historique de recherche</p>';
+                return;
+            }
+            
+            container.innerHTML = data.history.map(item => `
+                <div class="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0">
+                    <div>
+                        <a href="?q=${encodeURIComponent(item.query)}" class="text-blue-600 hover:text-blue-700">
+                            ${item.query}
+                        </a>
+                        <p class="text-xs text-gray-500">${item.count} résultat(s)</p>
+                    </div>
+                    <span class="text-xs text-gray-400">${new Date(item.date).toLocaleDateString()}</span>
+                </div>
+            `).join('');
+        })
+        .catch(error => {
+            console.error('Erreur lors du chargement de l\'historique:', error);
+        });
+}
+
+function closeSearchHistory() {
+    document.getElementById('search-history-modal').classList.add('hidden');
+}
+{% endif %}
+
+// Fonction d'ajout au panier
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.add-to-cart').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            const productId = this.getAttribute('data-product-id');
+            const productName = this.getAttribute('data-product-name');
+            
+            // Afficher l'état de chargement
+            const originalHTML = this.innerHTML;
+            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            this.disabled = true;
+            
+            // Ajouter au panier
+            fetch('{% url "orders:add_to_cart" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({
+                    'product_uid': productId,
+                    'quantity': 1,
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Afficher le toast de succès
+                    showToast('success', `"${productName}" ajouté au panier !`);
+                    
+                    // Mettre à jour le compteur du panier
+                    updateCartCount();
+                    
+                    // Changer l'état du bouton
+                    this.innerHTML = '<i class="fas fa-check"></i>';
+                    this.classList.remove('border-blue-600', 'text-blue-600');
+                    this.classList.add('border-green-600', 'text-green-600');
+                    
+                    setTimeout(() => {
+                        this.innerHTML = originalHTML;
+                        this.classList.remove('border-green-600', 'text-green-600');
+                        this.classList.add('border-blue-600', 'text-blue-600');
+                        this.disabled = false;
+                    }, 2000);
+                } else {
+                    showToast('error', data.message || 'Erreur lors de l\'ajout au panier');
+                    this.innerHTML = originalHTML;
+                    this.disabled = false;
+                }
+            })
+            .catch(error => {
+                console.error('Erreur lors de l\'ajout au panier:', error);
+                showToast('error', 'Erreur de connexion');
+                this.innerHTML = originalHTML;
+                this.disabled = false;
+            });
+        });
+    });
+});
+
+// Fonction pour afficher les toasts
+function showToast(type, message) {
+    const toast = document.createElement('div');
+    toast.className = `toast toast-top toast-end z-50`;
+    
+    const alertClass = type === 'success' ? 'alert-success' : 'alert-error';
+    toast.innerHTML = `
+        <div class="alert ${alertClass} shadow-lg">
+            <div>
+                <i class="fas fa-${type === 'success' ? 'check' : 'exclamation-triangle'}"></i>
+                <span>${message}</span>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.remove();
+    }, 3000);
+}
+</script>
+{% endblock %}

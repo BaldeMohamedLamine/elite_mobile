@@ -1,0 +1,535 @@
+{% extends 'manager/base.html' %}
+{% load static %}
+
+{% block page_title %}{{ supplier.name }}{% endblock %}
+{% block page_description %}{{ supplier.company_name|default:"Fournisseur" }}{% endblock %}
+
+{% block manager_content %}
+<!-- Informations du fournisseur -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+    <div class="lg:col-span-2">
+        <div class="card bg-base-100 shadow-xl animate-slide-in">
+            <div class="card-body">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="card-title text-2xl">
+                        <i class="fas fa-truck text-primary mr-2"></i>
+                        Informations du Fournisseur
+                    </h2>
+                    <div class="flex gap-2">
+                        <a href="{% url 'products:suppliers:supplier_edit' supplier.uid %}" class="btn btn-warning btn-sm hover-scale transition-all">
+                            <i class="fas fa-edit mr-1"></i>
+                            Modifier
+                        </a>
+                        <button type="button" class="btn btn-{% if supplier.is_verified %}error{% else %}success{% endif %} btn-sm hover-scale transition-all" 
+                                onclick="toggleVerification('{{ supplier.uid }}', {{ supplier.is_verified|yesno:'true,false' }})">
+                            <i class="fas fa-{% if supplier.is_verified %}times{% else %}check{% endif %} mr-1"></i>
+                            {% if supplier.is_verified %}Désactiver{% else %}Vérifier{% endif %}
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                        <h3 class="text-lg font-semibold mb-4 text-primary">Informations de base</h3>
+                        <div class="space-y-3">
+                            <div class="flex justify-between">
+                                <span class="font-medium">Nom:</span>
+                                <span>{{ supplier.name }}</span>
+                            </div>
+                            {% if supplier.company_name %}
+                            <div class="flex justify-between">
+                                <span class="font-medium">Entreprise:</span>
+                                <span>{{ supplier.company_name }}</span>
+                            </div>
+                            {% endif %}
+                            {% if supplier.contact_person %}
+                            <div class="flex justify-between">
+                                <span class="font-medium">Contact:</span>
+                                <span>{{ supplier.contact_person }}</span>
+                            </div>
+                            {% endif %}
+                            <div class="flex justify-between">
+                                <span class="font-medium">Email:</span>
+                                <a href="mailto:{{ supplier.email }}" class="link link-hover">
+                                    {{ supplier.email }}
+                                </a>
+                            </div>
+                            {% if supplier.phone %}
+                            <div class="flex justify-between">
+                                <span class="font-medium">Téléphone:</span>
+                                <a href="tel:{{ supplier.phone }}" class="link link-hover">
+                                    {{ supplier.phone }}
+                                </a>
+                            </div>
+                            {% endif %}
+                            {% if supplier.website %}
+                            <div class="flex justify-between">
+                                <span class="font-medium">Site web:</span>
+                                <a href="{{ supplier.website }}" target="_blank" class="link link-hover">
+                                    {{ supplier.website }}
+                                </a>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h3 class="text-lg font-semibold mb-4 text-primary">Statut et conditions</h3>
+                        <div class="space-y-3">
+                            <div class="flex justify-between">
+                                <span class="font-medium">Statut:</span>
+                                <span class="badge badge-{% if supplier.status == 'active' %}success{% elif supplier.status == 'inactive' %}error{% elif supplier.status == 'suspended' %}warning{% else %}neutral{% endif %}">
+                                    {{ supplier.get_status_display }}
+                                </span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="font-medium">Vérifié:</span>
+                                {% if supplier.is_verified %}
+                                <div class="flex flex-col items-end">
+                                    <span class="badge badge-success">
+                                        <i class="fas fa-check-circle mr-1"></i>Oui
+                                    </span>
+                                    {% if supplier.verified_at %}
+                                    <span class="text-xs text-base-content/70">{{ supplier.verified_at|date:"d/m/Y H:i" }}</span>
+                                    {% endif %}
+                                    {% if supplier.verified_by %}
+                                    <span class="text-xs text-base-content/70">par {{ supplier.verified_by.get_full_name|default:supplier.verified_by.email }}</span>
+                                    {% endif %}
+                                </div>
+                                {% else %}
+                                <span class="badge badge-warning">
+                                    <i class="fas fa-exclamation-triangle mr-1"></i>Non
+                                </span>
+                                {% endif %}
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="font-medium">Conditions:</span>
+                                <span>{{ supplier.get_payment_terms_display }}</span>
+                            </div>
+                            {% if supplier.credit_limit %}
+                            <div class="flex justify-between">
+                                <span class="font-medium">Limite crédit:</span>
+                                <span class="font-bold">{{ supplier.credit_limit|floatformat:0 }} FCFA</span>
+                            </div>
+                            {% endif %}
+                            {% if supplier.discount_percentage %}
+                            <div class="flex justify-between">
+                                <span class="font-medium">Remise:</span>
+                                <span class="font-bold">{{ supplier.discount_percentage }}%</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                {% if supplier.full_address %}
+                <div class="divider">
+                    <div class="flex items-center gap-2">
+                        <i class="fas fa-map-marker-alt text-primary"></i>
+                        <span class="font-semibold">Adresse</span>
+                    </div>
+                </div>
+                <p class="text-base-content/70">{{ supplier.full_address }}</p>
+                {% endif %}
+                
+                {% if supplier.notes %}
+                <div class="divider">
+                    <div class="flex items-center gap-2">
+                        <i class="fas fa-sticky-note text-primary"></i>
+                        <span class="font-semibold">Notes</span>
+                    </div>
+                </div>
+                <p class="text-base-content/70">{{ supplier.notes }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="lg:col-span-1">
+        <div class="card bg-base-100 shadow-xl animate-slide-in">
+            <div class="card-body">
+                <h2 class="card-title text-xl mb-6">
+                    <i class="fas fa-chart-bar text-primary mr-2"></i>
+                    Statistiques
+                </h2>
+                
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <div class="stat bg-primary text-primary-content rounded-lg p-4">
+                        <div class="stat-title text-primary-content/80">Produits Total</div>
+                        <div class="stat-value text-2xl">{{ stats.total_products }}</div>
+                    </div>
+                    <div class="stat bg-success text-success-content rounded-lg p-4">
+                        <div class="stat-title text-success-content/80">Produits Actifs</div>
+                        <div class="stat-value text-2xl">{{ stats.active_products }}</div>
+                    </div>
+                </div>
+                
+                <div class="divider"></div>
+                
+                <div class="text-center mb-4">
+                    <div class="text-3xl font-bold text-success">{{ stats.total_sales_value|floatformat:0 }} FCFA</div>
+                    <div class="text-sm text-base-content/70">Valeur des Ventes</div>
+                </div>
+                
+                <div class="divider"></div>
+                
+                <div class="text-center">
+                    <div class="text-3xl font-bold text-warning">{{ stats.total_commission_earned|floatformat:0 }} FCFA</div>
+                    <div class="text-sm text-base-content/70">Commission Gagnée</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Actions -->
+<div class="card bg-base-100 shadow-xl mb-8 animate-slide-in">
+    <div class="card-body">
+        <h2 class="card-title text-2xl mb-6">
+            <i class="fas fa-tools text-primary mr-2"></i>
+            Actions
+        </h2>
+        
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            <a href="{% url 'products:suppliers:dropship_product_create' %}?supplier={{ supplier.id }}" class="btn btn-success w-full hover-glow transition-all">
+                <i class="fas fa-plus mr-2"></i>
+                Ajouter Produit
+            </a>
+            <a href="{% url 'products:suppliers:dropship_product_list' %}?supplier={{ supplier.id }}" class="btn btn-info w-full hover-glow transition-all">
+                <i class="fas fa-boxes mr-2"></i>
+                Voir Produits
+            </a>
+            <button type="button" class="btn btn-warning w-full hover-glow transition-all" onclick="updateStatus()">
+                <i class="fas fa-edit mr-2"></i>
+                Changer Statut
+            </button>
+            <a href="{% url 'products:suppliers:supplier_edit' supplier.uid %}" class="btn btn-primary w-full hover-glow transition-all">
+                <i class="fas fa-edit mr-2"></i>
+                Modifier
+            </a>
+            <a href="{% url 'products:suppliers:supplier_list' %}" class="btn btn-secondary w-full hover-scale transition-all">
+                <i class="fas fa-arrow-left mr-2"></i>
+                Retour Liste
+            </a>
+            <a href="{% url 'products:suppliers:supplier_delete' supplier.uid %}" class="btn btn-error w-full hover-scale transition-all">
+                <i class="fas fa-trash mr-2"></i>
+                Supprimer
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <!-- Produits du fournisseur -->
+    <div class="card bg-base-100 shadow-xl animate-slide-in">
+        <div class="card-body">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="card-title text-2xl">
+                    <i class="fas fa-boxes text-primary mr-2"></i>
+                    Produits ({{ dropship_products|length }})
+                </h2>
+                <a href="{% url 'products:suppliers:dropship_product_create' %}?supplier={{ supplier.id }}" class="btn btn-success btn-sm hover-scale transition-all">
+                    <i class="fas fa-plus mr-1"></i>
+                    Ajouter
+                </a>
+            </div>
+
+            {% if dropship_products %}
+            <div class="overflow-x-auto">
+                <table class="table table-zebra w-full">
+                    <thead>
+                        <tr>
+                            <th>Produit</th>
+                            <th>Prix</th>
+                            <th>Stock</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for product in dropship_products %}
+                        <tr class="hover">
+                            <td>
+                                <div class="font-bold">{{ product.product.name }}</div>
+                                <div class="text-sm text-base-content/70">{{ product.supplier_sku|default:"N/A" }}</div>
+                            </td>
+                            <td>
+                                <div class="font-bold">{{ product.selling_price|floatformat:0 }} FCFA</div>
+                                <div class="text-sm text-base-content/70">Achat: {{ product.supplier_price|floatformat:0 }} FCFA</div>
+                            </td>
+                            <td>
+                                <span class="badge badge-{% if product.is_out_of_stock %}error{% elif product.is_low_stock %}warning{% else %}success{% endif %}">
+                                    {{ product.virtual_stock }}
+                                </span>
+                            </td>
+                            <td>
+                                <a href="{% url 'products:suppliers:dropship_product_edit' product.uid %}" class="btn btn-ghost btn-sm hover-scale transition-all">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-8">
+                <div class="avatar placeholder mb-4">
+                    <div class="bg-base-300 text-base-content rounded-full w-16">
+                        <i class="fas fa-box text-2xl"></i>
+                    </div>
+                </div>
+                <p class="text-base-content/70">Aucun produit associé</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Ventes récentes -->
+    <div class="card bg-base-100 shadow-xl animate-slide-in">
+        <div class="card-body">
+            <h2 class="card-title text-2xl mb-6">
+                <i class="fas fa-shopping-cart text-primary mr-2"></i>
+                Ventes Récentes
+            </h2>
+
+            {% if recent_sales %}
+            <div class="overflow-x-auto">
+                <table class="table table-zebra w-full">
+                    <thead>
+                        <tr>
+                            <th>Produit</th>
+                            <th>Quantité</th>
+                            <th>Statut</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for sale in recent_sales %}
+                        <tr class="hover">
+                            <td>
+                                <div class="font-bold">{{ sale.dropship_product.product.name }}</div>
+                                <div class="text-sm text-base-content/70">Commande #{{ sale.order.uid|slice:":8" }}</div>
+                            </td>
+                            <td>
+                                <span class="font-bold">{{ sale.quantity }}</span>
+                            </td>
+                            <td>
+                                <span class="badge badge-{% if sale.status == 'delivered' %}success{% elif sale.status == 'shipped' %}info{% elif sale.status == 'confirmed' %}primary{% else %}warning{% endif %}">
+                                    {{ sale.get_status_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="text-sm">{{ sale.created_at|date:"d/m H:i" }}</span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-8">
+                <div class="avatar placeholder mb-4">
+                    <div class="bg-base-300 text-base-content rounded-full w-16">
+                        <i class="fas fa-shopping-cart text-2xl"></i>
+                    </div>
+                </div>
+                <p class="text-base-content/70">Aucune vente récente</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal pour changer le statut -->
+<div id="status-modal" class="modal">
+    <div class="modal-box">
+        <h3 class="font-bold text-lg mb-4">
+            <i class="fas fa-edit text-primary mr-2"></i>
+            Changer le Statut
+        </h3>
+        
+        <form id="status-form">
+            {% csrf_token %}
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text">Nouveau statut</span>
+                </label>
+                <select class="select select-bordered" id="new-status" name="status">
+                    {% for value, label in supplier.STATUS_CHOICES %}
+                    <option value="{{ value }}" {% if value == supplier.status %}selected{% endif %}>
+                        {{ label }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </form>
+        
+        <div class="modal-action">
+            <button class="btn btn-ghost" onclick="closeStatusModal()">Annuler</button>
+            <button class="btn btn-primary" onclick="submitStatusChange()">
+                <i class="fas fa-save mr-2"></i>
+                Changer
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function toggleVerification(supplierUid, isVerified) {
+    const action = isVerified ? 'Désactiver la vérification' : 'Vérifier le fournisseur';
+    
+    if (confirm(`Êtes-vous sûr de vouloir ${action.toLowerCase()} ?`)) {
+        // Add loading state
+        const button = event.target.closest('button');
+        const originalHTML = button.innerHTML;
+        button.innerHTML = '<span class="loading loading-spinner loading-sm"></span>';
+        button.disabled = true;
+        
+        fetch(`/products/suppliers/api/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: JSON.stringify({
+                action: 'toggle_verification',
+                supplier_uid: supplierUid
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Show success message
+                const alert = document.createElement('div');
+                alert.className = 'alert alert-success animate-slide-in';
+                alert.innerHTML = `
+                    <i class="fas fa-check-circle"></i>
+                    <span>${action} réussie</span>
+                `;
+                document.querySelector('.container').insertBefore(alert, document.querySelector('.container').firstChild);
+                
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                // Show error message
+                const alert = document.createElement('div');
+                alert.className = 'alert alert-error animate-shake';
+                alert.innerHTML = `
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>Erreur: ${data.error}</span>
+                `;
+                document.querySelector('.container').insertBefore(alert, document.querySelector('.container').firstChild);
+            }
+        })
+        .catch(error => {
+            console.error('Erreur:', error);
+            const alert = document.createElement('div');
+            alert.className = 'alert alert-error animate-shake';
+            alert.innerHTML = `
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>Erreur lors de la mise à jour</span>
+            `;
+            document.querySelector('.container').insertBefore(alert, document.querySelector('.container').firstChild);
+        })
+        .finally(() => {
+            // Reset button state
+            button.innerHTML = originalHTML;
+            button.disabled = false;
+        });
+    }
+}
+
+function updateStatus() {
+    document.getElementById('status-modal').classList.add('modal-open');
+}
+
+function closeStatusModal() {
+    document.getElementById('status-modal').classList.remove('modal-open');
+}
+
+function submitStatusChange() {
+    const newStatus = document.getElementById('new-status').value;
+    
+    // Add loading state
+    const submitBtn = document.querySelector('#status-modal .btn-primary');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<span class="loading loading-spinner loading-sm mr-2"></span>Changement...';
+    submitBtn.disabled = true;
+    
+    fetch(`/products/suppliers/api/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify({
+            action: 'update_status',
+            supplier_uid: '{{ supplier.uid }}',
+            status: newStatus
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Show success message
+            const alert = document.createElement('div');
+            alert.className = 'alert alert-success animate-slide-in';
+            alert.innerHTML = `
+                <i class="fas fa-check-circle"></i>
+                <span>Statut mis à jour avec succès</span>
+            `;
+            document.querySelector('.container').insertBefore(alert, document.querySelector('.container').firstChild);
+            
+            closeStatusModal();
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            // Show error message
+            const alert = document.createElement('div');
+            alert.className = 'alert alert-error animate-shake';
+            alert.innerHTML = `
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>Erreur: ${data.error}</span>
+            `;
+            document.querySelector('.container').insertBefore(alert, document.querySelector('.container').firstChild);
+        }
+    })
+    .catch(error => {
+        console.error('Erreur:', error);
+        const alert = document.createElement('div');
+        alert.className = 'alert alert-error animate-shake';
+        alert.innerHTML = `
+            <i class="fas fa-exclamation-triangle"></i>
+            <span>Erreur lors de la mise à jour</span>
+        `;
+        document.querySelector('.container').insertBefore(alert, document.querySelector('.container').firstChild);
+    })
+    .finally(() => {
+        // Reset button state
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    });
+}
+
+// Close modal when clicking outside
+document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('modal')) {
+        e.target.classList.remove('modal-open');
+    }
+});
+
+// Auto-refresh toutes les 30 secondes
+setInterval(function() {
+    location.reload();
+}, 30000);
+
+// Add ripple effect to buttons
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.btn').forEach(button => {
+        button.addEventListener('click', function(e) {
+            // createRipple(e, this);
+        });
+    });
+});
+</script>
+{% endblock %}

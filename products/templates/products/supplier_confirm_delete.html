@@ -1,0 +1,99 @@
+{% extends 'manager/base.html' %}
+{% load static %}
+
+{% block page_title %}Supprimer le fournisseur{% endblock %}
+{% block page_description %}Confirmation de suppression du fournisseur{% endblock %}
+
+{% block manager_content %}
+<div class="max-w-2xl mx-auto">
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title text-2xl text-error mb-6">
+                <i class="fas fa-exclamation-triangle"></i>
+                Confirmer la suppression
+            </h2>
+            
+            <div class="alert alert-warning mb-6">
+                <i class="fas fa-warning"></i>
+                <div>
+                    <h3 class="font-bold">Attention !</h3>
+                    <div class="text-sm">
+                        Cette action est irréversible. Toutes les données associées à ce fournisseur seront supprimées.
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-base-200 p-4 rounded-lg mb-6">
+                <h3 class="font-semibold mb-2">Fournisseur à supprimer :</h3>
+                <div class="space-y-2">
+                    <p><strong>Nom :</strong> {{ supplier.name }}</p>
+                    <p><strong>Entreprise :</strong> {{ supplier.company_name|default:"Non spécifié" }}</p>
+                    <p><strong>Email :</strong> {{ supplier.email }}</p>
+                    <p><strong>Téléphone :</strong> {{ supplier.phone|default:"Non spécifié" }}</p>
+                    <p><strong>Statut :</strong> 
+                        <span class="badge badge-{{ supplier.status == 'active' and 'success' or 'warning' }}">
+                            {{ supplier.get_status_display }}
+                        </span>
+                    </p>
+                </div>
+            </div>
+            
+            {% if supplier.dropship_products.exists %}
+            <div class="alert alert-error mb-6">
+                <i class="fas fa-exclamation-circle"></i>
+                <div>
+                    <h3 class="font-bold">Produits associés détectés !</h3>
+                    <div class="text-sm">
+                        Ce fournisseur a {{ supplier.dropship_products.count }} produit(s) dropshipping associé(s).
+                        La suppression du fournisseur supprimera également tous ces produits.
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <form method="post" class="space-y-4">
+                {% csrf_token %}
+                
+                <div class="form-control">
+                    <label class="label cursor-pointer">
+                        <span class="label-text">Je confirme vouloir supprimer ce fournisseur</span>
+                        <input type="checkbox" class="checkbox checkbox-error" required>
+                    </label>
+                </div>
+                
+                <div class="card-actions justify-end space-x-4">
+                    <a href="{% url 'products:suppliers:supplier_detail' supplier.uid %}" 
+                       class="btn btn-outline btn-secondary">
+                        <i class="fas fa-arrow-left mr-2"></i>
+                        Annuler
+                    </a>
+                    
+                    <button type="submit" class="btn btn-error">
+                        <i class="fas fa-trash mr-2"></i>
+                        Supprimer définitivement
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const checkbox = document.querySelector('input[type="checkbox"]');
+    const submitBtn = document.querySelector('button[type="submit"]');
+    
+    function toggleSubmitButton() {
+        submitBtn.disabled = !checkbox.checked;
+        if (checkbox.checked) {
+            submitBtn.classList.remove('btn-disabled');
+        } else {
+            submitBtn.classList.add('btn-disabled');
+        }
+    }
+    
+    checkbox.addEventListener('change', toggleSubmitButton);
+    toggleSubmitButton(); // Initial state
+});
+</script>
+{% endblock %}

@@ -1,0 +1,242 @@
+{% extends 'manager/base.html' %}
+{% load static %}
+
+{% block page_title %}Détail de la commande dropshipping{% endblock %}
+{% block page_description %}Détails et gestion de la commande dropshipping{% endblock %}
+
+{% block manager_content %}
+<div class="max-w-4xl mx-auto space-y-6">
+    <!-- En-tête -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+            <h1 class="text-3xl font-bold">
+                <i class="fas fa-receipt text-primary mr-2"></i>
+                Commande #{{ order.uid|slice:":8" }}
+            </h1>
+            <p class="text-base-content/70 mt-2">
+                Créée le {{ order.created_at|date:"d/m/Y à H:i" }}
+            </p>
+        </div>
+        
+        <div class="flex gap-2">
+            <a href="{% url 'products:suppliers:dropship_order_tracking' %}" 
+               class="btn btn-outline btn-sm">
+                <i class="fas fa-arrow-left mr-2"></i>
+                Retour
+            </a>
+            {% if order.status == 'pending' or order.status == 'processing' %}
+            <a href="{% url 'products:suppliers:dropship_order_status' order.uid %}" 
+               class="btn btn-primary btn-sm">
+                <i class="fas fa-edit mr-2"></i>
+                Modifier le statut
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Statut de la commande -->
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h3 class="card-title mb-4">
+                <i class="fas fa-info-circle"></i>
+                Statut de la commande
+            </h3>
+            
+            <div class="flex items-center gap-4">
+                <span class="badge badge-lg badge-{{ order.status == 'delivered' and 'success' or order.status == 'shipped' and 'info' or order.status == 'processing' and 'warning' or 'error' }}">
+                    {{ order.get_status_display }}
+                </span>
+                
+                <div class="flex-1">
+                    <div class="steps w-full">
+                        <div class="step step-{{ order.status == 'pending' and 'primary' or 'success' }}">En attente</div>
+                        <div class="step step-{{ order.status == 'processing' and 'primary' or order.status in 'shipped,delivered' and 'success' or '' }}">En cours</div>
+                        <div class="step step-{{ order.status == 'shipped' and 'primary' or order.status == 'delivered' and 'success' or '' }}">Expédiée</div>
+                        <div class="step step-{{ order.status == 'delivered' and 'success' or '' }}">Livrée</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Informations client -->
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h3 class="card-title mb-4">
+                    <i class="fas fa-user"></i>
+                    Informations client
+                </h3>
+                
+                <div class="space-y-3">
+                    <div>
+                        <label class="text-sm font-semibold text-base-content/70">Nom complet</label>
+                        <p class="font-semibold">{{ order.customer.get_full_name }}</p>
+                    </div>
+                    
+                    <div>
+                        <label class="text-sm font-semibold text-base-content/70">Email</label>
+                        <p>{{ order.customer.email }}</p>
+                    </div>
+                    
+                    <div>
+                        <label class="text-sm font-semibold text-base-content/70">Téléphone</label>
+                        <p>{{ order.customer.phone|default:"Non renseigné" }}</p>
+                    </div>
+                    
+                    <div>
+                        <label class="text-sm font-semibold text-base-content/70">Adresse de livraison</label>
+                        <p class="whitespace-pre-line">{{ order.delivery_address }}</p>
+                    </div>
+                    
+                    {% if order.delivery_notes %}
+                    <div>
+                        <label class="text-sm font-semibold text-base-content/70">Notes de livraison</label>
+                        <p class="whitespace-pre-line">{{ order.delivery_notes }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Informations fournisseur -->
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h3 class="card-title mb-4">
+                    <i class="fas fa-truck"></i>
+                    Informations fournisseur
+                </h3>
+                
+                <div class="space-y-3">
+                    <div>
+                        <label class="text-sm font-semibold text-base-content/70">Fournisseur</label>
+                        <p class="font-semibold">{{ order.supplier.name }}</p>
+                    </div>
+                    
+                    <div>
+                        <label class="text-sm font-semibold text-base-content/70">Contact</label>
+                        <p>{{ order.supplier.email }}</p>
+                        {% if order.supplier.phone %}
+                        <p>{{ order.supplier.phone }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label class="text-sm font-semibold text-base-content/70">Adresse</label>
+                        <p class="whitespace-pre-line">{{ order.supplier.address|default:"Non renseignée" }}</p>
+                    </div>
+                    
+                    <div>
+                        <label class="text-sm font-semibold text-base-content/70">Statut</label>
+                        <span class="badge badge-{{ order.supplier.status == 'active' and 'success' or 'warning' }}">
+                            {{ order.supplier.get_status_display }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Détails du produit -->
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h3 class="card-title mb-4">
+                <i class="fas fa-box"></i>
+                Détails du produit
+            </h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="space-y-3">
+                    <div>
+                        <label class="text-sm font-semibold text-base-content/70">Produit</label>
+                        <p class="font-semibold">{{ order.product.name }}</p>
+                    </div>
+                    
+                    <div>
+                        <label class="text-sm font-semibold text-base-content/70">Description</label>
+                        <p>{{ order.product.description }}</p>
+                    </div>
+                    
+                    <div>
+                        <label class="text-sm font-semibold text-base-content/70">Quantité commandée</label>
+                        <p class="font-semibold text-lg">{{ order.quantity }}</p>
+                    </div>
+                </div>
+                
+                <div class="space-y-3">
+                    <div>
+                        <label class="text-sm font-semibold text-base-content/70">Prix unitaire fournisseur</label>
+                        <p class="font-semibold">{{ order.supplier_price }} GNF</p>
+                    </div>
+                    
+                    <div>
+                        <label class="text-sm font-semibold text-base-content/70">Prix unitaire de vente</label>
+                        <p class="font-semibold">{{ order.selling_price }} GNF</p>
+                    </div>
+                    
+                    <div>
+                        <label class="text-sm font-semibold text-base-content/70">Marge</label>
+                        <p class="font-semibold text-success">{{ order.margin }} GNF</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Résumé financier -->
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h3 class="card-title mb-4">
+                <i class="fas fa-calculator"></i>
+                Résumé financier
+            </h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="stat bg-base-200 rounded-lg">
+                    <div class="stat-title">Sous-total</div>
+                    <div class="stat-value text-lg">{{ order.subtotal }} GNF</div>
+                </div>
+                
+                <div class="stat bg-base-200 rounded-lg">
+                    <div class="stat-title">Frais de livraison</div>
+                    <div class="stat-value text-lg">{{ order.delivery_fee }} GNF</div>
+                </div>
+                
+                <div class="stat bg-primary text-primary-content rounded-lg">
+                    <div class="stat-title">Total</div>
+                    <div class="stat-value text-lg">{{ order.total_amount }} GNF</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Historique des statuts -->
+    {% if order.status_history %}
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h3 class="card-title mb-4">
+                <i class="fas fa-history"></i>
+                Historique des statuts
+            </h3>
+            
+            <div class="timeline timeline-vertical">
+                {% for status_change in order.status_history %}
+                <div class="timeline-item">
+                    <div class="timeline-start">{{ status_change.created_at|date:"d/m/Y H:i" }}</div>
+                    <div class="timeline-middle">
+                        <i class="fas fa-circle text-primary"></i>
+                    </div>
+                    <div class="timeline-end timeline-box">
+                        <div class="font-semibold">{{ status_change.get_status_display }}</div>
+                        {% if status_change.notes %}
+                        <div class="text-sm text-base-content/70">{{ status_change.notes }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

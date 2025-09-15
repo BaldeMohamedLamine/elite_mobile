@@ -1,0 +1,221 @@
+{% extends 'manager/base.html' %}
+{% load static %}
+
+{% block page_title %}Détails du Client{% endblock %}
+{% block navbar_title %}Client{% endblock %}
+{% block header_title %}Détails du Client{% endblock %}
+{% block page_description %}Informations détaillées et historique du client{% endblock %}
+
+{% block manager_content %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <!-- Customer Info -->
+    <div class="lg:col-span-1">
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <div class="text-center mb-6">
+                    <div class="avatar placeholder mb-4">
+                        <div class="bg-neutral text-neutral-content rounded-full w-24">
+                            <span class="text-3xl">{{ customer.first_name|first|default:customer.email|first|upper }}</span>
+                        </div>
+                    </div>
+                    <h2 class="text-2xl font-bold">
+                        {{ customer.first_name|default:"-" }} {{ customer.last_name|default:"-" }}
+                    </h2>
+                    <p class="text-base-content/70">{{ customer.email }}</p>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="flex justify-between">
+                        <span class="font-medium">ID Client:</span>
+                        <span class="badge badge-outline">#{{ customer.id }}</span>
+                    </div>
+                    
+                    <div class="flex justify-between">
+                        <span class="font-medium">Statut:</span>
+                        {% if customer.is_active %}
+                            <span class="badge badge-success">Actif</span>
+                        {% else %}
+                            <span class="badge badge-error">Inactif</span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="flex justify-between">
+                        <span class="font-medium">Inscription:</span>
+                        <span>{{ customer.date_joined|date:"d/m/Y" }}</span>
+                    </div>
+                    
+                    <div class="flex justify-between">
+                        <span class="font-medium">Dernière connexion:</span>
+                        <span>{{ customer.last_login|date:"d/m/Y H:i"|default:"Jamais" }}</span>
+                    </div>
+                </div>
+
+                <div class="divider"></div>
+
+                <div class="space-y-2">
+                    <h3 class="font-bold">Actions</h3>
+                    <div class="flex flex-col gap-2">
+                        {% if customer.is_active %}
+                            <button class="btn btn-outline btn-error btn-sm" 
+                                    onclick="toggleCustomerStatus({{ customer.id }}, false)">
+                                <i class="fas fa-ban mr-2"></i>
+                                Désactiver
+                            </button>
+                        {% else %}
+                            <button class="btn btn-outline btn-success btn-sm" 
+                                    onclick="toggleCustomerStatus({{ customer.id }}, true)">
+                                <i class="fas fa-check mr-2"></i>
+                                Activer
+                            </button>
+                        {% endif %}
+                        
+                        <a href="mailto:{{ customer.email }}" class="btn btn-outline btn-info btn-sm">
+                            <i class="fas fa-envelope mr-2"></i>
+                            Envoyer un email
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Orders and Activity -->
+    <div class="lg:col-span-2 space-y-6">
+        <!-- Recent Orders -->
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h3 class="card-title text-xl mb-4">
+                    <i class="fas fa-shopping-cart text-primary mr-2"></i>
+                    Commandes récentes
+                </h3>
+
+                {% if customer.orders.all %}
+                <div class="overflow-x-auto">
+                    <table class="table table-zebra w-full">
+                        <thead>
+                            <tr>
+                                <th>Commande</th>
+                                <th>Date</th>
+                                <th>Montant</th>
+                                <th>Statut</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in customer.orders.all|slice:":5" %}
+                            <tr class="hover">
+                                <td>
+                                    <div class="font-bold text-primary">#{{ order.uid|truncatechars:8 }}</div>
+                                </td>
+                                <td>
+                                    <div class="text-sm">{{ order.created_at|date:"d/m/Y" }}</div>
+                                </td>
+                                <td>
+                                    <div class="font-bold">{{ order.total_amount|floatformat:0 }} FCFA</div>
+                                </td>
+                                <td>
+                                    <span class="badge badge-{% if order.status == 'pending' %}warning{% elif order.status == 'paid' %}info{% elif order.status == 'shipped' %}primary{% elif order.status == 'delivered' %}success{% elif order.status == 'cancelled' %}error{% endif %}">
+                                        {{ order.get_status_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="{% url 'manager:order_detail' order.uid %}" 
+                                       class="btn btn-ghost btn-sm">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                {% if customer.orders.count > 5 %}
+                <div class="text-center mt-4">
+                    <a href="{% url 'manager:order_list' %}?customer={{ customer.id }}" 
+                       class="btn btn-outline btn-primary">
+                        Voir toutes les commandes ({{ customer.orders.count }})
+                    </a>
+                </div>
+                {% endif %}
+
+                {% else %}
+                <div class="text-center py-8">
+                    <div class="avatar placeholder mb-4">
+                        <div class="bg-base-300 text-base-content rounded-full w-16">
+                            <i class="fas fa-shopping-cart text-2xl"></i>
+                        </div>
+                    </div>
+                    <p class="text-base-content/70">Aucune commande pour ce client</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Customer Statistics -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="card bg-gradient-to-br from-primary to-primary-focus text-primary-content shadow-xl">
+                <div class="card-body text-center">
+                    <div class="text-2xl font-bold">{{ customer.orders.count|default:0 }}</div>
+                    <div class="text-primary-content/80">Commandes</div>
+                </div>
+            </div>
+            
+            <div class="card bg-gradient-to-br from-success to-success-focus text-success-content shadow-xl">
+                <div class="card-body text-center">
+                    <div class="text-2xl font-bold">{{ total_spent|floatformat:0|default:0 }} FCFA</div>
+                    <div class="text-success-content/80">Total dépensé</div>
+                </div>
+            </div>
+            
+            <div class="card bg-gradient-to-br from-warning to-warning-focus text-warning-content shadow-xl">
+                <div class="card-body text-center">
+                    <div class="text-2xl font-bold">{{ avg_order_value|floatformat:0|default:0 }} FCFA</div>
+                    <div class="text-warning-content/80">Panier moyen</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Back Button -->
+<div class="mt-8">
+    <a href="{% url 'manager:customer_list' %}" class="btn btn-outline">
+        <i class="fas fa-arrow-left mr-2"></i>
+        Retour à la liste
+    </a>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function toggleCustomerStatus(customerId, isActive) {
+    const action = isActive ? 'activer' : 'désactiver';
+    
+    if (confirm(`Êtes-vous sûr de vouloir ${action} ce client ?`)) {
+        fetch(`/manager/customers/${customerId}/toggle-status/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                is_active: isActive
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Erreur lors de la modification du statut');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Erreur lors de la modification du statut');
+        });
+    }
+}
+</script>
+{% endblock %}

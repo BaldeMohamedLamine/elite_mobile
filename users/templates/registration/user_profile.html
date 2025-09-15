@@ -1,45 +1,361 @@
+{% extends 'base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="fr" dir="ltr">
-  <head>
-    <meta charset="utf-8">
-    <title>Online Shop - Home page</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-      integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
-      crossorigin="anonymous">
-    <link rel="stylesheet" href="{% static 'registration/main.css' %}">
-  </head>
-  <body>
-    <div class="container container-sm container-md">
-      <nav class="navbar navbar-dark bg-dark">
-        <div class="container-fluid">
-          <a href="{% url 'home' %}" class="navbar-brand">Acceuil</a>
 
-          <div class="d-flex">
-            {% if request.user.is_authenticated %}
-              <a href="{% url 'logout' %}" class="navbar-brand">Deconnexion ({{  request.user.first_name }})</a>
-            {% else %}
-              <a href="{% url 'login' %}" class="navbar-brand">Connexion</a>
-            {% endif %}
-          </div>
+{% block title %}Mon Profil - Boutique{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-primary/5 via-base-100 to-secondary/5 py-8">
+    <div class="container mx-auto px-4">
+        <!-- Header -->
+        <div class="text-center mb-8 animate-fade-in">
+            <div class="avatar placeholder mb-4">
+                <div class="bg-primary text-primary-content rounded-full w-20">
+                    <i class="fas fa-user text-3xl"></i>
+                </div>
+            </div>
+            <h1 class="text-4xl font-bold gradient-text mb-2">Mon Profil</h1>
+            <p class="text-base-content/70">Gérez vos informations personnelles et vos préférences</p>
         </div>
-      </nav>
-        <div class="container form">
-          {% if messages %}
-            <ul class="messages">
-              {% for message in messages %}
-                <li class="alert alert-success">{{ message }}</li>
-              {% endfor %}
-            </ul>
-          {% endif %}
 
+        <!-- Messages -->
+        {% if messages %}
+            <div class="max-w-4xl mx-auto mb-6">
+                <div class="space-y-2">
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags|default:'info' }} animate-slide-in" role="alert">
+                            <i class="fas fa-info-circle"></i>
+                            <span>{{ message }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+
+        <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Profile Information Card -->
+            <div class="lg:col-span-2">
+                <div class="card bg-base-100 shadow-xl animate-slide-in">
+                    <div class="card-body">
+                        <h2 class="card-title text-2xl mb-6">
+                            <i class="fas fa-user-edit text-primary"></i>
+                            Informations personnelles
+                        </h2>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Personal Info -->
+                            <div class="space-y-4">
+                                <div class="form-control">
+                                    <label class="label">
+                                        <span class="label-text font-medium">
+                                            <i class="fas fa-user mr-2"></i>Prénom
+                                        </span>
+                                    </label>
+                                    <div class="input input-bordered bg-base-200">
+                                        {{ user.first_name|default:"Non renseigné" }}
+                                    </div>
+                                </div>
+
+                                <div class="form-control">
+                                    <label class="label">
+                                        <span class="label-text font-medium">
+                                            <i class="fas fa-user mr-2"></i>Nom de famille
+                                        </span>
+                                    </label>
+                                    <div class="input input-bordered bg-base-200">
+                                        {{ user.last_name|default:"Non renseigné" }}
+                                    </div>
+                                </div>
+
+                                <div class="form-control">
+                                    <label class="label">
+                                        <span class="label-text font-medium">
+                                            <i class="fas fa-envelope mr-2"></i>Email
+                                        </span>
+                                    </label>
+                                    <div class="input input-bordered bg-base-200">
+                                        {{ user.email }}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Account Info -->
+                            <div class="space-y-4">
+                                <div class="form-control">
+                                    <label class="label">
+                                        <span class="label-text font-medium">
+                                            <i class="fas fa-calendar mr-2"></i>Membre depuis
+                                        </span>
+                                    </label>
+                                    <div class="input input-bordered bg-base-200">
+                                        {{ user.date_joined|date:"d/m/Y" }}
+                                    </div>
+                                </div>
+
+                                <div class="form-control">
+                                    <label class="label">
+                                        <span class="label-text font-medium">
+                                            <i class="fas fa-clock mr-2"></i>Dernière connexion
+                                        </span>
+                                    </label>
+                                    <div class="input input-bordered bg-base-200">
+                                        {{ user.last_login|date:"d/m/Y à H:i"|default:"Jamais" }}
+                                    </div>
+                                </div>
+
+                                <div class="form-control">
+                                    <label class="label">
+                                        <span class="label-text font-medium">
+                                            <i class="fas fa-shield-alt mr-2"></i>Statut du compte
+                                        </span>
+                                    </label>
+                                    <div class="input input-bordered bg-base-200">
+                                        {% if user.is_active %}
+                                            <span class="badge badge-success">
+                                                <i class="fas fa-check mr-1"></i>Actif
+                                            </span>
+                                        {% else %}
+                                            <span class="badge badge-error">
+                                                <i class="fas fa-times mr-1"></i>Inactif
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="card-actions justify-end mt-6">
+                            <button class="btn btn-primary hover-glow transition-all" onclick="editProfile()">
+                                <i class="fas fa-edit mr-2"></i>
+                                Modifier le profil
+                            </button>
+                            <button class="btn btn-outline btn-secondary hover-scale transition-all" onclick="changePassword()">
+                                <i class="fas fa-key mr-2"></i>
+                                Changer le mot de passe
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="space-y-6">
+                <!-- Quick Stats -->
+                <div class="card bg-base-100 shadow-xl animate-slide-in">
+                    <div class="card-body">
+                        <h3 class="card-title text-lg mb-4">
+                            <i class="fas fa-chart-bar text-primary"></i>
+                            Statistiques
+                        </h3>
+                        
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center">
+                                <span class="text-base-content/70">Commandes totales</span>
+                                <span class="badge badge-primary">0</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-base-content/70">Montant total</span>
+                                <span class="badge badge-secondary">0 FCFA</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-base-content/70">Dernière commande</span>
+                                <span class="text-sm text-base-content/50">Aucune</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Security Settings -->
+                <div class="card bg-base-100 shadow-xl animate-slide-in">
+                    <div class="card-body">
+                        <h3 class="card-title text-lg mb-4">
+                            <i class="fas fa-shield-alt text-primary"></i>
+                            Sécurité
+                        </h3>
+                        
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center">
+                                <span class="text-base-content/70">Authentification 2FA</span>
+                                {% if user.two_factor_enabled %}
+                                    <span class="badge badge-success">
+                                        <i class="fas fa-check mr-1"></i>Activé
+                                    </span>
+                                {% else %}
+                                    <span class="badge badge-warning">
+                                        <i class="fas fa-times mr-1"></i>Désactivé
+                                    </span>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="flex justify-between items-center">
+                                <span class="text-base-content/70">Email vérifié</span>
+                                {% if user.is_active %}
+                                    <span class="badge badge-success">
+                                        <i class="fas fa-check mr-1"></i>Oui
+                                    </span>
+                                {% else %}
+                                    <span class="badge badge-error">
+                                        <i class="fas fa-times mr-1"></i>Non
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="card-actions justify-center mt-4">
+                            {% if user.two_factor_enabled %}
+                                <a href="{% url 'users:two_factor_disable' %}" class="btn btn-outline btn-warning btn-sm">
+                                    <i class="fas fa-lock-open mr-1"></i>
+                                    Désactiver 2FA
+                                </a>
+                            {% else %}
+                                <a href="{% url 'users:two_factor_setup' %}" class="btn btn-outline btn-primary btn-sm">
+                                    <i class="fas fa-lock mr-1"></i>
+                                    Activer 2FA
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="card bg-base-100 shadow-xl animate-slide-in">
+                    <div class="card-body">
+                        <h3 class="card-title text-lg mb-4">
+                            <i class="fas fa-bolt text-primary"></i>
+                            Actions rapides
+                        </h3>
+                        
+                        <div class="space-y-2">
+                            <a href="{% url 'orders:order_list' %}" class="btn btn-outline btn-primary w-full justify-start hover-scale transition-all">
+                                <i class="fas fa-shopping-bag mr-2"></i>
+                                Mes commandes
+                            </a>
+                            
+                            <a href="{% url 'orders:support_ticket_list' %}" class="btn btn-outline btn-secondary w-full justify-start hover-scale transition-all">
+                                <i class="fas fa-headset mr-2"></i>
+                                Support client
+                            </a>
+                            
+                            <a href="{% url 'orders:list_cart_orders' %}" class="btn btn-outline btn-accent w-full justify-start hover-scale transition-all">
+                                <i class="fas fa-shopping-cart mr-2"></i>
+                                Mon panier
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
+</div>
 
-    <script
-      src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
-      integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
-      crossorigin="anonymous"></script>
-  </body>
-</html>
+<!-- Edit Profile Modal -->
+<div id="edit-profile-modal" class="modal">
+    <div class="modal-box">
+        <h3 class="font-bold text-lg mb-4">
+            <i class="fas fa-edit text-primary mr-2"></i>
+            Modifier le profil
+        </h3>
+        
+        <form method="post" action="{% url 'profile_user' %}" class="space-y-4">
+            {% csrf_token %}
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text">Prénom</span>
+                </label>
+                <input type="text" name="first_name" class="input input-bordered" value="{{ user.first_name }}">
+            </div>
+            
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text">Nom de famille</span>
+                </label>
+                <input type="text" name="last_name" class="input input-bordered" value="{{ user.last_name }}">
+            </div>
+            
+            <div class="modal-action">
+                <button type="button" class="btn btn-ghost" onclick="closeEditModal()">Annuler</button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save mr-2"></i>
+                    Sauvegarder
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Change Password Modal -->
+<div id="change-password-modal" class="modal">
+    <div class="modal-box">
+        <h3 class="font-bold text-lg mb-4">
+            <i class="fas fa-key text-primary mr-2"></i>
+            Changer le mot de passe
+        </h3>
+        
+        <form method="post" action="{% url 'profile_user' %}" class="space-y-4">
+            {% csrf_token %}
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text">Mot de passe actuel</span>
+                </label>
+                <input type="password" name="old_password" class="input input-bordered" required>
+            </div>
+            
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text">Nouveau mot de passe</span>
+                </label>
+                <input type="password" name="new_password1" class="input input-bordered" required>
+            </div>
+            
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text">Confirmer le nouveau mot de passe</span>
+                </label>
+                <input type="password" name="new_password2" class="input input-bordered" required>
+            </div>
+            
+            <div class="modal-action">
+                <button type="button" class="btn btn-ghost" onclick="closePasswordModal()">Annuler</button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save mr-2"></i>
+                    Changer le mot de passe
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function editProfile() {
+    document.getElementById('edit-profile-modal').classList.add('modal-open');
+}
+
+function closeEditModal() {
+    document.getElementById('edit-profile-modal').classList.remove('modal-open');
+}
+
+function changePassword() {
+    document.getElementById('change-password-modal').classList.add('modal-open');
+}
+
+function closePasswordModal() {
+    document.getElementById('change-password-modal').classList.remove('modal-open');
+}
+
+// Close modals when clicking outside
+document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('modal')) {
+        e.target.classList.remove('modal-open');
+    }
+});
+
+// Add ripple effect to buttons
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.btn').forEach(button => {
+        button.addEventListener('click', function(e) {
+            createRipple(e, this);
+        });
+    });
+});
+</script>
+{% endblock %}

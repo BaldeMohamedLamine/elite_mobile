@@ -1,0 +1,224 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Mes Notifications{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+        <div>
+            <h1 class="text-3xl font-bold mb-2">Mes Notifications</h1>
+            <p class="text-base-content/70">
+                {% if unread_count > 0 %}
+                    {{ unread_count }} notification{{ unread_count|pluralize }} non lue{{ unread_count|pluralize }}
+                {% else %}
+                    Toutes vos notifications sont lues
+                {% endif %}
+            </p>
+        </div>
+        
+        <div class="flex gap-2">
+            {% if unread_count > 0 %}
+                <button class="btn btn-outline btn-sm" onclick="markAllAsRead()">
+                    <i class="fas fa-check-double mr-2"></i>
+                    Tout marquer comme lu
+                </button>
+            {% endif %}
+            <a href="{% url 'notifications:preferences' %}" class="btn btn-primary btn-sm">
+                <i class="fas fa-cog mr-2"></i>
+                Préférences
+            </a>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card bg-base-100 shadow-sm mb-6">
+        <div class="card-body p-4">
+            <form method="get" class="flex flex-wrap gap-4 items-end">
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Type</span>
+                    </label>
+                    <select name="type" class="select select-bordered w-full">
+                        <option value="">Tous les types</option>
+                        {% for type_code, type_name in notification_types %}
+                            <option value="{{ type_code }}" {% if request.GET.type == type_code %}selected{% endif %}>
+                                {{ type_name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Statut</span>
+                    </label>
+                    <select name="status" class="select select-bordered w-full">
+                        <option value="">Tous les statuts</option>
+                        <option value="sent" {% if request.GET.status == 'sent' %}selected{% endif %}>Non lues</option>
+                        <option value="read" {% if request.GET.status == 'read' %}selected{% endif %}>Lues</option>
+                        <option value="failed" {% if request.GET.status == 'failed' %}selected{% endif %}>Échouées</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="btn btn-outline btn-sm">Filtrer</button>
+                <a href="{% url 'notifications:list' %}" class="btn btn-ghost btn-sm">Réinitialiser</a>
+            </form>
+        </div>
+    </div>
+
+    <!-- Notifications List -->
+    {% if notifications %}
+        <div class="space-y-4">
+            {% for notification in notifications %}
+                <div class="card bg-base-100 shadow-sm {% if notification.status == 'sent' %}border-l-4 border-l-primary{% endif %}">
+                    <div class="card-body">
+                        <div class="flex flex-col lg:flex-row gap-4">
+                            <!-- Notification Icon -->
+                            <div class="flex-shrink-0">
+                                <div class="avatar placeholder">
+                                    <div class="bg-{% if notification.notification_type == 'email' %}blue{% elif notification.notification_type == 'sms' %}green{% elif notification.notification_type == 'push' %}purple{% else %}gray{% endif %} text-white rounded-full w-12">
+                                        <i class="fas fa-{% if notification.notification_type == 'email' %}envelope{% elif notification.notification_type == 'sms' %}sms{% elif notification.notification_type == 'push' %}bell{% else %}info{% endif %}"></i>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Notification Content -->
+                            <div class="flex-1">
+                                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-2">
+                                    <h3 class="font-semibold text-lg {% if notification.status == 'sent' %}text-primary{% endif %}">
+                                        {{ notification.title }}
+                                    </h3>
+                                    
+                                    <div class="flex items-center gap-2">
+                                        <span class="badge badge-sm {% if notification.status == 'sent' %}badge-primary{% elif notification.status == 'read' %}badge-success{% else %}badge-error{% endif %}">
+                                            {{ notification.get_status_display }}
+                                        </span>
+                                        
+                                        {% if notification.priority == 'high' %}
+                                            <span class="badge badge-warning badge-sm">Priorité élevée</span>
+                                        {% elif notification.priority == 'urgent' %}
+                                            <span class="badge badge-error badge-sm">Urgent</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <p class="text-base-content/80 mb-3">{{ notification.message }}</p>
+
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-4 text-sm text-base-content/70">
+                                        <span>
+                                            <i class="fas fa-{% if notification.notification_type == 'email' %}envelope{% elif notification.notification_type == 'sms' %}sms{% elif notification.notification_type == 'push' %}bell{% else %}info{% endif %} mr-1"></i>
+                                            {{ notification.get_notification_type_display }}
+                                        </span>
+                                        <span>
+                                            <i class="fas fa-clock mr-1"></i>
+                                            {{ notification.created_at|date:"d/m/Y H:i" }}
+                                        </span>
+                                        {% if notification.sent_at %}
+                                            <span>
+                                                <i class="fas fa-paper-plane mr-1"></i>
+                                                Envoyée le {{ notification.sent_at|date:"d/m/Y H:i" }}
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <div class="flex items-center gap-2">
+                                        <a href="{% url 'notifications:detail' notification.uid %}" class="btn btn-ghost btn-xs">
+                                            <i class="fas fa-eye mr-1"></i>
+                                            Voir détails
+                                        </a>
+                                        
+                                        {% if notification.status == 'sent' %}
+                                            <button class="btn btn-primary btn-xs" onclick="markAsRead('{{ notification.uid }}')">
+                                                <i class="fas fa-check mr-1"></i>
+                                                Marquer comme lu
+                                            </button>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if is_paginated %}
+            <div class="flex justify-center mt-8">
+                <div class="join">
+                    {% if page_obj.has_previous %}
+                        <a href="?page=1{% if request.GET.type %}&type={{ request.GET.type }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}" class="join-item btn btn-sm">«</a>
+                        <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.type %}&type={{ request.GET.type }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}" class="join-item btn btn-sm">‹</a>
+                    {% endif %}
+                    
+                    <span class="join-item btn btn-sm btn-active">{{ page_obj.number }}</span>
+                    
+                    {% if page_obj.has_next %}
+                        <a href="?page={{ page_obj.next_page_number }}{% if request.GET.type %}&type={{ request.GET.type }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}" class="join-item btn btn-sm">›</a>
+                        <a href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.type %}&type={{ request.GET.type }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}" class="join-item btn btn-sm">»</a>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+    {% else %}
+        <div class="text-center py-12">
+            <i class="fas fa-bell-slash text-6xl text-base-content/30 mb-4"></i>
+            <h3 class="text-xl font-semibold mb-2">Aucune notification</h3>
+            <p class="text-base-content/70">Vous n'avez pas encore de notifications.</p>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+function markAsRead(notificationUid) {
+    fetch(`{% url 'notifications:mark_read' 'PLACEHOLDER' %}`.replace('PLACEHOLDER', notificationUid), {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Recharger la page pour mettre à jour l'affichage
+            window.location.reload();
+        } else {
+            alert('Erreur lors de la mise à jour de la notification');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Erreur lors de la mise à jour de la notification');
+    });
+}
+
+function markAllAsRead() {
+    if (confirm('Marquer toutes les notifications comme lues ?')) {
+        fetch('{% url 'notifications:mark_all_read' %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Recharger la page pour mettre à jour l'affichage
+                window.location.reload();
+            } else {
+                alert('Erreur lors de la mise à jour des notifications');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Erreur lors de la mise à jour des notifications');
+        });
+    }
+}
+</script>
+{% endblock %}

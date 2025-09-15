@@ -1,0 +1,378 @@
+{% extends 'manager/base.html' %}
+{% load static %}
+
+{% block page_title %}{{ title }}{% endblock %}
+{% block page_description %}Formulaire de gestion des produits dropshipping{% endblock %}
+
+{% block manager_content %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div class="lg:col-span-2">
+        <div class="card bg-base-100 shadow-xl animate-slide-in">
+            <div class="card-body">
+                <h2 class="card-title text-2xl mb-6">
+                    <i class="fas fa-shopping-cart text-primary mr-2"></i>
+                    {{ title }}
+                </h2>
+                
+                <form method="post" enctype="multipart/form-data" class="space-y-6">
+                    {% csrf_token %}
+                    
+                    <!-- Informations générales -->
+                    <div class="divider">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-info-circle text-primary"></i>
+                            <span class="font-semibold">Informations Générales</span>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text">Fournisseur <span class="text-error">*</span></span>
+                            </label>
+                            {{ form.supplier }}
+                            {% if form.supplier.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.supplier.errors.0 }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text">Produit <span class="text-error">*</span></span>
+                            </label>
+                            {{ form.product }}
+                            {% if form.product.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.product.errors.0 }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Prix et coûts -->
+                    <div class="divider">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-dollar-sign text-primary"></i>
+                            <span class="font-semibold">Prix et Coûts</span>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text">Prix fournisseur <span class="text-error">*</span></span>
+                            </label>
+                            {{ form.supplier_price }}
+                            {% if form.supplier_price.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.supplier_price.errors.0 }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text">Prix de vente <span class="text-error">*</span></span>
+                            </label>
+                            {{ form.selling_price }}
+                            {% if form.selling_price.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.selling_price.errors.0 }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text">Coût de livraison</span>
+                            </label>
+                            {{ form.shipping_cost }}
+                            {% if form.shipping_cost.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.shipping_cost.errors.0 }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text">Stock virtuel</span>
+                            </label>
+                            {{ form.virtual_stock }}
+                            {% if form.virtual_stock.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.virtual_stock.errors.0 }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Quantités et livraison -->
+                    <div class="divider">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-boxes text-primary"></i>
+                            <span class="font-semibold">Quantités et Livraison</span>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text">Quantité min. commande</span>
+                            </label>
+                            {{ form.min_order_quantity }}
+                            {% if form.min_order_quantity.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.min_order_quantity.errors.0 }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text">Quantité max. commande</span>
+                            </label>
+                            {{ form.max_order_quantity }}
+                            {% if form.max_order_quantity.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.max_order_quantity.errors.0 }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text">Jours de livraison</span>
+                            </label>
+                            {{ form.estimated_delivery_days }}
+                            {% if form.estimated_delivery_days.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.estimated_delivery_days.errors.0 }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Réapprovisionnement automatique -->
+                    <div class="divider">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-sync-alt text-primary"></i>
+                            <span class="font-semibold">Réapprovisionnement Automatique</span>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text">Seuil de réapprovisionnement</span>
+                            </label>
+                            {{ form.reorder_threshold }}
+                            {% if form.reorder_threshold.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.reorder_threshold.errors.0 }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-control">
+                            <label class="label cursor-pointer">
+                                {{ form.auto_reorder }}
+                                <span class="label-text ml-2">Réapprovisionnement automatique</span>
+                            </label>
+                            {% if form.auto_reorder.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.auto_reorder.errors.0 }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Informations fournisseur -->
+                    <div class="divider">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-truck text-primary"></i>
+                            <span class="font-semibold">Informations Fournisseur</span>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text">SKU fournisseur</span>
+                            </label>
+                            {{ form.supplier_sku }}
+                            {% if form.supplier_sku.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.supplier_sku.errors.0 }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text">URL fournisseur</span>
+                            </label>
+                            {{ form.supplier_url }}
+                            {% if form.supplier_url.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.supplier_url.errors.0 }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Statut et options -->
+                    <div class="divider">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-cog text-primary"></i>
+                            <span class="font-semibold">Statut et Options</span>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-control">
+                            <label class="label cursor-pointer">
+                                {{ form.is_active }}
+                                <span class="label-text ml-2">Produit actif</span>
+                            </label>
+                            {% if form.is_active.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.is_active.errors.0 }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-control">
+                            <label class="label cursor-pointer">
+                                {{ form.is_featured }}
+                                <span class="label-text ml-2">Produit en vedette</span>
+                            </label>
+                            {% if form.is_featured.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.is_featured.errors.0 }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Notes -->
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">Notes</span>
+                        </label>
+                        {{ form.notes }}
+                        {% if form.notes.errors %}
+                            <label class="label">
+                                <span class="label-text-alt text-error">{{ form.notes.errors.0 }}</span>
+                            </label>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Boutons d'action -->
+                    <div class="flex flex-col sm:flex-row gap-4 pt-6">
+                        <button type="submit" class="btn btn-primary hover-glow transition-all flex-1">
+                            <i class="fas fa-save mr-2"></i>
+                            {{ submit_text }}
+                        </button>
+                        
+                        <a href="{% url 'products:suppliers:dropship_product_list' %}" class="btn btn-secondary hover-scale transition-all flex-1">
+                            <i class="fas fa-arrow-left mr-2"></i>
+                            Annuler
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Sidebar -->
+    <div class="space-y-6">
+        <!-- Aide -->
+        <div class="card bg-info text-info-content shadow-xl">
+            <div class="card-body">
+                <h3 class="card-title">
+                    <i class="fas fa-lightbulb"></i>
+                    Aide
+                </h3>
+                <div class="space-y-2 text-sm">
+                    <p><strong>Prix fournisseur :</strong> Le prix que vous payez au fournisseur</p>
+                    <p><strong>Prix de vente :</strong> Le prix affiché aux clients</p>
+                    <p><strong>Stock virtuel :</strong> Quantité disponible chez le fournisseur</p>
+                    <p><strong>Réapprovisionnement :</strong> Commande automatique quand le stock est bas</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Statistiques -->
+        <div class="card bg-base-200 shadow-xl">
+            <div class="card-body">
+                <h3 class="card-title">
+                    <i class="fas fa-chart-bar"></i>
+                    Statistiques
+                </h3>
+                <div class="stats stats-vertical">
+                    <div class="stat">
+                        <div class="stat-title">Produits actifs</div>
+                        <div class="stat-value text-primary">{{ active_products_count|default:0 }}</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-title">Fournisseurs</div>
+                        <div class="stat-value text-secondary">{{ suppliers_count|default:0 }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Calcul automatique de la marge
+    const supplierPriceInput = document.querySelector('input[name="supplier_price"]');
+    const sellingPriceInput = document.querySelector('input[name="selling_price"]');
+    
+    function calculateMargin() {
+        const supplierPrice = parseFloat(supplierPriceInput.value) || 0;
+        const sellingPrice = parseFloat(sellingPriceInput.value) || 0;
+        
+        if (supplierPrice > 0 && sellingPrice > 0) {
+            const margin = ((sellingPrice - supplierPrice) / sellingPrice * 100).toFixed(2);
+            const marginElement = document.getElementById('margin-display');
+            if (marginElement) {
+                marginElement.textContent = `Marge: ${margin}%`;
+            }
+        }
+    }
+    
+    if (supplierPriceInput && sellingPriceInput) {
+        supplierPriceInput.addEventListener('input', calculateMargin);
+        sellingPriceInput.addEventListener('input', calculateMargin);
+    }
+    
+    // Validation des quantités
+    const minQuantityInput = document.querySelector('input[name="min_order_quantity"]');
+    const maxQuantityInput = document.querySelector('input[name="max_order_quantity"]');
+    
+    function validateQuantities() {
+        const minQuantity = parseInt(minQuantityInput.value) || 0;
+        const maxQuantity = parseInt(maxQuantityInput.value) || 0;
+        
+        if (minQuantity > 0 && maxQuantity > 0 && minQuantity > maxQuantity) {
+            maxQuantityInput.setCustomValidity('La quantité maximale doit être supérieure à la quantité minimale');
+        } else {
+            maxQuantityInput.setCustomValidity('');
+        }
+    }
+    
+    if (minQuantityInput && maxQuantityInput) {
+        minQuantityInput.addEventListener('input', validateQuantities);
+        maxQuantityInput.addEventListener('input', validateQuantities);
+    }
+});
+</script>
+{% endblock %}

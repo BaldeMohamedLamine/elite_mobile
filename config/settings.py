@@ -24,9 +24,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG')
+DEBUG = config('DEBUG', default=False, cast=bool)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=lambda v: [s.strip() for s in v.split(',')])
 
 
 # Application definition
@@ -39,23 +39,52 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    'debug_toolbar',
+    # 'debug_toolbar',  # Temporairement commenté pour résoudre l'erreur ZeroDivisionError
+    'tailwind',
+    'theme',
 
     'users',
     'products',
     'orders',
+    'manager',
+    'corsheaders',  # Pour CORS
+    'whitenoise',  # Pour servir les fichiers statiques
 ]
+
+if DEBUG:
+    # Add django_browser_reload only in DEBUG mode
+    INSTALLED_APPS += ['django_browser_reload']
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Pour servir les fichiers statiques
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',  # Pour CORS
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'debug_toolbar.middleware.DebugToolbarMiddleware',
+    # Middlewares de performance (temporairement désactivés pour résoudre les problèmes de session)
+    # 'products.cache_middleware.PerformanceMonitoringMiddleware',
+    # 'products.cache_middleware.DatabaseQueryCacheMiddleware',
+    # 'products.cache_middleware.CacheMiddleware',
+    # 'products.cache_middleware.StaticFileCacheMiddleware',
+    # 'debug_toolbar.middleware.DebugToolbarMiddleware',  # Temporairement commenté pour résoudre l'erreur ZeroDivisionError
+    # Middlewares de sécurité (temporairement désactivés pour le développement)
+    # 'orders.middleware.SecurityHeadersMiddleware',
+    # 'orders.middleware.RateLimitMiddleware',
+    # 'orders.middleware.RequestLoggingMiddleware',
+    # 'orders.security_middleware.SecurityEventMiddleware',
+    # 'orders.security_middleware.FailedLoginMiddleware',
+    # 'orders.security_middleware.SessionSecurityMiddleware',
 ]
+
+if DEBUG:
+    # Add django_browser_reload middleware only in DEBUG mode
+    MIDDLEWARE += [
+        "django_browser_reload.middleware.BrowserReloadMiddleware",
+    ]
 
 ROOT_URLCONF = 'config.urls'
 
@@ -123,6 +152,92 @@ USE_I18N = True
 
 USE_TZ = True
 
+# Session Configuration
+SESSION_COOKIE_AGE = 1209600  # 2 semaines
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SECURE = not DEBUG  # True en production avec HTTPS
+SESSION_SAVE_EVERY_REQUEST = True
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+
+# CSRF Configuration
+CSRF_COOKIE_HTTPONLY = True  # Sécurisé par défaut
+CSRF_COOKIE_SECURE = not DEBUG  # True en production avec HTTPS
+CSRF_USE_SESSIONS = False  # Utilise les cookies par défaut
+
+# Encryption Configuration
+ENCRYPTION_KEY = config('ENCRYPTION_KEY', default=None)
+
+# Email Configuration
+# Configuration Email pour le développement
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # Pour le développement
+#EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'  # Pour la production
+#EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
+#EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
+#EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
+#EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
+#EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+#DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@onlineshopgn.com')
+
+# Security Settings
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = 'DENY'
+SECURE_HSTS_SECONDS = 31536000 if not DEBUG else 0
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+
+# Custom Error Pages (actives en développement et production)
+# Note: En mode DEBUG, Django affiche ses propres pages d'erreur détaillées
+# Pour tester les pages personnalisées, il faut temporairement mettre DEBUG = False
+handler404 = 'theme.views.custom_404'
+handler403 = 'theme.views.custom_403'
+handler500 = 'theme.views.custom_500'
+
+# Rate Limiting
+RATE_LIMIT_MAX_REQUESTS = 100
+RATE_LIMIT_TIME_WINDOW = 60  # seconds
+
+# IP Whitelist for Admin (optional)
+ADMIN_IP_WHITELIST = []
+
+# Logging Configuration
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'file': {
+            'level': 'WARNING',
+            'class': 'logging.FileHandler',
+            'filename': 'security.log',
+            'formatter': 'verbose',
+        },
+        'security_file': {
+            'level': 'WARNING',
+            'class': 'logging.FileHandler',
+            'filename': 'security_attacks.log',
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file'],
+            'level': 'WARNING',
+            'propagate': True,
+        },
+        'security': {
+            'handlers': ['security_file'],
+            'level': 'WARNING',
+            'propagate': True,
+        },
+    },
+}
+
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
@@ -135,6 +250,98 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Cache configuration
+if DEBUG:
+    # Cache local pour le développement (quand Redis n'est pas disponible)
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+            'LOCATION': 'unique-snowflake',
+            'TIMEOUT': 300,  # 5 minutes par défaut
+        },
+        'sessions': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+            'LOCATION': 'session-cache',
+            'TIMEOUT': 86400,  # 24 heures
+        },
+        'search': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+            'LOCATION': 'search-cache',
+            'TIMEOUT': 3600,  # 1 heure
+        },
+        'analytics': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+            'LOCATION': 'analytics-cache',
+            'TIMEOUT': 1800,  # 30 minutes
+        }
+    }
+else:
+    # Cache Redis pour la production
+    CACHES = {
+        'default': {
+            'BACKEND': 'django_redis.cache.RedisCache',
+            'LOCATION': config('REDIS_URL', default='redis://127.0.0.1:6379/1'),
+            'OPTIONS': {
+                'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+                'CONNECTION_POOL_KWARGS': {
+                    'max_connections': 50,
+                    'retry_on_timeout': True,
+                },
+                'COMPRESSOR': 'django_redis.compressors.zlib.ZlibCompressor',
+                'SERIALIZER': 'django_redis.serializers.json.JSONSerializer',
+            },
+            'KEY_PREFIX': 'online_shop',
+            'TIMEOUT': 300,  # 5 minutes par défaut
+        },
+        'sessions': {
+            'BACKEND': 'django_redis.cache.RedisCache',
+            'LOCATION': config('REDIS_URL', default='redis://127.0.0.1:6379/2'),
+            'OPTIONS': {
+                'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+            },
+            'KEY_PREFIX': 'session',
+            'TIMEOUT': 86400,  # 24 heures
+        },
+        'search': {
+            'BACKEND': 'django_redis.cache.RedisCache',
+            'LOCATION': config('REDIS_URL', default='redis://127.0.0.1:6379/3'),
+            'OPTIONS': {
+                'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+            },
+            'KEY_PREFIX': 'search',
+            'TIMEOUT': 3600,  # 1 heure
+        },
+        'analytics': {
+            'BACKEND': 'django_redis.cache.RedisCache',
+            'LOCATION': config('REDIS_URL', default='redis://127.0.0.1:6379/4'),
+            'OPTIONS': {
+                'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+            },
+            'KEY_PREFIX': 'analytics',
+            'TIMEOUT': 1800,  # 30 minutes
+        }
+    }
+
+# Session configuration (utilise la base de données pour éviter les problèmes de cache)
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+# SESSION_CACHE_ALIAS = 'sessions'
+
+# CORS configuration
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+]
+
+CORS_ALLOW_CREDENTIALS = True
+
+# WhiteNoise configuration
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# Performance settings
+CONN_MAX_AGE = 60  # Connexions de base de données persistantes
 
 AUTH_USER_MODEL = 'users.User'
 
@@ -152,12 +359,7 @@ INTERNAL_IPS = [
     # ...
 ]
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_HOST_USER = 'harouna24saifal@gmail.com'
-EMAIL_HOST_PASSWORD = 'kdosxzbzgupukjqd'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
+# Configuration email supprimée - utilise celle du haut
 
 DOMAIN_URL = 'localhost:8000'
 
@@ -165,9 +367,21 @@ MESSAGE_STORAGE = "django.contrib.messages.storage.cookie.CookieStorage"
 
 AUTHENTICATION_BACKENDS = [
     'users.custom_authenticate.CustomAuthentication',
-    # 'django.contrib.auth.backends.ModelBackend',
+    'django.contrib.auth.backends.ModelBackend',
 ]
 
+LOGIN_URL = '/users/login/'
 LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'
 
 FILE_UPLOAD_MAX_MEMORY_SIZE = 1024*5 # 5Mo
+
+# Tailwind CSS Configuration
+TAILWIND_APP_NAME = 'theme'
+
+# NPM Configuration for Windows
+NPM_BIN_PATH = 'npm.cmd'
+
+INTERNAL_IPS = [
+    "127.0.0.1",
+]

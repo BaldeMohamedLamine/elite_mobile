@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Configuration de l'authentification 2FA{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-shield-alt"></i> Configuration de l'authentification 2FA</h3>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Qu'est-ce que l'authentification 2FA ?</strong><br>
+                        L'authentification à deux facteurs ajoute une couche de sécurité supplémentaire à votre compte. 
+                        Après avoir saisi votre mot de passe, vous devrez également entrer un code de vérification.
+                    </div>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-4">
+                            <label class="form-label"><strong>Méthode d'authentification :</strong></label>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="method" value="email" id="method_email" checked>
+                                        <label class="form-check-label" for="method_email">
+                                            <i class="fas fa-envelope"></i> Email
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="method" value="sms" id="method_sms">
+                                        <label class="form-check-label" for="method_sms">
+                                            <i class="fas fa-sms"></i> SMS
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3" id="phone_field" style="display: none;">
+                            <label for="{{ form.phone_number.id_for_label }}" class="form-label">
+                                <i class="fas fa-phone"></i> Numéro de téléphone
+                            </label>
+                            {{ form.phone_number }}
+                            {% if form.phone_number.help_text %}
+                                <div class="form-text">{{ form.phone_number.help_text }}</div>
+                            {% endif %}
+                            {% if form.phone_number.errors %}
+                                <div class="text-danger">{{ form.phone_number.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {{ form.non_field_errors }}
+                            </div>
+                        {% endif %}
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-shield-alt"></i> Activer l'authentification 2FA
+                            </button>
+                            <a href="{% url 'users:two_factor_status' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left"></i> Annuler
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const emailRadio = document.getElementById('method_email');
+    const smsRadio = document.getElementById('method_sms');
+    const phoneField = document.getElementById('phone_field');
+    
+    function togglePhoneField() {
+        if (smsRadio.checked) {
+            phoneField.style.display = 'block';
+        } else {
+            phoneField.style.display = 'none';
+        }
+    }
+    
+    emailRadio.addEventListener('change', togglePhoneField);
+    smsRadio.addEventListener('change', togglePhoneField);
+    
+    // Initial state
+    togglePhoneField();
+});
+</script>
+{% endblock %}

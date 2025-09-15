@@ -1,0 +1,264 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Préférences de Notification{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold mb-2">Préférences de Notification</h1>
+        <p class="text-base-content/70">Configurez vos préférences de notification pour personnaliser votre expérience.</p>
+    </div>
+
+    <form method="post" class="space-y-8">
+        {% csrf_token %}
+        
+        <!-- Types de notification -->
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title text-xl mb-4">
+                    <i class="fas fa-bell mr-2"></i>
+                    Types de notification
+                </h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="form-control">
+                        <label class="label cursor-pointer">
+                            <span class="label-text">
+                                <i class="fas fa-envelope mr-2"></i>
+                                Notifications par email
+                            </span>
+                            <input type="checkbox" name="email_enabled" class="toggle toggle-primary" 
+                                   {% if form.email_enabled.value %}checked{% endif %}>
+                        </label>
+                        <div class="label">
+                            <span class="label-text-alt">Recevez des notifications par email</span>
+                        </div>
+                    </div>
+                    
+                    <div class="form-control">
+                        <label class="label cursor-pointer">
+                            <span class="label-text">
+                                <i class="fas fa-sms mr-2"></i>
+                                Notifications SMS
+                            </span>
+                            <input type="checkbox" name="sms_enabled" class="toggle toggle-primary" 
+                                   {% if form.sms_enabled.value %}checked{% endif %}>
+                        </label>
+                        <div class="label">
+                            <span class="label-text-alt">Recevez des notifications par SMS</span>
+                        </div>
+                    </div>
+                    
+                    <div class="form-control">
+                        <label class="label cursor-pointer">
+                            <span class="label-text">
+                                <i class="fas fa-mobile-alt mr-2"></i>
+                                Notifications push
+                            </span>
+                            <input type="checkbox" name="push_enabled" class="toggle toggle-primary" 
+                                   {% if form.push_enabled.value %}checked{% endif %}>
+                        </label>
+                        <div class="label">
+                            <span class="label-text-alt">Recevez des notifications push sur votre appareil</span>
+                        </div>
+                    </div>
+                    
+                    <div class="form-control">
+                        <label class="label cursor-pointer">
+                            <span class="label-text">
+                                <i class="fas fa-bell mr-2"></i>
+                                Notifications in-app
+                            </span>
+                            <input type="checkbox" name="in_app_enabled" class="toggle toggle-primary" 
+                                   {% if form.in_app_enabled.value %}checked{% endif %}>
+                        </label>
+                        <div class="label">
+                            <span class="label-text-alt">Affichez les notifications dans l'application</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Préférences par déclencheur -->
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title text-xl mb-4">
+                    <i class="fas fa-cog mr-2"></i>
+                    Préférences par type d'événement
+                </h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="form-control">
+                        <label class="label cursor-pointer">
+                            <span class="label-text">
+                                <i class="fas fa-shopping-cart mr-2"></i>
+                                Notifications de commande
+                            </span>
+                            <input type="checkbox" name="order_notifications" class="toggle toggle-primary" 
+                                   {% if form.order_notifications.value %}checked{% endif %}>
+                        </label>
+                        <div class="label">
+                            <span class="label-text-alt">Création, expédition, livraison</span>
+                        </div>
+                    </div>
+                    
+                    <div class="form-control">
+                        <label class="label cursor-pointer">
+                            <span class="label-text">
+                                <i class="fas fa-credit-card mr-2"></i>
+                                Notifications de paiement
+                            </span>
+                            <input type="checkbox" name="payment_notifications" class="toggle toggle-primary" 
+                                   {% if form.payment_notifications.value %}checked{% endif %}>
+                        </label>
+                        <div class="label">
+                            <span class="label-text-alt">Confirmation, échec de paiement</span>
+                        </div>
+                    </div>
+                    
+                    <div class="form-control">
+                        <label class="label cursor-pointer">
+                            <span class="label-text">
+                                <i class="fas fa-boxes mr-2"></i>
+                                Notifications de stock
+                            </span>
+                            <input type="checkbox" name="stock_notifications" class="toggle toggle-primary" 
+                                   {% if form.stock_notifications.value %}checked{% endif %}>
+                        </label>
+                        <div class="label">
+                            <span class="label-text-alt">Stock faible, rupture de stock</span>
+                        </div>
+                    </div>
+                    
+                    <div class="form-control">
+                        <label class="label cursor-pointer">
+                            <span class="label-text">
+                                <i class="fas fa-tag mr-2"></i>
+                                Notifications de prix
+                            </span>
+                            <input type="checkbox" name="price_notifications" class="toggle toggle-primary" 
+                                   {% if form.price_notifications.value %}checked{% endif %}>
+                        </label>
+                        <div class="label">
+                            <span class="label-text-alt">Baisse de prix, promotions</span>
+                        </div>
+                    </div>
+                    
+                    <div class="form-control">
+                        <label class="label cursor-pointer">
+                            <span class="label-text">
+                                <i class="fas fa-star mr-2"></i>
+                                Notifications d'avis
+                            </span>
+                            <input type="checkbox" name="review_notifications" class="toggle toggle-primary" 
+                                   {% if form.review_notifications.value %}checked{% endif %}>
+                        </label>
+                        <div class="label">
+                            <span class="label-text-alt">Nouveaux avis sur vos produits</span>
+                        </div>
+                    </div>
+                    
+                    <div class="form-control">
+                        <label class="label cursor-pointer">
+                            <span class="label-text">
+                                <i class="fas fa-percentage mr-2"></i>
+                                Notifications promotionnelles
+                            </span>
+                            <input type="checkbox" name="promotion_notifications" class="toggle toggle-primary" 
+                                   {% if form.promotion_notifications.value %}checked{% endif %}>
+                        </label>
+                        <div class="label">
+                            <span class="label-text-alt">Offres spéciales, promotions</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Heures silencieuses -->
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title text-xl mb-4">
+                    <i class="fas fa-moon mr-2"></i>
+                    Heures silencieuses
+                </h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">Heure de début</span>
+                        </label>
+                        <input type="time" name="quiet_hours_start" class="input input-bordered" 
+                               value="{{ form.quiet_hours_start.value|default:'' }}">
+                        <div class="label">
+                            <span class="label-text-alt">Aucune notification avant cette heure</span>
+                        </div>
+                    </div>
+                    
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">Heure de fin</span>
+                        </label>
+                        <input type="time" name="quiet_hours_end" class="input input-bordered" 
+                               value="{{ form.quiet_hours_end.value|default:'' }}">
+                        <div class="label">
+                            <span class="label-text-alt">Aucune notification après cette heure</span>
+                        </div>
+                    </div>
+                    
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">Fuseau horaire</span>
+                        </label>
+                        <select name="timezone" class="select select-bordered">
+                            <option value="UTC" {% if form.timezone.value == 'UTC' %}selected{% endif %}>UTC</option>
+                            <option value="Africa/Conakry" {% if form.timezone.value == 'Africa/Conakry' %}selected{% endif %}>Conakry (GMT+0)</option>
+                            <option value="Europe/Paris" {% if form.timezone.value == 'Europe/Paris' %}selected{% endif %}>Paris (GMT+1)</option>
+                            <option value="America/New_York" {% if form.timezone.value == 'America/New_York' %}selected{% endif %}>New York (GMT-5)</option>
+                        </select>
+                        <div class="label">
+                            <span class="label-text-alt">Fuseau horaire pour les heures silencieuses</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex justify-end gap-4">
+            <a href="{% url 'notifications:list' %}" class="btn btn-outline">
+                <i class="fas fa-arrow-left mr-2"></i>
+                Retour
+            </a>
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save mr-2"></i>
+                Sauvegarder les préférences
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+// Fonction pour activer/désactiver les heures silencieuses
+function toggleQuietHours() {
+    const startInput = document.querySelector('input[name="quiet_hours_start"]');
+    const endInput = document.querySelector('input[name="quiet_hours_end"]');
+    
+    if (startInput.value || endInput.value) {
+        // Activer les heures silencieuses
+        startInput.disabled = false;
+        endInput.disabled = false;
+    }
+}
+
+// Écouter les changements sur les inputs d'heure
+document.querySelector('input[name="quiet_hours_start"]').addEventListener('change', toggleQuietHours);
+document.querySelector('input[name="quiet_hours_end"]').addEventListener('change', toggleQuietHours);
+
+// Initialiser l'état
+toggleQuietHours();
+</script>
+{% endblock %}

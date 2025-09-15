@@ -1,0 +1,257 @@
+{% extends 'theme/templates/base.html' %}
+{% load static %}
+
+{% block title %}Désactiver 2FA{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-red-50 to-pink-100 dark:from-gray-900 dark:to-gray-800 py-12">
+    <div class="container mx-auto px-4">
+        <div class="max-w-2xl mx-auto">
+            <!-- Header -->
+            <div class="text-center mb-8 animate-fade-in">
+                <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-red-500 to-pink-600 rounded-full mb-4">
+                    <i class="fas fa-shield-alt text-3xl text-white"></i>
+                </div>
+                <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2">Désactiver 2FA</h1>
+                <p class="text-gray-600 dark:text-gray-300">Désactivez l'authentification à deux facteurs</p>
+            </div>
+
+            <div class="card bg-white dark:bg-gray-800 shadow-2xl animate-slide-in">
+                <div class="card-body">
+                    <!-- Warning -->
+                    <div class="alert alert-error mb-6">
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-exclamation-triangle text-2xl text-red-500 mt-1"></i>
+                            <div>
+                                <h3 class="font-bold text-lg mb-2">Attention !</h3>
+                                <p class="text-sm">
+                                    Désactiver l'authentification à deux facteurs réduira considérablement la sécurité de votre compte. 
+                                    <strong>Cette action n'est pas recommandée.</strong>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Current Status -->
+                    <div class="bg-base-200 p-6 rounded-lg mb-6">
+                        <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                            <i class="fas fa-info-circle text-info"></i>
+                            Statut actuel de votre compte
+                        </h3>
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center">
+                                <span class="text-base-content/70">Authentification 2FA :</span>
+                                <span class="badge badge-success badge-lg">Activée</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-base-content/70">Méthode :</span>
+                                <span class="font-medium">{{ user.get_two_factor_method_display }}</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-base-content/70">Numéro de téléphone :</span>
+                                <span class="font-medium">{{ user.phone_number }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Security Impact -->
+                    <div class="bg-base-200 p-6 rounded-lg mb-6">
+                        <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                            <i class="fas fa-shield-alt text-warning"></i>
+                            Impact sur la sécurité
+                        </h3>
+                        <div class="space-y-3">
+                            <div class="flex items-start gap-3">
+                                <i class="fas fa-times text-red-500 mt-1"></i>
+                                <div>
+                                    <div class="font-semibold text-sm">Protection réduite</div>
+                                    <div class="text-xs text-gray-500">Votre compte sera moins protégé contre les accès non autorisés</div>
+                                </div>
+                            </div>
+                            <div class="flex items-start gap-3">
+                                <i class="fas fa-times text-red-500 mt-1"></i>
+                                <div>
+                                    <div class="font-semibold text-sm">Risque d'intrusion</div>
+                                    <div class="text-xs text-gray-500">Un attaquant avec votre mot de passe pourra accéder à votre compte</div>
+                                </div>
+                            </div>
+                            <div class="flex items-start gap-3">
+                                <i class="fas fa-times text-red-500 mt-1"></i>
+                                <div>
+                                    <div class="font-semibold text-sm">Données sensibles</div>
+                                    <div class="text-xs text-gray-500">Vos informations personnelles et commandes seront moins sécurisées</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Alternative Options -->
+                    <div class="bg-base-200 p-6 rounded-lg mb-6">
+                        <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                            <i class="fas fa-lightbulb text-info"></i>
+                            Alternatives recommandées
+                        </h3>
+                        <div class="space-y-4">
+                            <div class="flex items-start gap-3">
+                                <i class="fas fa-mobile-alt text-primary mt-1"></i>
+                                <div>
+                                    <div class="font-semibold text-sm">Changer de numéro</div>
+                                    <div class="text-xs text-gray-500">Si vous avez un nouveau numéro, vous pouvez le mettre à jour</div>
+                                </div>
+                            </div>
+                            <div class="flex items-start gap-3">
+                                <i class="fas fa-key text-warning mt-1"></i>
+                                <div>
+                                    <div class="font-semibold text-sm">Utiliser les codes de sauvegarde</div>
+                                    <div class="text-xs text-gray-500">Si vous n'avez pas accès à votre téléphone, utilisez vos codes de sauvegarde</div>
+                                </div>
+                            </div>
+                            <div class="flex items-start gap-3">
+                                <i class="fas fa-cog text-info mt-1"></i>
+                                <div>
+                                    <div class="font-semibold text-sm">Changer de méthode</div>
+                                    <div class="text-xs text-gray-500">Vous pouvez passer de SMS à Email ou vice versa</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Disable Form -->
+                    <form method="post" class="space-y-6" id="disable-form">
+                        {% csrf_token %}
+                        
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-semibold">
+                                    <i class="fas fa-key text-primary mr-2"></i>
+                                    Code de vérification *
+                                </span>
+                            </label>
+                            <input type="text" 
+                                   name="verification_code" 
+                                   class="input input-bordered input-lg text-center text-2xl font-mono tracking-widest" 
+                                   placeholder="000000" 
+                                   maxlength="6" 
+                                   required
+                                   autocomplete="one-time-code">
+                            {% if form.verification_code.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.verification_code.errors.0 }}</span>
+                                </label>
+                            {% endif %}
+                            <label class="label">
+                                <span class="label-text-alt text-gray-500">
+                                    Entrez le code de vérification pour confirmer la désactivation
+                                </span>
+                            </label>
+                        </div>
+
+                        <div class="form-control">
+                            <label class="label cursor-pointer">
+                                <input type="checkbox" name="confirm_disable" class="checkbox checkbox-error" required>
+                                <span class="label-text ml-3">
+                                    <strong>Je comprends les risques</strong> et je confirme vouloir désactiver l'authentification à deux facteurs
+                                </span>
+                            </label>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="flex flex-col sm:flex-row gap-4 pt-6">
+                            <a href="{% url 'users:two_factor_status' %}" class="btn btn-outline btn-secondary hover-scale transition-all">
+                                <i class="fas fa-arrow-left mr-2"></i>
+                                Annuler
+                            </a>
+                            
+                            <button type="submit" class="btn btn-error btn-lg flex-1 hover-glow transition-all" id="disable-btn">
+                                <i class="fas fa-times mr-2"></i>
+                                Désactiver la 2FA
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Help Section -->
+            <div class="card bg-white dark:bg-gray-800 shadow-xl mt-6 animate-slide-in">
+                <div class="card-body">
+                    <h3 class="card-title text-lg mb-4">
+                        <i class="fas fa-question-circle text-primary mr-2"></i>
+                        Besoin d'aide ?
+                    </h3>
+                    <div class="space-y-4">
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-phone text-green-500 mt-1"></i>
+                            <div>
+                                <div class="font-semibold">Support téléphonique</div>
+                                <div class="text-sm text-gray-500">+224 XXX XX XX XX</div>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-envelope text-blue-500 mt-1"></i>
+                            <div>
+                                <div class="font-semibold">Email de support</div>
+                                <div class="text-sm text-gray-500">support@example.com</div>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-clock text-orange-500 mt-1"></i>
+                            <div>
+                                <div class="font-semibold">Horaires</div>
+                                <div class="text-sm text-gray-500">Lun-Ven: 8h-18h</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add ripple effect to buttons
+    document.querySelectorAll('.btn').forEach(button => {
+        button.addEventListener('click', function(e) {
+            createRipple(e, this);
+        });
+    });
+
+    // Auto-format verification code input
+    const codeInput = document.querySelector('input[name="verification_code"]');
+    if (codeInput) {
+        codeInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length > 6) {
+                value = value.substring(0, 6);
+            }
+            e.target.value = value;
+        });
+
+        // Focus on input
+        codeInput.focus();
+    }
+
+    // Form submission with confirmation
+    const form = document.getElementById('disable-form');
+    const disableBtn = document.getElementById('disable-btn');
+    
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Double confirmation
+        if (confirm('Êtes-vous absolument sûr de vouloir désactiver l\'authentification à deux facteurs ? Cette action réduira considérablement la sécurité de votre compte.')) {
+            if (confirm('Dernière confirmation : Voulez-vous vraiment désactiver la 2FA ?')) {
+                // Show loading state
+                disableBtn.innerHTML = '<span class="loading loading-spinner loading-sm mr-2"></span>Désactivation...';
+                disableBtn.disabled = true;
+                
+                // Submit form
+                form.submit();
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

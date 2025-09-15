@@ -1,0 +1,309 @@
+{% extends 'manager/base.html' %}
+{% load static %}
+
+{% block navbar_title %}Gestion des Produits{% endblock %}
+{% block header_title %}Gestion des Produits{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Header avec actions -->
+    <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 gap-4">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">
+                <i class="fas fa-box text-primary mr-3"></i>
+                Gestion des Produits
+            </h1>
+            <p class="text-gray-600">Gérez votre catalogue de produits, stocks et variants</p>
+        </div>
+        
+        <div class="flex flex-wrap gap-3">
+            <a href="{% url 'products:product_create' %}" class="btn btn-primary hover-glow transition-all">
+                <i class="fas fa-plus mr-2"></i>
+                Nouveau Produit
+            </a>
+            <a href="{% url 'products:category_list' %}" class="btn btn-secondary hover-glow transition-all">
+                <i class="fas fa-tags mr-2"></i>
+                Catégories
+            </a>
+            <a href="/products/stock/" class="btn btn-outline btn-primary hover-glow transition-all">
+                <i class="fas fa-warehouse mr-2"></i>
+                Gestion Stock
+            </a>
+        </div>
+    </div>
+
+    <!-- Filtres et recherche -->
+    <div class="card bg-base-100 shadow-xl mb-8">
+        <div class="card-body">
+            <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-medium">Recherche</span>
+                    </label>
+                    <input type="text" name="search" value="{{ request.GET.search }}" 
+                           placeholder="Nom ou description..." 
+                           class="input input-bordered w-full">
+                </div>
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-medium">Catégorie</span>
+                    </label>
+                    <select name="category" class="select select-bordered w-full">
+                        <option value="">Toutes les catégories</option>
+                        {% for category in categories %}
+                        <option value="{{ category.id }}" {% if request.GET.category == category.id|stringformat:"s" %}selected{% endif %}>
+                            {{ category.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-medium">Statut Stock</span>
+                    </label>
+                    <select name="stock_status" class="select select-bordered w-full">
+                        <option value="">Tous</option>
+                        <option value="low" {% if request.GET.stock_status == "low" %}selected{% endif %}>Stock faible</option>
+                        <option value="out" {% if request.GET.stock_status == "out" %}selected{% endif %}>Rupture</option>
+                        <option value="normal" {% if request.GET.stock_status == "normal" %}selected{% endif %}>Stock normal</option>
+                    </select>
+                </div>
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-medium">Actions</span>
+                    </label>
+                    <div class="flex gap-2">
+                        <button type="submit" class="btn btn-primary flex-1">
+                            <i class="fas fa-search mr-2"></i>
+                            Filtrer
+                        </button>
+                        <a href="{% url 'manager:product_list' %}" class="btn btn-outline">
+                            <i class="fas fa-times"></i>
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Statistiques rapides -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div class="stat bg-primary text-primary-content rounded-lg">
+            <div class="stat-figure text-primary-content">
+                <i class="fas fa-box text-3xl"></i>
+            </div>
+            <div class="stat-title text-primary-content">Total Produits</div>
+            <div class="stat-value text-primary-content">{{ products|length }}</div>
+        </div>
+        
+        <div class="stat bg-warning text-warning-content rounded-lg">
+            <div class="stat-figure text-warning-content">
+                <i class="fas fa-exclamation-triangle text-3xl"></i>
+            </div>
+            <div class="stat-title text-warning-content">Stock Faible</div>
+            <div class="stat-value text-warning-content">
+                {% for product in products %}
+                    {% if product.quantity < 10 %}{{ forloop.counter0|add:1 }}{% endif %}
+                {% endfor %}
+            </div>
+        </div>
+        
+        <div class="stat bg-error text-error-content rounded-lg">
+            <div class="stat-figure text-error-content">
+                <i class="fas fa-times-circle text-3xl"></i>
+            </div>
+            <div class="stat-title text-error-content">Rupture</div>
+            <div class="stat-value text-error-content">
+                {% for product in products %}
+                    {% if product.quantity == 0 %}{{ forloop.counter0|add:1 }}{% endif %}
+                {% endfor %}
+            </div>
+        </div>
+        
+        <div class="stat bg-success text-success-content rounded-lg">
+            <div class="stat-figure text-success-content">
+                <i class="fas fa-check-circle text-3xl"></i>
+            </div>
+            <div class="stat-title text-success-content">En Stock</div>
+            <div class="stat-value text-success-content">
+                {% for product in products %}
+                    {% if product.quantity >= 10 %}{{ forloop.counter0|add:1 }}{% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Liste des produits -->
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <div class="overflow-x-auto">
+                <table class="table table-zebra w-full">
+                    <thead>
+                        <tr>
+                            <th>Produit</th>
+                            <th>Catégorie</th>
+                            <th>Prix</th>
+                            <th>Stock</th>
+                            <th>Statut</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for product in products %}
+                        <tr class="hover:bg-base-200 transition-colors">
+                            <td>
+                                <div class="flex items-center space-x-3">
+                                    <div class="avatar">
+                                        <div class="mask mask-squircle w-12 h-12">
+                                            {% if product.image %}
+                                                <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                                            {% else %}
+                                                <div class="bg-gray-200 flex items-center justify-center">
+                                                    <i class="fas fa-image text-gray-400"></i>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div class="font-bold">{{ product.name }}</div>
+                                        <div class="text-sm opacity-50">{{ product.sku|default:"N/A" }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge badge-outline">{{ product.category.name|default:"Sans catégorie" }}</span>
+                            </td>
+                            <td>
+                                <div class="font-bold">{{ product.price|floatformat:0 }} GNF</div>
+                                {% if product.cost_price %}
+                                <div class="text-sm text-gray-500">Coût: {{ product.cost_price|floatformat:0 }} GNF</div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="flex items-center space-x-2">
+                                    <span class="font-bold {% if product.quantity == 0 %}text-error{% elif product.quantity < 10 %}text-warning{% else %}text-success{% endif %}">
+                                        {{ product.quantity }}
+                                    </span>
+                                    {% if product.quantity < 10 and product.quantity > 0 %}
+                                        <i class="fas fa-exclamation-triangle text-warning text-sm"></i>
+                                    {% elif product.quantity == 0 %}
+                                        <i class="fas fa-times-circle text-error text-sm"></i>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>
+                                {% if product.is_active %}
+                                    <span class="badge badge-success">Actif</span>
+                                {% else %}
+                                    <span class="badge badge-error">Inactif</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="flex space-x-2">
+                                    <a href="{% url 'products:product_detail' product.uid %}" 
+                                       class="btn btn-ghost btn-sm hover-scale transition-all" 
+                                       title="Voir détails">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{% url 'products:product_update' product.uid %}" 
+                                       class="btn btn-ghost btn-sm hover-scale transition-all" 
+                                       title="Modifier">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="/products/variants/product/{{ product.uid }}/" 
+                                       class="btn btn-ghost btn-sm hover-scale transition-all" 
+                                       title="Variants">
+                                        <i class="fas fa-layer-group"></i>
+                                    </a>
+                                    <button onclick="toggleProductStatus('{{ product.uid }}', {{ product.is_active|yesno:'false,true' }})" 
+                                            class="btn btn-ghost btn-sm hover-scale transition-all" 
+                                            title="{% if product.is_active %}Désactiver{% else %}Activer{% endif %}">
+                                        <i class="fas fa-{% if product.is_active %}pause{% else %}play{% endif %}"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-8">
+                                <div class="text-gray-500">
+                                    <i class="fas fa-box text-4xl mb-4"></i>
+                                    <p class="text-lg">Aucun produit trouvé</p>
+                                    <p class="text-sm">Commencez par créer votre premier produit</p>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            {% if is_paginated %}
+            <div class="flex justify-center mt-6">
+                <div class="btn-group">
+                    {% if page_obj.has_previous %}
+                        <a href="?page=1" class="btn btn-outline">«</a>
+                        <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-outline">‹</a>
+                    {% endif %}
+                    
+                    <span class="btn btn-active">{{ page_obj.number }} sur {{ page_obj.paginator.num_pages }}</span>
+                    
+                    {% if page_obj.has_next %}
+                        <a href="?page={{ page_obj.next_page_number }}" class="btn btn-outline">›</a>
+                        <a href="?page={{ page_obj.paginator.num_pages }}" class="btn btn-outline">»</a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function toggleProductStatus(productUid, currentStatus) {
+    const action = currentStatus ? 'désactiver' : 'activer';
+    const newStatus = currentStatus ? 'inactif' : 'actif';
+    
+    if (confirm(`Êtes-vous sûr de vouloir ${action} ce produit ?`)) {
+        fetch(`/products/toggle-status/${productUid}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                is_active: !currentStatus
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Erreur lors de la mise à jour du statut');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Erreur lors de la mise à jour du statut');
+        });
+    }
+}
+
+// Auto-refresh des statistiques toutes les 30 secondes
+setInterval(function() {
+    // Mettre à jour les compteurs de stock faible et rupture
+    const lowStockCount = document.querySelectorAll('tr .text-warning').length;
+    const outOfStockCount = document.querySelectorAll('tr .text-error').length;
+    
+    // Mettre à jour les badges si nécessaire
+    // (Cette fonctionnalité peut être étendue selon les besoins)
+}, 30000);
+</script>
+{% endblock %}

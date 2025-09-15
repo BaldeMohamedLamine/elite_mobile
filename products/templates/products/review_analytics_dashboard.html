@@ -1,0 +1,382 @@
+{% extends 'manager/base.html' %}
+{% load static %}
+
+{% block page_title %}Analytics des Avis{% endblock %}
+{% block page_description %}Analyses et statistiques des avis clients{% endblock %}
+
+{% block manager_content %}
+<div class="space-y-6">
+    <!-- En-tête -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+            <h1 class="text-3xl font-bold">
+                <i class="fas fa-star text-primary mr-2"></i>
+                Analytics des Avis
+            </h1>
+            <p class="text-base-content/70 mt-2">
+                Analyses et statistiques des avis clients
+            </p>
+        </div>
+        
+        <div class="flex gap-2">
+            <button class="btn btn-outline btn-sm" onclick="refreshAnalytics()">
+                <i class="fas fa-sync-alt mr-2"></i>
+                Actualiser
+            </button>
+            <button class="btn btn-primary btn-sm" onclick="exportData()">
+                <i class="fas fa-download mr-2"></i>
+                Exporter
+            </button>
+        </div>
+    </div>
+    
+    <!-- Métriques principales -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="stat bg-base-100 shadow rounded-lg">
+            <div class="stat-figure text-primary">
+                <i class="fas fa-comments text-2xl"></i>
+            </div>
+            <div class="stat-title">Total Avis</div>
+            <div class="stat-value text-primary">{{ overview.total_reviews }}</div>
+            <div class="stat-desc">Avis approuvés</div>
+        </div>
+        
+        <div class="stat bg-base-100 shadow rounded-lg">
+            <div class="stat-figure text-success">
+                <i class="fas fa-star text-2xl"></i>
+            </div>
+            <div class="stat-title">Note Moyenne</div>
+            <div class="stat-value text-success">{{ overview.average_rating }}/5</div>
+            <div class="stat-desc">Note globale</div>
+        </div>
+        
+        <div class="stat bg-base-100 shadow rounded-lg">
+            <div class="stat-figure text-info">
+                <i class="fas fa-check-circle text-2xl"></i>
+            </div>
+            <div class="stat-title">Avis Vérifiés</div>
+            <div class="stat-value text-info">{{ overview.verified_reviews }}</div>
+            <div class="stat-desc">{{ overview.verification_rate }}% du total</div>
+        </div>
+        
+        <div class="stat bg-base-100 shadow rounded-lg">
+            <div class="stat-figure text-warning">
+                <i class="fas fa-clock text-2xl"></i>
+            </div>
+            <div class="stat-title">Avis Récents</div>
+            <div class="stat-value text-warning">{{ overview.recent_reviews }}</div>
+            <div class="stat-desc">7 derniers jours</div>
+        </div>
+    </div>
+    
+    <!-- Répartition des notes -->
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h3 class="card-title mb-4">
+                <i class="fas fa-chart-bar"></i>
+                Répartition des notes
+            </h3>
+            
+            <div class="space-y-3">
+                {% for rating, count in overview.rating_distribution.items %}
+                <div class="flex items-center gap-4">
+                    <div class="flex items-center gap-2 w-20">
+                        <span class="text-sm font-medium">{{ rating }}</span>
+                        <div class="rating rating-xs">
+                            <input type="radio" class="mask mask-star-2 bg-orange-400" checked disabled>
+                        </div>
+                    </div>
+                    <div class="flex-1 bg-base-200 rounded-full h-3">
+                        <div class="bg-gradient-to-r from-orange-400 to-orange-500 h-3 rounded-full transition-all duration-500" 
+                             style="width: {{ count|floatformat:0|add:0|div:overview.total_reviews|mul:100|floatformat:0 }}%"></div>
+                    </div>
+                    <div class="text-sm font-medium w-16 text-right">
+                        {{ count }}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Graphiques -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Tendance des avis -->
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h3 class="card-title mb-4">
+                    <i class="fas fa-chart-line"></i>
+                    Tendance des avis (30 jours)
+                </h3>
+                <div id="reviewsChart" class="h-64"></div>
+            </div>
+        </div>
+        
+        <!-- Répartition par catégorie -->
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h3 class="card-title mb-4">
+                    <i class="fas fa-chart-pie"></i>
+                    Avis par catégorie
+                </h3>
+                <div id="categoryChart" class="h-64"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Top produits notés -->
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h3 class="card-title mb-4">
+                <i class="fas fa-trophy"></i>
+                Top produits notés
+            </h3>
+            
+            {% if top_products %}
+            <div class="overflow-x-auto">
+                <table class="table table-zebra w-full">
+                    <thead>
+                        <tr>
+                            <th>Rang</th>
+                            <th>Produit</th>
+                            <th>Note Moyenne</th>
+                            <th>Nombre d'Avis</th>
+                            <th>Avis Vérifiés</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for product in top_products %}
+                        <tr>
+                            <td>
+                                <div class="flex items-center gap-2">
+                                    {% if forloop.counter <= 3 %}
+                                    <i class="fas fa-medal text-{{ forloop.counter == 1 and 'yellow' or forloop.counter == 2 and 'gray' or 'orange' }}"></i>
+                                    {% endif %}
+                                    <span class="font-bold">#{{ forloop.counter }}</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="font-semibold">{{ product.name }}</div>
+                                <div class="text-sm text-base-content/70">{{ product.category.name }}</div>
+                            </td>
+                            <td>
+                                <div class="flex items-center gap-2">
+                                    <div class="rating rating-sm">
+                                        {% for i in "12345" %}
+                                        <input type="radio" class="mask mask-star-2 bg-orange-400" 
+                                               {% if forloop.counter <= product.avg_rating %}checked{% endif %} disabled>
+                                        {% endfor %}
+                                    </div>
+                                    <span class="font-semibold">{{ product.avg_rating|floatformat:1 }}</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="font-semibold">{{ product.review_count }}</div>
+                            </td>
+                            <td>
+                                <div class="font-semibold text-success">{{ product.verified_reviews }}</div>
+                            </td>
+                            <td>
+                                <a href="{% url 'products:reviews:product_analytics' product.id %}" 
+                                   class="btn btn-ghost btn-sm">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-8">
+                <i class="fas fa-star text-4xl text-base-content/30 mb-4"></i>
+                <h3 class="text-lg font-semibold mb-2">Aucune donnée</h3>
+                <p class="text-base-content/70">Aucun produit avec des avis.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Métriques de qualité -->
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h3 class="card-title mb-4">
+                <i class="fas fa-chart-line"></i>
+                Métriques de qualité
+            </h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="stat bg-base-200 rounded-lg">
+                    <div class="stat-title">Avis détaillés</div>
+                    <div class="stat-value text-lg">{{ quality_metrics.detailed_reviews }}</div>
+                    <div class="stat-desc">{{ quality_metrics.detail_rate }}% du total</div>
+                </div>
+                
+                <div class="stat bg-base-200 rounded-lg">
+                    <div class="stat-title">Avis avec images</div>
+                    <div class="stat-value text-lg">{{ quality_metrics.reviews_with_images }}</div>
+                    <div class="stat-desc">{{ quality_metrics.image_rate }}% du total</div>
+                </div>
+                
+                <div class="stat bg-base-200 rounded-lg">
+                    <div class="stat-title">Avis récents</div>
+                    <div class="stat-value text-lg">{{ quality_metrics.recent_reviews }}</div>
+                    <div class="stat-desc">30 derniers jours</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Insights et recommandations -->
+    {% if insights %}
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h3 class="card-title mb-4">
+                <i class="fas fa-lightbulb"></i>
+                Insights et recommandations
+            </h3>
+            
+            <div class="space-y-4">
+                {% for insight in insights %}
+                <div class="alert alert-{{ insight.type == 'warning' and 'warning' or insight.type == 'error' and 'error' or 'info' }}">
+                    <div>
+                        <h4 class="font-bold">{{ insight.title }}</h4>
+                        <div class="text-sm">{{ insight.description }}</div>
+                        <div class="text-sm mt-2">
+                            <strong>Action recommandée :</strong> {{ insight.action }}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Statistiques de modération -->
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h3 class="card-title mb-4">
+                <i class="fas fa-gavel"></i>
+                Modération des avis
+            </h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="stat bg-warning/10 rounded-lg">
+                    <div class="stat-title text-warning">En attente</div>
+                    <div class="stat-value text-warning">{{ moderation_stats.pending }}</div>
+                    <div class="stat-desc">Avis à modérer</div>
+                </div>
+                
+                <div class="stat bg-success/10 rounded-lg">
+                    <div class="stat-title text-success">Approuvés</div>
+                    <div class="stat-value text-success">{{ moderation_stats.approved }}</div>
+                    <div class="stat-desc">Avis approuvés</div>
+                </div>
+                
+                <div class="stat bg-error/10 rounded-lg">
+                    <div class="stat-title text-error">Rejetés</div>
+                    <div class="stat-value text-error">{{ moderation_stats.rejected }}</div>
+                    <div class="stat-desc">Avis rejetés</div>
+                </div>
+            </div>
+            
+            {% if moderation_stats.pending > 0 %}
+            <div class="mt-4">
+                <a href="{% url 'products:reviews:moderation_dashboard' %}" class="btn btn-warning">
+                    <i class="fas fa-gavel mr-2"></i>
+                    Modérer les avis en attente
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+function refreshAnalytics() {
+    window.location.reload();
+}
+
+function exportData() {
+    const params = new URLSearchParams(window.location.search);
+    window.open(`/products/reviews/analytics/export/?${params.toString()}`, '_blank');
+}
+
+// Initialiser les graphiques
+document.addEventListener('DOMContentLoaded', function() {
+    // Graphique des avis
+    const reviewsCtx = document.getElementById('reviewsChart').getContext('2d');
+    const reviewsData = {{ trends.daily_reviews|safe }};
+    
+    new Chart(reviewsCtx, {
+        type: 'line',
+        data: {
+            labels: reviewsData.map(item => item.day),
+            datasets: [{
+                label: 'Nombre d\'avis',
+                data: reviewsData.map(item => item.count || 0),
+                borderColor: 'rgb(59, 130, 246)',
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                tension: 0.1
+            }, {
+                label: 'Note moyenne',
+                data: reviewsData.map(item => item.avg_rating || 0),
+                borderColor: 'rgb(34, 197, 94)',
+                backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                tension: 0.1,
+                yAxisID: 'y1'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    type: 'linear',
+                    display: true,
+                    position: 'left',
+                },
+                y1: {
+                    type: 'linear',
+                    display: true,
+                    position: 'right',
+                    grid: {
+                        drawOnChartArea: false,
+                    },
+                }
+            }
+        }
+    });
+    
+    // Graphique des catégories
+    const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+    const categoryData = {{ category_analysis|safe }};
+    
+    new Chart(categoryCtx, {
+        type: 'doughnut',
+        data: {
+            labels: categoryData.map(item => item.name),
+            datasets: [{
+                data: categoryData.map(item => item.review_count || 0),
+                backgroundColor: [
+                    '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6',
+                    '#06B6D4', '#84CC16', '#F97316', '#EC4899', '#6B7280'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

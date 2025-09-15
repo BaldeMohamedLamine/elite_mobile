@@ -1,0 +1,255 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{% block page_title %}Gestionnaire - Boutique{% endblock %}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-primary/5 via-base-100 to-secondary/5">
+    <div class="drawer lg:drawer-open">
+        <input id="drawer-toggle" type="checkbox" class="drawer-toggle" />
+        
+        <!-- Main Content -->
+        <div class="drawer-content flex flex-col">
+            <!-- Navbar -->
+            <div class="navbar bg-base-100 shadow-lg sticky top-0 z-40">
+                <div class="flex-none lg:hidden">
+                    <label for="drawer-toggle" class="btn btn-square btn-ghost hover-scale transition-transform">
+                        <i class="fas fa-bars text-xl"></i>
+                    </label>
+                </div>
+                
+                <div class="flex-1">
+                    <h1 class="text-xl font-bold gradient-text">
+                        <i class="fas fa-store text-primary mr-2"></i>
+                        {% block navbar_title %}Dashboard{% endblock %}
+                    </h1>
+                </div>
+                
+                <div class="flex-none">
+                    <div class="dropdown dropdown-end">
+                        <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar hover-scale transition-transform">
+                            <div class="w-10 rounded-full bg-primary text-primary-content flex items-center justify-center">
+                                <i class="fas fa-user"></i>
+                            </div>
+                        </div>
+                        <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
+                            <li>
+                                <div class="text-sm font-medium">
+                                    <i class="fas fa-user mr-2"></i>
+                                    {{ request.user.first_name }} {{ request.user.last_name }}
+                                </div>
+                            </li>
+                            <li><hr class="my-2"></li>
+                            <li>
+                                <a href="{% url 'products:home' %}" target="_blank" class="hover-scale transition-all">
+                                    <i class="fas fa-external-link-alt mr-2"></i>
+                                    Voir le site
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{% url 'users:logout' %}" class="hover-scale transition-all">
+                                    <i class="fas fa-sign-out-alt mr-2"></i>
+                                    Déconnexion
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Page Header -->
+            <div class="p-6 pb-0">
+                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6">
+                    <div>
+                        <h2 class="text-3xl font-bold gradient-text mb-2">
+                            {% block header_title %}Dashboard{% endblock %}
+                        </h2>
+                        <p class="text-base-content/70">
+                            {% block page_description %}Tableau de bord du gestionnaire{% endblock %}
+                        </p>
+                    </div>
+                    
+                    <div class="flex items-center gap-2 mt-4 lg:mt-0">
+                        <span class="text-base-content/70">Bonjour,</span>
+                        <span class="font-medium text-primary">
+                            {{ request.user.first_name|default:request.user.email }}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Messages -->
+                {% if messages %}
+                    <div class="max-w-7xl mx-auto mb-6">
+                        <div class="space-y-2">
+                            {% for message in messages %}
+                                <div class="alert alert-{{ message.tags|default:'info' }} animate-slide-in" role="alert">
+                                    <i class="fas fa-info-circle"></i>
+                                    <span>{{ message }}</span>
+                                    <button class="btn btn-sm btn-circle btn-ghost" onclick="this.parentElement.remove()">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Main Content Area -->
+            <div class="flex-1 p-6">
+                {% block manager_content %}
+                {% endblock %}
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="drawer-side">
+            <label for="drawer-toggle" class="drawer-overlay"></label>
+            <aside class="min-h-full w-80 bg-gradient-to-b from-primary to-secondary text-primary-content">
+                <div class="p-6">
+                    <!-- Logo -->
+                    <div class="text-center mb-8">
+                        <div class="avatar placeholder mb-4">
+                            <div class="bg-primary-content text-primary rounded-full w-16">
+                                <i class="fas fa-store text-2xl"></i>
+                            </div>
+                        </div>
+                        <h3 class="text-2xl font-bold">Gestionnaire</h3>
+                        <p class="text-primary-content/70 text-sm">Boutique E-commerce</p>
+                    </div>
+
+                    <!-- Navigation -->
+                    <nav class="space-y-2">
+                        <a href="{% url 'manager:dashboard' %}" 
+                           class="flex items-center p-3 rounded-lg transition-all hover:bg-primary-content/20 hover-scale {% if request.resolver_match.url_name == 'dashboard' %}bg-primary-content/20 shadow-lg{% endif %}">
+                            <i class="fas fa-tachometer-alt w-5 mr-3"></i>
+                            <span class="font-medium">Dashboard</span>
+                        </a>
+                        
+                        <a href="{% url 'manager:order_list' %}" 
+                           class="flex items-center p-3 rounded-lg transition-all hover:bg-primary-content/20 hover-scale {% if 'order' in request.resolver_match.url_name %}bg-primary-content/20 shadow-lg{% endif %}">
+                            <i class="fas fa-shopping-cart w-5 mr-3"></i>
+                            <span class="font-medium">Commandes</span>
+                        </a>
+                        
+                        <a href="{% url 'products:product_manager_list' %}" 
+                           class="flex items-center p-3 rounded-lg transition-all hover:bg-primary-content/20 hover-scale {% if 'product' in request.resolver_match.url_name %}bg-primary-content/20 shadow-lg{% endif %}">
+                            <i class="fas fa-box w-5 mr-3"></i>
+                            <span class="font-medium">Produits</span>
+                        </a>
+                        
+                        <a href="{% url 'manager:customer_list' %}" 
+                           class="flex items-center p-3 rounded-lg transition-all hover:bg-primary-content/20 hover-scale {% if 'customer' in request.resolver_match.url_name %}bg-primary-content/20 shadow-lg{% endif %}">
+                            <i class="fas fa-users w-5 mr-3"></i>
+                            <span class="font-medium">Clients</span>
+                        </a>
+                        
+                        <a href="{% url 'products:stock:stock_list' %}" 
+                           class="flex items-center p-3 rounded-lg transition-all hover:bg-primary-content/20 hover-scale {% if 'stock' in request.resolver_match.url_name %}bg-primary-content/20 shadow-lg{% endif %}">
+                            <i class="fas fa-warehouse w-5 mr-3"></i>
+                            <span class="font-medium">Stock</span>
+                        </a>
+                        
+                        <a href="{% url 'products:suppliers:supplier_list' %}" 
+                           class="flex items-center p-3 rounded-lg transition-all hover:bg-primary-content/20 hover-scale {% if 'supplier' in request.resolver_match.url_name %}bg-primary-content/20 shadow-lg{% endif %}">
+                            <i class="fas fa-truck w-5 mr-3"></i>
+                            <span class="font-medium">Fournisseurs</span>
+                        </a>
+                        
+                        <a href="{% url 'orders:support_ticket_list' %}" 
+                           class="flex items-center p-3 rounded-lg transition-all hover:bg-primary-content/20 hover-scale {% if 'support' in request.resolver_match.url_name %}bg-primary-content/20 shadow-lg{% endif %}">
+                            <i class="fas fa-headset w-5 mr-3"></i>
+                            <span class="font-medium">Support</span>
+                        </a>
+                        
+                        <div class="divider my-4"></div>
+                        
+                        <a href="{% url 'products:home' %}" target="_blank" 
+                           class="flex items-center p-3 rounded-lg transition-all hover:bg-primary-content/20 hover-scale">
+                            <i class="fas fa-external-link-alt w-5 mr-3"></i>
+                            <span class="font-medium">Voir le site</span>
+                        </a>
+                        
+                        <a href="{% url 'users:logout' %}" 
+                           class="flex items-center p-3 rounded-lg transition-all hover:bg-primary-content/20 hover-scale">
+                            <i class="fas fa-sign-out-alt w-5 mr-3"></i>
+                            <span class="font-medium">Déconnexion</span>
+                        </a>
+                    </nav>
+                </div>
+            </aside>
+        </div>
+    </div>
+</div>
+
+<!-- Custom Styles for Manager -->
+<style>
+.drawer-side {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.drawer-side aside {
+    background: transparent;
+}
+
+/* Animation for sidebar items */
+.drawer-side a {
+    position: relative;
+    overflow: hidden;
+}
+
+.drawer-side a::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+    transition: left 0.5s;
+}
+
+.drawer-side a:hover::before {
+    left: 100%;
+}
+
+/* Custom scrollbar for sidebar */
+.drawer-side::-webkit-scrollbar {
+    width: 6px;
+}
+
+.drawer-side::-webkit-scrollbar-track {
+    background: rgba(255,255,255,0.1);
+}
+
+.drawer-side::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.3);
+    border-radius: 3px;
+}
+
+.drawer-side::-webkit-scrollbar-thumb:hover {
+    background: rgba(255,255,255,0.5);
+}
+</style>
+
+<script>
+// Add ripple effect to buttons
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.btn, .drawer-side a').forEach(button => {
+        button.addEventListener('click', function(e) {
+            createRipple(e, this);
+        });
+    });
+    
+    // Add staggered animation to sidebar items
+    const sidebarItems = document.querySelectorAll('.drawer-side a');
+    sidebarItems.forEach((item, index) => {
+        item.style.animationDelay = `${index * 0.1}s`;
+        item.classList.add('animate-fade-in');
+    });
+});
+</script>
+
+{% block extra_js %}
+{% endblock %}
+{% endblock %}

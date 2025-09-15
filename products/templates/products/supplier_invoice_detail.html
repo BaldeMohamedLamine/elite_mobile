@@ -1,0 +1,293 @@
+{% extends 'manager/base.html' %}
+{% load static %}
+
+{% block page_title %}Détail de la facture{% endblock %}
+{% block page_description %}Détails de la facture fournisseur{% endblock %}
+
+{% block manager_content %}
+<div class="max-w-4xl mx-auto space-y-6">
+    <!-- En-tête -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+            <h1 class="text-3xl font-bold">
+                <i class="fas fa-file-invoice text-primary mr-2"></i>
+                Facture #{{ invoice.invoice_number }}
+            </h1>
+            <p class="text-base-content/70 mt-2">
+                Créée le {{ invoice.created_at|date:"d/m/Y à H:i" }}
+            </p>
+        </div>
+        
+        <div class="flex gap-2">
+            <a href="{% url 'products:suppliers:supplier_invoice_list' %}" 
+               class="btn btn-outline btn-sm">
+                <i class="fas fa-arrow-left mr-2"></i>
+                Retour
+            </a>
+            <button class="btn btn-primary btn-sm" onclick="downloadInvoice()">
+                <i class="fas fa-download mr-2"></i>
+                Télécharger PDF
+            </button>
+        </div>
+    </div>
+    
+    <!-- Statut de la facture -->
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h3 class="card-title mb-4">
+                <i class="fas fa-info-circle"></i>
+                Statut de la facture
+            </h3>
+            
+            <div class="flex items-center gap-4">
+                <span class="badge badge-lg badge-{{ invoice.status == 'paid' and 'success' or invoice.status == 'sent' and 'info' or invoice.status == 'overdue' and 'error' or 'warning' }}">
+                    {{ invoice.get_status_display }}
+                </span>
+                
+                {% if invoice.is_overdue %}
+                <div class="alert alert-error">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>Cette facture est en retard de {{ invoice.days_overdue }} jour(s)</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Informations fournisseur -->
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h3 class="card-title mb-4">
+                    <i class="fas fa-truck"></i>
+                    Fournisseur
+                </h3>
+                
+                <div class="space-y-3">
+                    <div>
+                        <label class="text-sm font-semibold text-base-content/70">Nom</label>
+                        <p class="font-semibold">{{ invoice.supplier.name }}</p>
+                    </div>
+                    
+                    <div>
+                        <label class="text-sm font-semibold text-base-content/70">Entreprise</label>
+                        <p>{{ invoice.supplier.company_name|default:"Non spécifié" }}</p>
+                    </div>
+                    
+                    <div>
+                        <label class="text-sm font-semibold text-base-content/70">Email</label>
+                        <p>{{ invoice.supplier.email }}</p>
+                    </div>
+                    
+                    <div>
+                        <label class="text-sm font-semibold text-base-content/70">Téléphone</label>
+                        <p>{{ invoice.supplier.phone|default:"Non renseigné" }}</p>
+                    </div>
+                    
+                    <div>
+                        <label class="text-sm font-semibold text-base-content/70">Adresse</label>
+                        <p class="whitespace-pre-line">{{ invoice.supplier.address|default:"Non renseignée" }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Informations facture -->
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h3 class="card-title mb-4">
+                    <i class="fas fa-file-invoice"></i>
+                    Informations facture
+                </h3>
+                
+                <div class="space-y-3">
+                    <div>
+                        <label class="text-sm font-semibold text-base-content/70">Numéro de facture</label>
+                        <p class="font-mono font-semibold">#{{ invoice.invoice_number }}</p>
+                    </div>
+                    
+                    <div>
+                        <label class="text-sm font-semibold text-base-content/70">Période</label>
+                        <p>{{ invoice.period_start|date:"d/m/Y" }} au {{ invoice.period_end|date:"d/m/Y" }}</p>
+                    </div>
+                    
+                    <div>
+                        <label class="text-sm font-semibold text-base-content/70">Date d'échéance</label>
+                        <p>{{ invoice.due_date|date:"d/m/Y" }}</p>
+                    </div>
+                    
+                    <div>
+                        <label class="text-sm font-semibold text-base-content/70">Date de paiement</label>
+                        <p>{{ invoice.paid_at|date:"d/m/Y"|default:"Non payée" }}</p>
+                    </div>
+                    
+                    <div>
+                        <label class="text-sm font-semibold text-base-content/70">Méthode de paiement</label>
+                        <p>{{ invoice.payment_method|default:"Non spécifiée" }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Détails des ventes -->
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h3 class="card-title mb-4">
+                <i class="fas fa-list"></i>
+                Détails des ventes
+            </h3>
+            
+            {% if invoice.sales %}
+            <div class="overflow-x-auto">
+                <table class="table table-zebra w-full">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Produit</th>
+                            <th>Quantité</th>
+                            <th>Prix unitaire</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for sale in invoice.sales %}
+                        <tr>
+                            <td>{{ sale.created_at|date:"d/m/Y" }}</td>
+                            <td>
+                                <div class="font-semibold">{{ sale.product.name }}</div>
+                            </td>
+                            <td>{{ sale.quantity }}</td>
+                            <td>{{ sale.supplier_price }} GNF</td>
+                            <td class="font-semibold">{{ sale.total_supplier_amount }} GNF</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-8">
+                <i class="fas fa-inbox text-4xl text-base-content/30 mb-4"></i>
+                <h3 class="text-lg font-semibold mb-2">Aucune vente</h3>
+                <p class="text-base-content/70">Aucune vente pour cette période.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Résumé financier -->
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h3 class="card-title mb-4">
+                <i class="fas fa-calculator"></i>
+                Résumé financier
+            </h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="stat bg-base-200 rounded-lg">
+                    <div class="stat-title">Sous-total</div>
+                    <div class="stat-value text-lg">{{ invoice.subtotal }} GNF</div>
+                </div>
+                
+                <div class="stat bg-base-200 rounded-lg">
+                    <div class="stat-title">Taxes</div>
+                    <div class="stat-value text-lg">{{ invoice.tax_amount }} GNF</div>
+                </div>
+                
+                <div class="stat bg-primary text-primary-content rounded-lg">
+                    <div class="stat-title">Total</div>
+                    <div class="stat-value text-lg">{{ invoice.total_amount }} GNF</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Notes -->
+    {% if invoice.notes %}
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h3 class="card-title mb-4">
+                <i class="fas fa-sticky-note"></i>
+                Notes
+            </h3>
+            
+            <div class="bg-base-200 p-4 rounded-lg">
+                <p class="whitespace-pre-line">{{ invoice.notes }}</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Actions -->
+    {% if invoice.status != 'paid' %}
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h3 class="card-title mb-4">
+                <i class="fas fa-cogs"></i>
+                Actions
+            </h3>
+            
+            <div class="flex gap-4">
+                <button class="btn btn-primary" onclick="markAsPaid()">
+                    <i class="fas fa-check mr-2"></i>
+                    Marquer comme payée
+                </button>
+                
+                <button class="btn btn-outline" onclick="sendReminder()">
+                    <i class="fas fa-envelope mr-2"></i>
+                    Envoyer un rappel
+                </button>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+function downloadInvoice() {
+    window.open(`/products/suppliers/invoices/{{ invoice.uid }}/download/`, '_blank');
+}
+
+function markAsPaid() {
+    if (confirm('Êtes-vous sûr de vouloir marquer cette facture comme payée ?')) {
+        // Implémenter la logique de marquage comme payée
+        fetch(`/products/suppliers/invoices/{{ invoice.uid }}/mark-paid/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Erreur lors du marquage de la facture');
+            }
+        });
+    }
+}
+
+function sendReminder() {
+    if (confirm('Envoyer un rappel de paiement au fournisseur ?')) {
+        // Implémenter l'envoi de rappel
+        fetch(`/products/suppliers/invoices/{{ invoice.uid }}/send-reminder/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Rappel envoyé avec succès');
+            } else {
+                alert('Erreur lors de l\'envoi du rappel');
+            }
+        });
+    }
+}
+</script>
+{% endblock %}

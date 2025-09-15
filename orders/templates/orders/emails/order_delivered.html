@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Commande livrée</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        
+        .email-container {
+            background-color: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="0.5" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+        }
+        
+        .header-content {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .company-name {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header-subtitle {
+            font-size: 16px;
+            opacity: 0.9;
+            margin: 0;
+        }
+        
+        .content {
+            padding: 30px 20px;
+        }
+        
+        .delivery-icon {
+            text-align: center;
+            margin: 30px 0;
+        }
+        
+        .delivery-icon div {
+            display: inline-block;
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: white;
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
+            animation: celebration 2s infinite;
+        }
+        
+        @keyframes celebration {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            25% { transform: scale(1.1) rotate(-5deg); }
+            75% { transform: scale(1.1) rotate(5deg); }
+        }
+        
+        .greeting {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #495057;
+        }
+        
+        .delivery-info {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            border: 1px solid #c3e6cb;
+            padding: 25px;
+            border-radius: 10px;
+            margin: 25px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .delivery-info h3 {
+            color: #155724;
+            margin-bottom: 20px;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 12px 0;
+            padding: 10px 0;
+            border-bottom: 1px solid #c3e6cb;
+        }
+        
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        
+        .info-label {
+            font-weight: 600;
+            color: #155724;
+        }
+        
+        .info-value {
+            color: #155724;
+            font-weight: 500;
+        }
+        
+        .address-block {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border-left: 3px solid #28a745;
+        }
+        
+        .order-info {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 25px;
+            border-radius: 10px;
+            margin: 25px 0;
+            border-left: 4px solid #28a745;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .order-info h3 {
+            color: #495057;
+            margin-bottom: 20px;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .items-list {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .item-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #f1f3f4;
+        }
+        
+        .item-row:last-child {
+            border-bottom: none;
+        }
+        
+        .item-name {
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        .item-quantity {
+            background: #28a745;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .total-amount {
+            background: linear-gradient(135deg, #e8f5e8 0%, #d4edda 100%);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 15px 0;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .total-amount .label {
+            color: #155724;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .total-amount .amount {
+            color: #28a745;
+            font-size: 20px;
+            font-weight: bold;
+        }
+        
+        .satisfaction-section {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+            padding: 25px;
+            border-radius: 10px;
+            margin: 25px 0;
+            border: 1px solid #ffeaa7;
+        }
+        
+        .satisfaction-section h3 {
+            color: #856404;
+            margin-bottom: 20px;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .satisfaction-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .satisfaction-list li {
+            display: flex;
+            align-items: center;
+            margin: 12px 0;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .satisfaction-list li::before {
+            content: '⭐';
+            margin-right: 10px;
+            font-size: 16px;
+        }
+        
+        .actions-section {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            padding: 25px;
+            border-radius: 10px;
+            margin: 25px 0;
+            text-align: center;
+            border: 1px solid #bbdefb;
+        }
+        
+        .actions-section h3 {
+            color: #1976d2;
+            margin-bottom: 20px;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .action-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: bold;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        
+        .cta-button.primary {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+        }
+        
+        .cta-button.secondary {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+            color: white;
+        }
+        
+        .cta-button.info {
+            background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+            color: white;
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+        }
+        
+        .footer {
+            background: linear-gradient(135deg, #343a40 0%, #495057 100%);
+            color: white;
+            padding: 25px 20px;
+            text-align: center;
+        }
+        
+        .footer p {
+            margin: 5px 0;
+        }
+        
+        .footer-company {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .footer-contact {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .icon {
+            font-size: 20px;
+            margin-right: 8px;
+        }
+        
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            
+            .content {
+                padding: 20px 15px;
+            }
+            
+            .header {
+                padding: 25px 15px;
+            }
+            
+            .company-name {
+                font-size: 24px;
+            }
+            
+            .delivery-icon div {
+                width: 60px;
+                height: 60px;
+                font-size: 30px;
+            }
+            
+            .info-row {
+                flex-direction: column;
+                gap: 5px;
+            }
+            
+            .item-row {
+                flex-direction: column;
+                gap: 5px;
+                text-align: center;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .cta-button {
+                width: 100%;
+                max-width: 250px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <div class="header-content">
+                <div class="company-name">{{ company_name }}</div>
+                <p class="header-subtitle">Commande livrée</p>
+            </div>
+        </div>
+        
+        <div class="content">
+            <div class="delivery-icon">
+                <div>📦✓</div>
+            </div>
+            
+            <div class="greeting">
+                Bonjour <strong>{{ order.customer.first_name }} {{ order.customer.last_name }}</strong>,
+            </div>
+            
+            <p style="font-size: 18px; color: #495057; margin-bottom: 25px;">
+                <strong>Parfait !</strong> Votre commande <strong>#{{ order.uid }}</strong> a été livrée avec succès. 🎉
+            </p>
+            
+            <div class="delivery-info">
+                <h3>
+                    <span class="icon">📦</span>
+                    Détails de la livraison
+                </h3>
+                <div class="info-row">
+                    <span class="info-label">Date de livraison :</span>
+                    <span class="info-value">{{ order.delivered_at|date:"d/m/Y H:i" }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Statut :</span>
+                    <span class="info-value" style="color: #28a745; font-weight: bold;">✅ Livré</span>
+                </div>
+                <div style="margin-top: 15px;">
+                    <span class="info-label">Adresse de livraison :</span>
+                    <div class="address-block">
+                        {{ order.delivery_address }}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="order-info">
+                <h3>
+                    <span class="icon">🛍️</span>
+                    Articles livrés
+                </h3>
+                <div class="items-list">
+                    {% for item in order.items.all %}
+                    <div class="item-row">
+                        <span class="item-name">{{ item.product.name }}</span>
+                        <span class="item-quantity">x{{ item.quantity }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="total-amount">
+                    <div class="label">Montant total :</div>
+                    <div class="amount">{{ order.total_amount|floatformat:0 }} FCFA</div>
+                </div>
+            </div>
+            
+            <div class="satisfaction-section">
+                <h3>
+                    <span class="icon">😊</span>
+                    Nous espérons que vous êtes satisfait !
+                </h3>
+                <p style="margin-bottom: 20px; color: #856404;">
+                    Nous espérons que vous êtes satisfait de votre achat. N'hésitez pas à :
+                </p>
+                <ul class="satisfaction-list">
+                    <li>Nous laisser un avis sur nos produits</li>
+                    <li>Partager votre expérience avec vos amis</li>
+                    <li>Nous contacter si vous avez des questions</li>
+                </ul>
+            </div>
+            
+            <div class="actions-section">
+                <h3>
+                    <span class="icon">⚡</span>
+                    Actions disponibles
+                </h3>
+                <div class="action-buttons">
+                    <a href="{{ request.scheme }}://{{ request.get_host }}{% url 'orders:order_detail' order.uid %}" class="cta-button primary">
+                        👀 Voir les détails
+                    </a>
+                    <a href="{{ request.scheme }}://{{ request.get_host }}{% url 'orders:order_receipt_pdf' order.uid %}" class="cta-button secondary">
+                        📄 Télécharger le reçu
+                    </a>
+                    <a href="{{ request.scheme }}://{{ request.get_host }}{% url 'products:home' %}" class="cta-button info">
+                        🛒 Continuer mes achats
+                    </a>
+                </div>
+            </div>
+            
+            <p style="font-size: 16px; color: #495057; margin: 25px 0; text-align: center;">
+                Merci d'avoir choisi <strong>{{ company_name }}</strong> ! 🙏
+            </p>
+            
+            <p style="font-size: 16px; color: #495057; font-weight: 500; text-align: center;">
+                Nous espérons vous revoir bientôt pour de nouveaux achats. 🛍️
+            </p>
+        </div>
+        
+        <div class="footer">
+            <p class="footer-company">{{ company_name }}</p>
+            <p class="footer-contact">Tél : {{ company_phone }} | Email : {{ company_email }}</p>
+            <p class="footer-contact">Conakry, Guinée</p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,299 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ review.title }} - Avis sur {{ review.product.name }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Breadcrumb -->
+    <div class="breadcrumbs text-sm mb-6">
+        <ul>
+            <li><a href="{% url 'products:home' %}" class="link link-hover">Accueil</a></li>
+            <li><a href="{% url 'products:product_detail' review.product.uid %}" class="link link-hover">{{ review.product.name }}</a></li>
+            <li><a href="/products/reviews/product/{{ review.product.uid }}/" class="link link-hover">Avis</a></li>
+            <li>{{ review.title }}</li>
+        </ul>
+    </div>
+
+    <div class="max-w-4xl mx-auto">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Review Content -->
+            <div class="lg:col-span-2">
+                <div class="card bg-base-100 shadow-xl">
+                    <div class="card-body">
+                        <!-- Review Header -->
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                            <div class="flex items-center gap-4">
+                                <div class="avatar placeholder">
+                                    <div class="bg-neutral text-neutral-content rounded-full w-12">
+                                        <span class="text-lg">{{ review.user.username|first|upper }}</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h1 class="text-2xl font-bold">{{ review.title }}</h1>
+                                    <div class="flex items-center gap-3 mt-1">
+                                        <div class="rating rating-md">
+                                            {% for i in "12345" %}
+                                                {% if forloop.counter <= review.rating %}
+                                                    <input type="radio" class="mask mask-star-2 bg-orange-400" checked disabled>
+                                                {% else %}
+                                                    <input type="radio" class="mask mask-star-2 bg-gray-300" disabled>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                        <span class="text-base-content/70">par {{ review.user.username }}</span>
+                                        {% if review.is_verified_purchase %}
+                                            <span class="badge badge-success badge-sm">
+                                                <i class="fas fa-check mr-1"></i>
+                                                Achat vérifié
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="text-sm text-base-content/70">
+                                <div>{{ review.created_at|date:"d/m/Y à H:i" }}</div>
+                                {% if review.updated_at != review.created_at %}
+                                    <div class="text-xs">Modifié le {{ review.updated_at|date:"d/m/Y" }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Review Content -->
+                        <div class="prose max-w-none mb-6">
+                            <p class="text-base-content/80 leading-relaxed whitespace-pre-wrap">{{ review.content }}</p>
+                        </div>
+
+                        <!-- Review Images -->
+                        {% if review.images.exists %}
+                            <div class="mb-6">
+                                <h3 class="text-lg font-semibold mb-3">Photos de l'avis</h3>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    {% for image in review.images.all %}
+                                        <div class="relative group">
+                                            <img src="{{ image.image.url }}" alt="{{ image.caption|default:review.title }}" 
+                                                 class="w-full h-48 object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                                                 onclick="openImageModal('{{ image.image.url }}', '{{ image.caption|default:review.title }}')">
+                                            {% if image.caption %}
+                                                <div class="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white p-2 rounded-b-lg">
+                                                    <p class="text-sm">{{ image.caption }}</p>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endif %}
+
+                        <!-- Helpfulness Section -->
+                        <div class="border-t border-base-300 pt-6">
+                            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                                <div>
+                                    <h3 class="font-semibold mb-2">Cet avis vous a-t-il aidé ?</h3>
+                                    <div class="flex items-center gap-4">
+                                        <button class="btn btn-ghost btn-sm" onclick="voteHelpfulness('{{ review.uid }}', true)">
+                                            <i class="fas fa-thumbs-up mr-2"></i>
+                                            Oui (<span id="helpful-{{ review.uid }}">{{ review.is_helpful }}</span>)
+                                        </button>
+                                        <button class="btn btn-ghost btn-sm" onclick="voteHelpfulness('{{ review.uid }}', false)">
+                                            <i class="fas fa-thumbs-down mr-2"></i>
+                                            Non (<span id="not-helpful-{{ review.uid }}">{{ review.is_not_helpful }}</span>)
+                                        </button>
+                                    </div>
+                                    {% if total_votes > 0 %}
+                                        <div class="text-sm text-base-content/70 mt-2">
+                                            {{ helpful_score|floatformat:0 }}% des personnes ont trouvé cet avis utile
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                {% if user.is_authenticated %}
+                                    <button class="btn btn-outline btn-sm text-error" onclick="reportReview('{{ review.uid }}')">
+                                        <i class="fas fa-flag mr-2"></i>
+                                        Signaler
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="lg:col-span-1">
+                <!-- Product Info -->
+                <div class="card bg-base-100 shadow-xl mb-6">
+                    <div class="card-body">
+                        <h3 class="card-title mb-4">Produit concerné</h3>
+                        
+                        <div class="flex items-center gap-3 mb-4">
+                            {% if review.product.image %}
+                                <img src="{{ review.product.image.url }}" alt="{{ review.product.name }}" class="w-16 h-16 object-cover rounded-lg">
+                            {% endif %}
+                            <div>
+                                <h4 class="font-semibold">{{ review.product.name }}</h4>
+                                <p class="text-sm text-base-content/70">{{ review.product.category.name }}</p>
+                                <p class="text-primary font-bold">{{ review.product.price }} GNF</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex gap-2">
+                            <a href="{% url 'products:product_detail' review.product.uid %}" class="btn btn-primary btn-sm flex-1">
+                                <i class="fas fa-eye mr-2"></i>
+                                Voir le produit
+                            </a>
+                            <a href="/products/reviews/product/{{ review.product.uid }}/" class="btn btn-outline btn-sm flex-1">
+                                <i class="fas fa-comments mr-2"></i>
+                                Tous les avis
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- User Info -->
+                <div class="card bg-base-100 shadow-xl mb-6">
+                    <div class="card-body">
+                        <h3 class="card-title mb-4">À propos de l'auteur</h3>
+                        
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="avatar placeholder">
+                                <div class="bg-neutral text-neutral-content rounded-full w-12">
+                                    <span class="text-lg">{{ review.user.username|first|upper }}</span>
+                                </div>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold">{{ review.user.username }}</h4>
+                                <p class="text-sm text-base-content/70">Membre depuis {{ review.user.date_joined|date:"Y" }}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="stats stats-vertical shadow">
+                            <div class="stat">
+                                <div class="stat-title">Avis publiés</div>
+                                <div class="stat-value text-primary">{{ review.user.reviews.filter.status='approved'|length }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                {% if user == review.user %}
+                    <div class="card bg-base-100 shadow-xl">
+                        <div class="card-body">
+                            <h3 class="card-title mb-4">Mes actions</h3>
+                            
+                            <div class="space-y-2">
+                                {% if review.status != 'approved' %}
+                                    <a href="/products/reviews/update/{{ review.uid }}/" class="btn btn-outline btn-sm w-full">
+                                        <i class="fas fa-edit mr-2"></i>
+                                        Modifier l'avis
+                                    </a>
+                                {% endif %}
+                                
+                                <button class="btn btn-error btn-sm w-full" onclick="deleteReview('{{ review.uid }}')">
+                                    <i class="fas fa-trash mr-2"></i>
+                                    Supprimer l'avis
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Image Modal -->
+<div id="imageModal" class="modal">
+    <div class="modal-box max-w-4xl">
+        <div class="flex justify-between items-center mb-4">
+            <h3 id="imageModalTitle" class="text-lg font-semibold"></h3>
+            <button class="btn btn-sm btn-circle btn-ghost" onclick="closeImageModal()">✕</button>
+        </div>
+        <img id="imageModalImg" src="" alt="" class="w-full h-auto rounded-lg">
+    </div>
+    <div class="modal-backdrop" onclick="closeImageModal()"></div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" class="modal">
+    <div class="modal-box">
+        <h3 class="font-bold text-lg">Confirmer la suppression</h3>
+        <p class="py-4">Êtes-vous sûr de vouloir supprimer cet avis ? Cette action est irréversible.</p>
+        <div class="modal-action">
+            <button class="btn btn-error" onclick="confirmDelete()">Supprimer</button>
+            <button class="btn btn-ghost" onclick="closeDeleteModal()">Annuler</button>
+        </div>
+    </div>
+    <div class="modal-backdrop" onclick="closeDeleteModal()"></div>
+</div>
+
+<script>
+let reviewToDelete = null;
+
+function openImageModal(src, title) {
+    document.getElementById('imageModalImg').src = src;
+    document.getElementById('imageModalTitle').textContent = title;
+    document.getElementById('imageModal').classList.add('modal-open');
+}
+
+function closeImageModal() {
+    document.getElementById('imageModal').classList.remove('modal-open');
+}
+
+function voteHelpfulness(reviewUid, isHelpful) {
+    if (!{% if user.is_authenticated %}true{% else %}false{% endif %}) {
+        alert('Vous devez être connecté pour voter.');
+        return;
+    }
+    
+    fetch(`/products/reviews/vote/${reviewUid}/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: `is_helpful=${isHelpful}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById(`helpful-${reviewUid}`).textContent = data.helpful_count;
+            document.getElementById(`not-helpful-${reviewUid}`).textContent = data.not_helpful_count;
+            
+            // Show feedback
+            if (data.action === 'voted') {
+                const message = isHelpful ? 'Merci ! Votre vote a été enregistré.' : 'Votre vote a été enregistré.';
+                // You could show a toast notification here
+            } else if (data.action === 'removed') {
+                // You could show a toast notification here
+            }
+        }
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+function reportReview(reviewUid) {
+    if (confirm('Voulez-vous signaler cet avis ?')) {
+        window.location.href = `/products/reviews/report/${reviewUid}/`;
+    }
+}
+
+function deleteReview(reviewUid) {
+    reviewToDelete = reviewUid;
+    document.getElementById('deleteModal').classList.add('modal-open');
+}
+
+function confirmDelete() {
+    if (reviewToDelete) {
+        window.location.href = `/products/reviews/delete/${reviewToDelete}/`;
+    }
+}
+
+function closeDeleteModal() {
+    document.getElementById('deleteModal').classList.remove('modal-open');
+    reviewToDelete = null;
+}
+</script>
+{% endblock %}

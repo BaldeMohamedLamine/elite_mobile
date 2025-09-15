@@ -1,0 +1,184 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load product_filters %}
+
+{% block title %}Mes remboursements{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 py-12">
+    <div class="container mx-auto px-4">
+        <div class="max-w-6xl mx-auto">
+            <!-- Header -->
+            <div class="text-center mb-8 animate-fade-in">
+                <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full mb-4">
+                    <i class="fas fa-undo text-3xl text-white"></i>
+                </div>
+                <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2">Mes remboursements</h1>
+                <p class="text-gray-600 dark:text-gray-300">Suivez l'état de vos demandes de remboursement</p>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex justify-between items-center mb-8 animate-slide-in">
+                <div class="flex gap-4">
+                    <a href="{% url 'orders:order_list' %}" class="btn btn-outline btn-primary hover-scale transition-all">
+                        <i class="fas fa-list mr-2"></i>
+                        Mes commandes
+                    </a>
+                </div>
+            </div>
+
+            {% if refunds %}
+            <!-- Refunds Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                {% for refund in refunds %}
+                <div class="card bg-white dark:bg-gray-800 shadow-xl hover-lift transition-all animate-slide-in" style="animation-delay: {{ forloop.counter0|mul:0.1 }}s">
+                    <div class="card-body">
+                        <!-- Header -->
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="flex items-center gap-3">
+                                <div class="avatar placeholder">
+                                    <div class="bg-primary text-primary-content rounded-full w-12">
+                                        <i class="fas fa-receipt"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-lg">{{ refund.uid|truncatechars:8 }}</h3>
+                                    <p class="text-sm text-base-content/70">Remboursement</p>
+                                </div>
+                            </div>
+                            <span class="badge badge-{% if refund.status == 'completed' %}success{% elif refund.status == 'pending' %}warning{% elif refund.status == 'processing' %}info{% elif refund.status == 'failed' %}error{% else %}neutral{% endif %} badge-lg">
+                                {{ refund.get_status_display }}
+                            </span>
+                        </div>
+
+                        <!-- Details -->
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-base-content/70">Commande:</span>
+                                <a href="{% url 'orders:order_detail' refund.order.uid %}" class="link link-primary text-sm font-mono">
+                                    {{ refund.order.uid|truncatechars:12 }}
+                                </a>
+                            </div>
+                            
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-base-content/70">Montant:</span>
+                                <span class="font-bold text-success text-lg">{{ refund.amount|floatformat:0 }} FCFA</span>
+                            </div>
+                            
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-base-content/70">Raison:</span>
+                                <span class="text-sm font-medium">{{ refund.get_reason_display }}</span>
+                            </div>
+                            
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-base-content/70">Date de demande:</span>
+                                <span class="text-sm">{{ refund.created_at|date:"d/m/Y H:i" }}</span>
+                            </div>
+                            
+                            {% if refund.processed_at %}
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-base-content/70">Traité le:</span>
+                                <span class="text-sm">{{ refund.processed_at|date:"d/m/Y H:i" }}</span>
+                            </div>
+                            {% endif %}
+                            
+                            {% if refund.completed_at %}
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-base-content/70">Terminé le:</span>
+                                <span class="text-sm">{{ refund.completed_at|date:"d/m/Y H:i" }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="card-actions justify-end mt-6">
+                            <a href="{% url 'orders:refund_detail' refund.uid %}" class="btn btn-primary btn-sm hover-glow transition-all">
+                                <i class="fas fa-eye mr-2"></i>
+                                Voir les détails
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Pagination -->
+            {% if is_paginated %}
+            <div class="flex justify-center animate-fade-in">
+                <div class="join">
+                    {% if page_obj.has_previous %}
+                    <a class="join-item btn btn-outline" href="?page=1">
+                        <i class="fas fa-angle-double-left"></i>
+                    </a>
+                    <a class="join-item btn btn-outline" href="?page={{ page_obj.previous_page_number }}">
+                        <i class="fas fa-angle-left"></i>
+                    </a>
+                    {% endif %}
+                    
+                    <button class="join-item btn btn-active">
+                        Page {{ page_obj.number }} sur {{ page_obj.paginator.num_pages }}
+                    </button>
+                    
+                    {% if page_obj.has_next %}
+                    <a class="join-item btn btn-outline" href="?page={{ page_obj.next_page_number }}">
+                        <i class="fas fa-angle-right"></i>
+                    </a>
+                    <a class="join-item btn btn-outline" href="?page={{ page_obj.paginator.num_pages }}">
+                        <i class="fas fa-angle-double-right"></i>
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+            
+            {% else %}
+            <!-- Empty State -->
+            <div class="text-center py-16 animate-fade-in">
+                <div class="avatar placeholder mb-6">
+                    <div class="bg-base-300 text-base-content rounded-full w-24">
+                        <i class="fas fa-undo text-4xl"></i>
+                    </div>
+                </div>
+                <h3 class="text-2xl font-bold text-base-content/70 mb-4">Aucun remboursement</h3>
+                <p class="text-base-content/70 mb-6">Vous n'avez pas encore demandé de remboursement.</p>
+                <a href="{% url 'orders:order_list' %}" class="btn btn-primary hover-glow transition-all">
+                    <i class="fas fa-list mr-2"></i>
+                    Voir mes commandes
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add ripple effect to buttons
+    document.querySelectorAll('.btn').forEach(button => {
+        button.addEventListener('click', function(e) {
+            createRipple(e, this);
+        });
+    });
+
+    // Animate cards on scroll
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('animate-slide-in');
+            }
+        });
+    }, observerOptions);
+
+    document.querySelectorAll('.card').forEach(card => {
+        observer.observe(card);
+    });
+});
+</script>
+{% endblock %}

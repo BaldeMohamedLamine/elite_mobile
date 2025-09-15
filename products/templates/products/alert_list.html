@@ -1,0 +1,282 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Gestion des Alertes{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+        <div>
+            <h1 class="text-3xl font-bold mb-2">Gestion des Alertes</h1>
+            <p class="text-base-content/70">
+                {% if active_alerts > 0 %}
+                    {{ active_alerts }} alerte{{ active_alerts|pluralize }} active{{ active_alerts|pluralize }}
+                {% else %}
+                    Aucune alerte active
+                {% endif %}
+            </p>
+        </div>
+        
+        <div class="flex gap-2">
+            <a href="{% url 'notifications:alert_rule_list' %}" class="btn btn-outline btn-sm">
+                <i class="fas fa-cog mr-2"></i>
+                Règles d'alerte
+            </a>
+            <a href="{% url 'notifications:analytics' %}" class="btn btn-primary btn-sm">
+                <i class="fas fa-chart-bar mr-2"></i>
+                Analytics
+            </a>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div class="stat bg-base-100 shadow rounded-lg">
+            <div class="stat-figure text-primary">
+                <i class="fas fa-exclamation-triangle text-2xl"></i>
+            </div>
+            <div class="stat-title">Total Alertes</div>
+            <div class="stat-value text-primary">{{ total_alerts }}</div>
+        </div>
+        
+        <div class="stat bg-base-100 shadow rounded-lg">
+            <div class="stat-figure text-warning">
+                <i class="fas fa-clock text-2xl"></i>
+            </div>
+            <div class="stat-title">Alertes Actives</div>
+            <div class="stat-value text-warning">{{ active_alerts }}</div>
+        </div>
+        
+        <div class="stat bg-base-100 shadow rounded-lg">
+            <div class="stat-figure text-success">
+                <i class="fas fa-check-circle text-2xl"></i>
+            </div>
+            <div class="stat-title">Résolues</div>
+            <div class="stat-value text-success">
+                {% for status in alerts %}
+                    {% if status.status == 'resolved' %}{{ forloop.counter }}{% endif %}
+                {% endfor %}
+            </div>
+        </div>
+        
+        <div class="stat bg-base-100 shadow rounded-lg">
+            <div class="stat-figure text-info">
+                <i class="fas fa-eye text-2xl"></i>
+            </div>
+            <div class="stat-title">Reconnues</div>
+            <div class="stat-value text-info">
+                {% for status in alerts %}
+                    {% if status.status == 'acknowledged' %}{{ forloop.counter }}{% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card bg-base-100 shadow-sm mb-6">
+        <div class="card-body p-4">
+            <form method="get" class="flex flex-wrap gap-4 items-end">
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Statut</span>
+                    </label>
+                    <select name="status" class="select select-bordered w-full">
+                        <option value="">Tous les statuts</option>
+                        {% for status_code, status_name in status_choices %}
+                            <option value="{{ status_code }}" {% if request.GET.status == status_code %}selected{% endif %}>
+                                {{ status_name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Sévérité</span>
+                    </label>
+                    <select name="severity" class="select select-bordered w-full">
+                        <option value="">Toutes les sévérités</option>
+                        {% for severity_code, severity_name in severity_choices %}
+                            <option value="{{ severity_code }}" {% if request.GET.severity == severity_code %}selected{% endif %}>
+                                {{ severity_name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <button type="submit" class="btn btn-outline btn-sm">Filtrer</button>
+                <a href="{% url 'notifications:alert_list' %}" class="btn btn-ghost btn-sm">Réinitialiser</a>
+            </form>
+        </div>
+    </div>
+
+    <!-- Alerts List -->
+    {% if alerts %}
+        <div class="space-y-4">
+            {% for alert in alerts %}
+                <div class="card bg-base-100 shadow-sm {% if alert.severity == 'critical' %}border-l-4 border-l-error{% elif alert.severity == 'error' %}border-l-4 border-l-error{% elif alert.severity == 'warning' %}border-l-4 border-l-warning{% endif %}">
+                    <div class="card-body">
+                        <div class="flex flex-col lg:flex-row gap-4">
+                            <!-- Alert Icon -->
+                            <div class="flex-shrink-0">
+                                <div class="avatar placeholder">
+                                    <div class="bg-{% if alert.severity == 'critical' %}error{% elif alert.severity == 'error' %}error{% elif alert.severity == 'warning' %}warning{% else %}info{% endif %} text-white rounded-full w-12">
+                                        <i class="fas fa-{% if alert.severity == 'critical' %}exclamation-triangle{% elif alert.severity == 'error' %}times{% elif alert.severity == 'warning' %}exclamation{% else %}info{% endif %}"></i>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Alert Content -->
+                            <div class="flex-1">
+                                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-2">
+                                    <h3 class="font-semibold text-lg">
+                                        {{ alert.title }}
+                                    </h3>
+                                    
+                                    <div class="flex items-center gap-2">
+                                        <span class="badge badge-sm {% if alert.severity == 'critical' %}badge-error{% elif alert.severity == 'error' %}badge-error{% elif alert.severity == 'warning' %}badge-warning{% else %}badge-info{% endif %}">
+                                            {{ alert.get_severity_display }}
+                                        </span>
+                                        
+                                        <span class="badge badge-sm {% if alert.status == 'active' %}badge-warning{% elif alert.status == 'acknowledged' %}badge-info{% elif alert.status == 'resolved' %}badge-success{% else %}badge-neutral{% endif %}">
+                                            {{ alert.get_status_display }}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <p class="text-base-content/80 mb-3">{{ alert.message }}</p>
+
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-4 text-sm text-base-content/70">
+                                        <span>
+                                            <i class="fas fa-clock mr-1"></i>
+                                            {{ alert.triggered_at|date:"d/m/Y H:i" }}
+                                        </span>
+                                        {% if alert.acknowledged_at %}
+                                            <span>
+                                                <i class="fas fa-check mr-1"></i>
+                                                Reconnue le {{ alert.acknowledged_at|date:"d/m/Y H:i" }}
+                                            </span>
+                                        {% endif %}
+                                        {% if alert.resolved_at %}
+                                            <span>
+                                                <i class="fas fa-check-circle mr-1"></i>
+                                                Résolue le {{ alert.resolved_at|date:"d/m/Y H:i" }}
+                                            </span>
+                                        {% endif %}
+                                        {% if alert.acknowledged_by %}
+                                            <span>
+                                                <i class="fas fa-user mr-1"></i>
+                                                Par {{ alert.acknowledged_by.username }}
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <div class="flex items-center gap-2">
+                                        <a href="{% url 'notifications:alert_detail' alert.uid %}" class="btn btn-ghost btn-xs">
+                                            <i class="fas fa-eye mr-1"></i>
+                                            Voir détails
+                                        </a>
+                                        
+                                        {% if alert.status == 'active' %}
+                                            <button class="btn btn-info btn-xs" onclick="acknowledgeAlert('{{ alert.uid }}')">
+                                                <i class="fas fa-check mr-1"></i>
+                                                Reconnaître
+                                            </button>
+                                            <button class="btn btn-success btn-xs" onclick="resolveAlert('{{ alert.uid }}')">
+                                                <i class="fas fa-check-circle mr-1"></i>
+                                                Résoudre
+                                            </button>
+                                        {% elif alert.status == 'acknowledged' %}
+                                            <button class="btn btn-success btn-xs" onclick="resolveAlert('{{ alert.uid }}')">
+                                                <i class="fas fa-check-circle mr-1"></i>
+                                                Résoudre
+                                            </button>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if is_paginated %}
+            <div class="flex justify-center mt-8">
+                <div class="join">
+                    {% if page_obj.has_previous %}
+                        <a href="?page=1{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.severity %}&severity={{ request.GET.severity }}{% endif %}" class="join-item btn btn-sm">«</a>
+                        <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.severity %}&severity={{ request.GET.severity }}{% endif %}" class="join-item btn btn-sm">‹</a>
+                    {% endif %}
+                    
+                    <span class="join-item btn btn-sm btn-active">{{ page_obj.number }}</span>
+                    
+                    {% if page_obj.has_next %}
+                        <a href="?page={{ page_obj.next_page_number }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.severity %}&severity={{ request.GET.severity }}{% endif %}" class="join-item btn btn-sm">›</a>
+                        <a href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.severity %}&severity={{ request.GET.severity }}{% endif %}" class="join-item btn btn-sm">»</a>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+    {% else %}
+        <div class="text-center py-12">
+            <i class="fas fa-shield-alt text-6xl text-base-content/30 mb-4"></i>
+            <h3 class="text-xl font-semibold mb-2">Aucune alerte</h3>
+            <p class="text-base-content/70">Aucune alerte ne correspond à vos critères de filtrage.</p>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+function acknowledgeAlert(alertUid) {
+    if (confirm('Reconnaître cette alerte ?')) {
+        fetch(`{% url 'notifications:acknowledge_alert' 'PLACEHOLDER' %}`.replace('PLACEHOLDER', alertUid), {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.location.reload();
+            } else {
+                alert('Erreur lors de la reconnaissance de l\'alerte');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Erreur lors de la reconnaissance de l\'alerte');
+        });
+    }
+}
+
+function resolveAlert(alertUid) {
+    if (confirm('Résoudre cette alerte ?')) {
+        fetch(`{% url 'notifications:resolve_alert' 'PLACEHOLDER' %}`.replace('PLACEHOLDER', alertUid), {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.location.reload();
+            } else {
+                alert('Erreur lors de la résolution de l\'alerte');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Erreur lors de la résolution de l\'alerte');
+        });
+    }
+}
+</script>
+{% endblock %}

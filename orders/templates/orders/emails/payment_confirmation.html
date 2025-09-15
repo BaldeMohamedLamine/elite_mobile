@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paiement confirmé</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        
+        .email-container {
+            background-color: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="0.5" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+        }
+        
+        .header-content {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .company-name {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header-subtitle {
+            font-size: 16px;
+            opacity: 0.9;
+            margin: 0;
+        }
+        
+        .content {
+            padding: 30px 20px;
+        }
+        
+        .success-icon {
+            text-align: center;
+            margin: 30px 0;
+        }
+        
+        .success-icon div {
+            display: inline-block;
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: white;
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .greeting {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #495057;
+        }
+        
+        .payment-info {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            border: 1px solid #c3e6cb;
+            padding: 25px;
+            border-radius: 10px;
+            margin: 25px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .payment-info h3 {
+            color: #155724;
+            margin-bottom: 20px;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 12px 0;
+            padding: 10px 0;
+            border-bottom: 1px solid #c3e6cb;
+        }
+        
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        
+        .info-label {
+            font-weight: 600;
+            color: #155724;
+        }
+        
+        .info-value {
+            color: #155724;
+            font-weight: 500;
+        }
+        
+        .amount-highlight {
+            font-size: 24px;
+            font-weight: bold;
+            color: #28a745;
+        }
+        
+        .order-info {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 25px;
+            border-radius: 10px;
+            margin: 25px 0;
+            border-left: 4px solid #28a745;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .order-info h3 {
+            color: #495057;
+            margin-bottom: 20px;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .steps-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .steps-list li {
+            display: flex;
+            align-items: center;
+            margin: 15px 0;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .step-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+        
+        .step-content {
+            flex: 1;
+        }
+        
+        .step-title {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 5px;
+        }
+        
+        .step-description {
+            color: #6c757d;
+            font-size: 14px;
+        }
+        
+        .cta-section {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            padding: 25px;
+            border-radius: 10px;
+            margin: 25px 0;
+            text-align: center;
+            border: 1px solid #bbdefb;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: bold;
+            font-size: 16px;
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
+            transition: all 0.3s ease;
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(40, 167, 69, 0.6);
+        }
+        
+        .footer {
+            background: linear-gradient(135deg, #343a40 0%, #495057 100%);
+            color: white;
+            padding: 25px 20px;
+            text-align: center;
+        }
+        
+        .footer p {
+            margin: 5px 0;
+        }
+        
+        .footer-company {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .footer-contact {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .icon {
+            font-size: 20px;
+            margin-right: 8px;
+        }
+        
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            
+            .content {
+                padding: 20px 15px;
+            }
+            
+            .header {
+                padding: 25px 15px;
+            }
+            
+            .company-name {
+                font-size: 24px;
+            }
+            
+            .success-icon div {
+                width: 60px;
+                height: 60px;
+                font-size: 30px;
+            }
+            
+            .amount-highlight {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <div class="header-content">
+                <div class="company-name">{{ company_name }}</div>
+                <p class="header-subtitle">Paiement confirmé</p>
+            </div>
+        </div>
+        
+        <div class="content">
+            <div class="success-icon">
+                <div>✓</div>
+            </div>
+            
+            <div class="greeting">
+                Bonjour <strong>{{ order.customer.first_name }} {{ order.customer.last_name }}</strong>,
+            </div>
+            
+            <p style="font-size: 18px; color: #495057; margin-bottom: 25px;">
+                <strong>Excellente nouvelle !</strong> Votre paiement pour la commande <strong>#{{ order.uid }}</strong> a été confirmé avec succès. 🎉
+            </p>
+            
+            <div class="payment-info">
+                <h3>
+                    <span class="icon">💳</span>
+                    Détails du paiement
+                </h3>
+                <div class="info-row">
+                    <span class="info-label">Montant payé :</span>
+                    <span class="info-value amount-highlight">{{ order.total_amount|floatformat:0 }} FCFA</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Méthode de paiement :</span>
+                    <span class="info-value">{{ order.get_payment_method_display }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Date de paiement :</span>
+                    <span class="info-value">{{ order.paid_at|date:"d/m/Y H:i" }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Statut :</span>
+                    <span class="info-value" style="color: #28a745; font-weight: bold;">✅ Payé</span>
+                </div>
+            </div>
+            
+            <div class="order-info">
+                <h3>
+                    <span class="icon">📋</span>
+                    Prochaines étapes
+                </h3>
+                <p style="margin-bottom: 20px; color: #495057;">
+                    Votre commande est maintenant en cours de traitement. Voici ce qui va se passer :
+                </p>
+                <ul class="steps-list">
+                    <li>
+                        <div class="step-icon">1</div>
+                        <div class="step-content">
+                            <div class="step-title">Préparation</div>
+                            <div class="step-description">Nous préparons votre commande avec soin</div>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="step-icon">2</div>
+                        <div class="step-content">
+                            <div class="step-title">Expédition</div>
+                            <div class="step-description">Vous recevrez un email dès que votre commande sera expédiée</div>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="step-icon">3</div>
+                        <div class="step-content">
+                            <div class="step-title">Livraison</div>
+                            <div class="step-description">Votre commande sera livrée à l'adresse indiquée</div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="cta-section">
+                <h3 style="color: #1976d2; margin-bottom: 15px;">
+                    <span class="icon">👀</span>
+                    Suivi de votre commande
+                </h3>
+                <p style="margin-bottom: 20px; color: #1976d2;">
+                    Vous pouvez suivre l'avancement de votre commande en cliquant sur le bouton ci-dessous :
+                </p>
+                <a href="{{ request.scheme }}://{{ request.get_host }}{% url 'orders:order_detail' order.uid %}" class="cta-button">
+                    📦 Suivre ma commande
+                </a>
+            </div>
+            
+            <p style="font-size: 16px; color: #495057; margin: 25px 0;">
+                Nous vous tiendrons informé de chaque étape par email. 📧
+            </p>
+            
+            <p style="font-size: 16px; color: #495057; font-weight: 500;">
+                Merci pour votre confiance et votre achat ! 🙏
+            </p>
+        </div>
+        
+        <div class="footer">
+            <p class="footer-company">{{ company_name }}</p>
+            <p class="footer-contact">Tél : {{ company_phone }} | Email : {{ company_email }}</p>
+            <p class="footer-contact">Conakry, Guinée</p>
+        </div>
+    </div>
+</body>
+</html>

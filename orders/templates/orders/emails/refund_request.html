@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demande de remboursement reçue</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        
+        .email-container {
+            background-color: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #ffc107 0%, #ff8f00 100%);
+            color: #212529;
+            padding: 30px 20px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="0.5" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+        }
+        
+        .header-content {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .company-name {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .header-subtitle {
+            font-size: 16px;
+            opacity: 0.8;
+            margin: 0;
+        }
+        
+        .content {
+            padding: 30px 20px;
+        }
+        
+        .refund-icon {
+            text-align: center;
+            margin: 30px 0;
+        }
+        
+        .refund-icon div {
+            display: inline-block;
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #ffc107 0%, #ff8f00 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: #212529;
+            box-shadow: 0 4px 15px rgba(255, 193, 7, 0.4);
+            animation: rotate 3s linear infinite;
+        }
+        
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .greeting {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #495057;
+        }
+        
+        .refund-info {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+            border: 1px solid #ffeaa7;
+            padding: 25px;
+            border-radius: 10px;
+            margin: 25px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .refund-info h3 {
+            color: #856404;
+            margin-bottom: 20px;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 12px 0;
+            padding: 10px 0;
+            border-bottom: 1px solid #ffeaa7;
+        }
+        
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        
+        .info-label {
+            font-weight: 600;
+            color: #856404;
+        }
+        
+        .info-value {
+            color: #856404;
+            font-weight: 500;
+        }
+        
+        .amount-highlight {
+            font-size: 20px;
+            font-weight: bold;
+            color: #ff8f00;
+        }
+        
+        .order-info {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 25px;
+            border-radius: 10px;
+            margin: 25px 0;
+            border-left: 4px solid #ffc107;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .order-info h3 {
+            color: #495057;
+            margin-bottom: 20px;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .steps-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .steps-list li {
+            display: flex;
+            align-items: center;
+            margin: 15px 0;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .step-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #ffc107 0%, #ff8f00 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #212529;
+            font-weight: bold;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+        
+        .step-content {
+            flex: 1;
+        }
+        
+        .step-title {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 5px;
+        }
+        
+        .step-description {
+            color: #6c757d;
+            font-size: 14px;
+        }
+        
+        .description-section {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border: 1px solid #bbdefb;
+        }
+        
+        .description-section h4 {
+            color: #1976d2;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        
+        .description-section p {
+            color: #1976d2;
+            margin: 0;
+            line-height: 1.6;
+        }
+        
+        .cta-section {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+            padding: 25px;
+            border-radius: 10px;
+            margin: 25px 0;
+            text-align: center;
+            border: 1px solid #ffeaa7;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #ffc107 0%, #ff8f00 100%);
+            color: #212529;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: bold;
+            font-size: 16px;
+            box-shadow: 0 4px 15px rgba(255, 193, 7, 0.4);
+            transition: all 0.3s ease;
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 193, 7, 0.6);
+        }
+        
+        .footer {
+            background: linear-gradient(135deg, #343a40 0%, #495057 100%);
+            color: white;
+            padding: 25px 20px;
+            text-align: center;
+        }
+        
+        .footer p {
+            margin: 5px 0;
+        }
+        
+        .footer-company {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .footer-contact {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .icon {
+            font-size: 20px;
+            margin-right: 8px;
+        }
+        
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            
+            .content {
+                padding: 20px 15px;
+            }
+            
+            .header {
+                padding: 25px 15px;
+            }
+            
+            .company-name {
+                font-size: 24px;
+            }
+            
+            .refund-icon div {
+                width: 60px;
+                height: 60px;
+                font-size: 30px;
+            }
+            
+            .amount-highlight {
+                font-size: 18px;
+            }
+            
+            .info-row {
+                flex-direction: column;
+                gap: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <div class="header-content">
+                <div class="company-name">{{ company_name }}</div>
+                <p class="header-subtitle">Demande de remboursement reçue</p>
+            </div>
+        </div>
+        
+        <div class="content">
+            <div class="refund-icon">
+                <div>🔄</div>
+            </div>
+            
+            <div class="greeting">
+                Bonjour <strong>{{ refund.requested_by.first_name }} {{ refund.requested_by.last_name }}</strong>,
+            </div>
+            
+            <p style="font-size: 16px; color: #495057; margin-bottom: 25px;">
+                Nous avons bien reçu votre demande de remboursement et nous vous en remercions. 📧
+            </p>
+            
+            <div class="refund-info">
+                <h3>
+                    <span class="icon">📋</span>
+                    Détails de votre demande
+                </h3>
+                <div class="info-row">
+                    <span class="info-label">N° Demande :</span>
+                    <span class="info-value"><strong>{{ refund.uid }}</strong></span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Commande concernée :</span>
+                    <span class="info-value">#{{ refund.order.uid }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Montant :</span>
+                    <span class="info-value amount-highlight">{{ refund.amount|floatformat:0 }} FCFA</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Raison :</span>
+                    <span class="info-value">{{ refund.get_reason_display }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Date de demande :</span>
+                    <span class="info-value">{{ refund.created_at|date:"d/m/Y H:i" }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Statut :</span>
+                    <span class="info-value" style="color: #ff8f00; font-weight: bold;">⏳ En attente</span>
+                </div>
+            </div>
+            
+            {% if refund.reason_description %}
+            <div class="description-section">
+                <h4>
+                    <span class="icon">📝</span>
+                    Description de la raison
+                </h4>
+                <p>{{ refund.reason_description|linebreaks }}</p>
+            </div>
+            {% endif %}
+            
+            <div class="order-info">
+                <h3>
+                    <span class="icon">⏰</span>
+                    Prochaines étapes
+                </h3>
+                <p style="margin-bottom: 20px; color: #495057;">
+                    Votre demande sera traitée dans les <strong>24-48 heures</strong>. Voici ce qui va se passer :
+                </p>
+                <ul class="steps-list">
+                    <li>
+                        <div class="step-icon">1</div>
+                        <div class="step-content">
+                            <div class="step-title">Examen</div>
+                            <div class="step-description">Notre équipe examine votre demande</div>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="step-icon">2</div>
+                        <div class="step-content">
+                            <div class="step-title">Contact</div>
+                            <div class="step-description">Vous serez contacté par téléphone ou email pour confirmer les détails</div>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="step-icon">3</div>
+                        <div class="step-content">
+                            <div class="step-title">Traitement</div>
+                            <div class="step-description">Le remboursement sera effectué selon la méthode de paiement utilisée</div>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="step-icon">4</div>
+                        <div class="step-content">
+                            <div class="step-title">Confirmation</div>
+                            <div class="step-description">Vous recevrez un email de confirmation</div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="cta-section">
+                <h3 style="color: #856404; margin-bottom: 15px;">
+                    <span class="icon">👀</span>
+                    Suivi de votre demande
+                </h3>
+                <p style="margin-bottom: 20px; color: #856404;">
+                    Vous pouvez suivre l'avancement de votre demande en cliquant sur le bouton ci-dessous :
+                </p>
+                <a href="{{ request.scheme }}://{{ request.get_host }}{% url 'orders:refund_detail' refund.uid %}" class="cta-button">
+                    📋 Suivre ma demande
+                </a>
+            </div>
+            
+            <p style="font-size: 16px; color: #495057; margin: 25px 0;">
+                Nous vous remercions pour votre patience et nous nous excusons pour tout désagrément. 🙏
+            </p>
+            
+            <p style="font-size: 16px; color: #495057; font-weight: 500;">
+                L'équipe <strong>{{ company_name }}</strong>
+            </p>
+        </div>
+        
+        <div class="footer">
+            <p class="footer-company">{{ company_name }}</p>
+            <p class="footer-contact">Tél : {{ company_phone }} | Email : {{ company_email }}</p>
+            <p class="footer-contact">Conakry, Guinée</p>
+        </div>
+    </div>
+</body>
+</html>

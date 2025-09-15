@@ -1,0 +1,325 @@
+{% extends 'manager/base.html' %}
+{% load static %}
+
+{% block title %}Historique des Mouvements de Stock - Gestionnaire{% endblock %}
+{% block page_title %}Historique des Mouvements de Stock{% endblock %}
+{% block page_description %}Suivi de tous les mouvements de stock{% endblock %}
+
+{% block content %}
+<!-- Filtres -->
+<div class="row mb-4">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header">
+        <h5><i class="fas fa-filter"></i> Filtres</h5>
+      </div>
+      <div class="card-body">
+        <form method="get" class="row g-3">
+          <div class="col-md-3">
+            <label for="product" class="form-label">Produit</label>
+            <select name="product" id="product" class="form-select">
+              <option value="">Tous les produits</option>
+              {% for product in products %}
+              <option value="{{ product.id }}" {% if request.GET.product == product.id|stringformat:"s" %}selected{% endif %}>
+                {{ product.name }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-2">
+            <label for="type" class="form-label">Type de mouvement</label>
+            <select name="type" id="type" class="form-select">
+              <option value="">Tous les types</option>
+              {% for value, label in movement_types %}
+              <option value="{{ value }}" {% if request.GET.type == value %}selected{% endif %}>
+                {{ label }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-2">
+            <label for="date_from" class="form-label">Date début</label>
+            <input type="date" name="date_from" id="date_from" class="form-control" value="{{ request.GET.date_from }}">
+          </div>
+          <div class="col-md-2">
+            <label for="date_to" class="form-label">Date fin</label>
+            <input type="date" name="date_to" id="date_to" class="form-control" value="{{ request.GET.date_to }}">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">&nbsp;</label>
+            <div class="d-grid">
+              <button type="submit" class="btn btn-primary">
+                <i class="fas fa-search"></i> Filtrer
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Statistiques rapides -->
+<div class="row mb-4">
+  <div class="col-md-3 mb-3">
+    <div class="card stat-card">
+      <div class="card-body text-center">
+        <i class="fas fa-history fa-2x mb-2"></i>
+        <h3>{{ movements.paginator.count }}</h3>
+        <p class="mb-0">Mouvements Total</p>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-3 mb-3">
+    <div class="card stat-card success">
+      <div class="card-body text-center">
+        <i class="fas fa-arrow-up fa-2x mb-2"></i>
+        <h3>{{ movements|length }}</h3>
+        <p class="mb-0">Sur cette page</p>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-3 mb-3">
+    <div class="card stat-card info">
+      <div class="card-body text-center">
+        <i class="fas fa-calendar fa-2x mb-2"></i>
+        <h3>{{ movements|length }}</h3>
+        <p class="mb-0">Période sélectionnée</p>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-3 mb-3">
+    <div class="card stat-card warning">
+      <div class="card-body text-center">
+        <i class="fas fa-download fa-2x mb-2"></i>
+        <h3>PDF</h3>
+        <p class="mb-0">Export disponible</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Liste des mouvements -->
+<div class="row">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5><i class="fas fa-history"></i> Mouvements de Stock</h5>
+        <div>
+          <a href="/products/stock/" class="btn btn-outline-secondary btn-sm">
+            <i class="fas fa-arrow-left"></i> Retour Dashboard
+          </a>
+        </div>
+      </div>
+      <div class="card-body">
+        {% if movements %}
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th>Date/Heure</th>
+                <th>Produit</th>
+                <th>Type</th>
+                <th>Quantité</th>
+                <th>Avant</th>
+                <th>Après</th>
+                <th>Raison</th>
+                <th>Référence</th>
+                <th>Utilisateur</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for movement in movements %}
+              <tr>
+                <td>
+                  <strong>{{ movement.created_at|date:"d/m/Y" }}</strong>
+                  <br><small class="text-muted">{{ movement.created_at|time:"H:i" }}</small>
+                </td>
+                <td>
+                  <strong>{{ movement.product.name }}</strong>
+                  <br><small class="text-muted">{{ movement.product.sku|default:"N/A" }}</small>
+                </td>
+                <td>
+                  <span class="badge bg-{% if movement.movement_type == 'in' %}success{% elif movement.movement_type == 'out' %}danger{% elif movement.movement_type == 'adjustment' %}warning{% else %}info{% endif %}">
+                    {{ movement.get_movement_type_display }}
+                  </span>
+                </td>
+                <td>
+                  <span class="badge bg-{% if movement.movement_type == 'in' %}success{% elif movement.movement_type == 'out' %}danger{% else %}info{% endif %} fs-6">
+                    {% if movement.movement_type == 'in' %}+{% elif movement.movement_type == 'out' %}-{% endif %}{{ movement.quantity }}
+                  </span>
+                </td>
+                <td>
+                  <span class="badge bg-light text-dark">{{ movement.quantity_before }}</span>
+                </td>
+                <td>
+                  <span class="badge bg-primary">{{ movement.quantity_after }}</span>
+                </td>
+                <td>
+                  <span title="{{ movement.reason }}">{{ movement.reason|truncatechars:30 }}</span>
+                </td>
+                <td>
+                  {% if movement.reference %}
+                  <code>{{ movement.reference|truncatechars:15 }}</code>
+                  {% else %}
+                  <span class="text-muted">-</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if movement.created_by %}
+                  <strong>{{ movement.created_by.first_name|default:movement.created_by.email }}</strong>
+                  <br><small class="text-muted">{{ movement.created_by.email }}</small>
+                  {% else %}
+                  <span class="text-muted">Système</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-sm btn-outline-info" 
+                            onclick="showMovementDetails('{{ movement.uid }}')" title="Détails">
+                      <i class="fas fa-eye"></i>
+                    </button>
+                    {% if movement.notes %}
+                    <button type="button" class="btn btn-sm btn-outline-secondary" 
+                            onclick="showMovementNotes('{{ movement.uid }}', '{{ movement.notes|escapejs }}')" title="Notes">
+                      <i class="fas fa-sticky-note"></i>
+                    </button>
+                    {% endif %}
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        
+        <!-- Pagination -->
+        {% if is_paginated %}
+        <nav aria-label="Pagination des mouvements">
+          <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+              <a class="page-link" href="?page=1{% if request.GET.product %}&product={{ request.GET.product }}{% endif %}{% if request.GET.type %}&type={{ request.GET.type }}{% endif %}{% if request.GET.date_from %}&date_from={{ request.GET.date_from }}{% endif %}{% if request.GET.date_to %}&date_to={{ request.GET.date_to }}{% endif %}">
+                <i class="fas fa-angle-double-left"></i>
+              </a>
+            </li>
+            <li class="page-item">
+              <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.product %}&product={{ request.GET.product }}{% endif %}{% if request.GET.type %}&type={{ request.GET.type }}{% endif %}{% if request.GET.date_from %}&date_from={{ request.GET.date_from }}{% endif %}{% if request.GET.date_to %}&date_to={{ request.GET.date_to }}{% endif %}">
+                <i class="fas fa-angle-left"></i>
+              </a>
+            </li>
+            {% endif %}
+            
+            <li class="page-item active">
+              <span class="page-link">
+                Page {{ page_obj.number }} sur {{ page_obj.paginator.num_pages }}
+              </span>
+            </li>
+            
+            {% if page_obj.has_next %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.product %}&product={{ request.GET.product }}{% endif %}{% if request.GET.type %}&type={{ request.GET.type }}{% endif %}{% if request.GET.date_from %}&date_from={{ request.GET.date_from }}{% endif %}{% if request.GET.date_to %}&date_to={{ request.GET.date_to }}{% endif %}">
+                <i class="fas fa-angle-right"></i>
+              </a>
+            </li>
+            <li class="page-item">
+              <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.product %}&product={{ request.GET.product }}{% endif %}{% if request.GET.type %}&type={{ request.GET.type }}{% endif %}{% if request.GET.date_from %}&date_from={{ request.GET.date_from }}{% endif %}{% if request.GET.date_to %}&date_to={{ request.GET.date_to }}{% endif %}">
+                <i class="fas fa-angle-double-right"></i>
+              </a>
+            </li>
+            {% endif %}
+          </ul>
+        </nav>
+        {% endif %}
+        
+        {% else %}
+        <div class="text-center py-5">
+          <i class="fas fa-history fa-3x text-muted mb-3"></i>
+          <h5 class="text-muted">Aucun mouvement trouvé</h5>
+          <p class="text-muted">Aucun mouvement de stock ne correspond à vos critères de recherche.</p>
+          <a href="/products/stock/movements/" class="btn btn-primary">
+            <i class="fas fa-refresh"></i> Voir tous les mouvements
+          </a>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal pour les détails -->
+<div class="modal fade" id="movementDetailsModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Détails du Mouvement</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="movementDetailsContent">
+        <!-- Contenu chargé dynamiquement -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal pour les notes -->
+<div class="modal fade" id="movementNotesModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Notes du Mouvement</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="movementNotesContent">
+        <!-- Contenu chargé dynamiquement -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Scripts -->
+<script>
+function showMovementDetails(movementUid) {
+    // Charger les détails du mouvement via AJAX
+    fetch(`/stock/movements/${movementUid}/details/`)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('movementDetailsContent').innerHTML = data.html;
+            new bootstrap.Modal(document.getElementById('movementDetailsModal')).show();
+        })
+        .catch(error => {
+            console.error('Erreur:', error);
+            alert('Erreur lors du chargement des détails');
+        });
+}
+
+function showMovementNotes(movementUid, notes) {
+    document.getElementById('movementNotesContent').innerHTML = `
+        <div class="alert alert-info">
+            <i class="fas fa-sticky-note"></i>
+            <strong>Notes:</strong>
+        </div>
+        <p>${notes}</p>
+    `;
+    new bootstrap.Modal(document.getElementById('movementNotesModal')).show();
+}
+
+// Auto-refresh toutes les 60 secondes
+setInterval(function() {
+    // Recharger la page si on est sur la première page
+    if (window.location.search.includes('page=1') || !window.location.search.includes('page=')) {
+        location.reload();
+    }
+}, 60000);
+</script>
+{% endblock %}

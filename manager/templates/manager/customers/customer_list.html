@@ -1,0 +1,239 @@
+{% extends 'manager/base.html' %}
+{% load static %}
+
+{% block page_title %}Gestion des Clients{% endblock %}
+{% block navbar_title %}Clients{% endblock %}
+{% block header_title %}Gestion des Clients{% endblock %}
+{% block page_description %}Liste et gestion des clients de votre boutique{% endblock %}
+
+{% block manager_content %}
+<!-- Filters and Search -->
+<div class="card bg-base-100 shadow-xl mb-6">
+    <div class="card-body">
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div class="flex-1">
+                <form method="get" class="flex gap-2">
+                    <input type="text" name="search" placeholder="Rechercher un client..." 
+                           value="{{ request.GET.search }}" 
+                           class="input input-bordered flex-1">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </form>
+            </div>
+            
+            <div class="flex gap-2">
+                <select name="status" class="select select-bordered" onchange="this.form.submit()">
+                    <option value="">Tous les statuts</option>
+                    <option value="active" {% if request.GET.status == 'active' %}selected{% endif %}>Actifs</option>
+                    <option value="inactive" {% if request.GET.status == 'inactive' %}selected{% endif %}>Inactifs</option>
+                </select>
+                
+                <select name="sort" class="select select-bordered" onchange="this.form.submit()">
+                    <option value="-date_joined" {% if request.GET.sort == '-date_joined' %}selected{% endif %}>Plus récents</option>
+                    <option value="date_joined" {% if request.GET.sort == 'date_joined' %}selected{% endif %}>Plus anciens</option>
+                    <option value="first_name" {% if request.GET.sort == 'first_name' %}selected{% endif %}>Nom A-Z</option>
+                    <option value="-first_name" {% if request.GET.sort == '-first_name' %}selected{% endif %}>Nom Z-A</option>
+                </select>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+    <div class="card bg-gradient-to-br from-primary to-primary-focus text-primary-content shadow-xl">
+        <div class="card-body text-center">
+            <div class="text-3xl font-bold">{{ total_customers }}</div>
+            <div class="text-primary-content/80">Total Clients</div>
+        </div>
+    </div>
+    
+    <div class="card bg-gradient-to-br from-success to-success-focus text-success-content shadow-xl">
+        <div class="card-body text-center">
+            <div class="text-3xl font-bold">{{ active_customers }}</div>
+            <div class="text-success-content/80">Clients Actifs</div>
+        </div>
+    </div>
+    
+    <div class="card bg-gradient-to-br from-warning to-warning-focus text-warning-content shadow-xl">
+        <div class="card-body text-center">
+            <div class="text-3xl font-bold">{{ new_customers_this_month }}</div>
+            <div class="text-warning-content/80">Nouveaux ce mois</div>
+        </div>
+    </div>
+    
+    <div class="card bg-gradient-to-br from-info to-info-focus text-info-content shadow-xl">
+        <div class="card-body text-center">
+            <div class="text-3xl font-bold">{{ total_orders }}</div>
+            <div class="text-info-content/80">Commandes Total</div>
+        </div>
+    </div>
+</div>
+
+<!-- Customers List -->
+<div class="card bg-base-100 shadow-xl">
+    <div class="card-body">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="card-title text-2xl">
+                <i class="fas fa-users text-primary mr-2"></i>
+                Liste des Clients
+            </h2>
+            
+            <div class="text-sm text-base-content/70">
+                {{ customers|length }} client(s) trouvé(s)
+            </div>
+        </div>
+
+        {% if customers %}
+        <div class="overflow-x-auto">
+            <table class="table table-zebra w-full">
+                <thead>
+                    <tr>
+                        <th>Client</th>
+                        <th>Email</th>
+                        <th>Inscription</th>
+                        <th>Statut</th>
+                        <th>Commandes</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for customer in customers %}
+                    <tr class="hover">
+                        <td>
+                            <div class="flex items-center space-x-3">
+                                <div class="avatar placeholder">
+                                    <div class="bg-neutral text-neutral-content rounded-full w-12">
+                                        <span class="text-lg">{{ customer.first_name|first|default:customer.email|first|upper }}</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="font-bold">
+                                        {{ customer.first_name|default:"-" }} {{ customer.last_name|default:"-" }}
+                                    </div>
+                                    <div class="text-sm opacity-50">ID: {{ customer.id }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="font-medium">{{ customer.email }}</div>
+                        </td>
+                        <td>
+                            <div class="text-sm">{{ customer.date_joined|date:"d/m/Y" }}</div>
+                            <div class="text-xs opacity-50">{{ customer.date_joined|timesince }} ago</div>
+                        </td>
+                        <td>
+                            {% if customer.is_active %}
+                                <span class="badge badge-success">Actif</span>
+                            {% else %}
+                                <span class="badge badge-error">Inactif</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="font-bold">{{ customer.orders.count|default:0 }}</div>
+                        </td>
+                        <td>
+                            <div class="flex gap-2">
+                                <a href="{% url 'manager:customer_detail' customer.id %}" 
+                                   class="btn btn-ghost btn-sm hover-scale transition-all">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                
+                                {% if customer.is_active %}
+                                    <button class="btn btn-ghost btn-sm btn-error hover-scale transition-all"
+                                            onclick="toggleCustomerStatus({{ customer.id }}, false)">
+                                        <i class="fas fa-ban"></i>
+                                    </button>
+                                {% else %}
+                                    <button class="btn btn-ghost btn-sm btn-success hover-scale transition-all"
+                                            onclick="toggleCustomerStatus({{ customer.id }}, true)">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if is_paginated %}
+        <div class="flex justify-center mt-6">
+            <div class="btn-group">
+                {% if page_obj.has_previous %}
+                    <a href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" 
+                       class="btn btn-outline">«</a>
+                    <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" 
+                       class="btn btn-outline">‹</a>
+                {% endif %}
+                
+                <span class="btn btn-active">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+                
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" 
+                       class="btn btn-outline">›</a>
+                    <a href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" 
+                       class="btn btn-outline">»</a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% else %}
+        <div class="text-center py-12">
+            <div class="avatar placeholder mb-4">
+                <div class="bg-base-300 text-base-content rounded-full w-16">
+                    <i class="fas fa-users text-2xl"></i>
+                </div>
+            </div>
+            <h3 class="text-lg font-bold mb-2">Aucun client trouvé</h3>
+            <p class="text-base-content/70">
+                {% if request.GET.search %}
+                    Aucun client ne correspond à votre recherche "{{ request.GET.search }}"
+                {% else %}
+                    Aucun client n'est encore inscrit sur votre boutique
+                {% endif %}
+            </p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function toggleCustomerStatus(customerId, isActive) {
+    const action = isActive ? 'activer' : 'désactiver';
+    const status = isActive ? 'actif' : 'inactif';
+    
+    if (confirm(`Êtes-vous sûr de vouloir ${action} ce client ?`)) {
+        // Ici vous pouvez ajouter une requête AJAX pour changer le statut
+        fetch(`/manager/customers/${customerId}/toggle-status/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                is_active: isActive
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Erreur lors de la modification du statut');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Erreur lors de la modification du statut');
+        });
+    }
+}
+</script>
+{% endblock %}

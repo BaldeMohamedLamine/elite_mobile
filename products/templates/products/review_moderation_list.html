@@ -1,0 +1,192 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Modération des avis{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+        <div>
+            <h1 class="text-3xl font-bold mb-2">Modération des avis</h1>
+            <p class="text-base-content/70">Gérez les avis soumis par les utilisateurs</p>
+        </div>
+        
+        <div class="stats shadow">
+            <div class="stat">
+                <div class="stat-title">En attente</div>
+                <div class="stat-value text-warning">{{ reviews|length }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Filter -->
+    <div class="card bg-base-100 shadow-sm mb-6">
+        <div class="card-body p-4">
+            <div class="flex flex-wrap gap-2">
+                <a href="?status=pending" class="btn btn-sm {% if current_status == 'pending' %}btn-warning{% else %}btn-outline{% endif %}">
+                    <i class="fas fa-clock mr-2"></i>
+                    En attente
+                </a>
+                <a href="?status=approved" class="btn btn-sm {% if current_status == 'approved' %}btn-success{% else %}btn-outline{% endif %}">
+                    <i class="fas fa-check mr-2"></i>
+                    Approuvés
+                </a>
+                <a href="?status=rejected" class="btn btn-sm {% if current_status == 'rejected' %}btn-error{% else %}btn-outline{% endif %}">
+                    <i class="fas fa-times mr-2"></i>
+                    Rejetés
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reviews List -->
+    {% if reviews %}
+        <div class="space-y-4">
+            {% for review in reviews %}
+                <div class="card bg-base-100 shadow-sm">
+                    <div class="card-body">
+                        <div class="flex flex-col lg:flex-row gap-6">
+                            <!-- Review Content -->
+                            <div class="flex-1">
+                                <div class="flex items-center gap-3 mb-3">
+                                    <div class="avatar placeholder">
+                                        <div class="bg-neutral text-neutral-content rounded-full w-10">
+                                            <span class="text-sm">{{ review.user.username|first|upper }}</span>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h3 class="font-semibold">{{ review.title }}</h3>
+                                        <div class="flex items-center gap-2">
+                                            <div class="rating rating-sm">
+                                                {% for i in "12345" %}
+                                                    {% if forloop.counter <= review.rating %}
+                                                        <input type="radio" class="mask mask-star-2 bg-orange-400" checked disabled>
+                                                    {% else %}
+                                                        <input type="radio" class="mask mask-star-2 bg-gray-300" disabled>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </div>
+                                            <span class="text-sm text-base-content/70">{{ review.user.username }}</span>
+                                            <span class="badge badge-sm {% if review.status == 'pending' %}badge-warning{% elif review.status == 'approved' %}badge-success{% else %}badge-error{% endif %}">
+                                                {{ review.get_status_display }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <p class="text-base-content/80">{{ review.content|truncatewords:50 }}</p>
+                                </div>
+
+                                <div class="flex items-center gap-4 text-sm text-base-content/70">
+                                    <span>
+                                        <i class="fas fa-calendar mr-1"></i>
+                                        {{ review.created_at|date:"d/m/Y H:i" }}
+                                    </span>
+                                    <span>
+                                        <i class="fas fa-box mr-1"></i>
+                                        {{ review.product.name }}
+                                    </span>
+                                    {% if review.is_verified_purchase %}
+                                        <span class="badge badge-success badge-sm">
+                                            <i class="fas fa-check mr-1"></i>
+                                            Achat vérifié
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Actions -->
+                            <div class="flex flex-col gap-2">
+                                <a href="/products/reviews/moderation/{{ review.uid }}/" class="btn btn-outline btn-sm">
+                                    <i class="fas fa-eye mr-2"></i>
+                                    Examiner
+                                </a>
+                                
+                                {% if review.status == 'pending' %}
+                                    <form method="post" action="/products/reviews/moderate/{{ review.uid }}/" class="inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="approve">
+                                        <button type="submit" class="btn btn-success btn-sm w-full" onclick="return confirm('Approuver cet avis ?')">
+                                            <i class="fas fa-check mr-2"></i>
+                                            Approuver
+                                        </button>
+                                    </form>
+                                    
+                                    <button class="btn btn-error btn-sm" onclick="rejectReview('{{ review.uid }}')">
+                                        <i class="fas fa-times mr-2"></i>
+                                        Rejeter
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if is_paginated %}
+            <div class="flex justify-center mt-8">
+                <div class="join">
+                    {% if page_obj.has_previous %}
+                        <a href="?page=1{% if current_status %}&status={{ current_status }}{% endif %}" class="join-item btn btn-sm">«</a>
+                        <a href="?page={{ page_obj.previous_page_number }}{% if current_status %}&status={{ current_status }}{% endif %}" class="join-item btn btn-sm">‹</a>
+                    {% endif %}
+                    
+                    <span class="join-item btn btn-sm btn-active">{{ page_obj.number }}</span>
+                    
+                    {% if page_obj.has_next %}
+                        <a href="?page={{ page_obj.next_page_number }}{% if current_status %}&status={{ current_status }}{% endif %}" class="join-item btn btn-sm">›</a>
+                        <a href="?page={{ page_obj.paginator.num_pages }}{% if current_status %}&status={{ current_status }}{% endif %}" class="join-item btn btn-sm">»</a>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+    {% else %}
+        <div class="text-center py-12">
+            <i class="fas fa-clipboard-check text-6xl text-base-content/30 mb-4"></i>
+            <h3 class="text-xl font-semibold mb-2">Aucun avis à modérer</h3>
+            <p class="text-base-content/70">Tous les avis sont à jour !</p>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Reject Modal -->
+<div id="rejectModal" class="modal">
+    <div class="modal-box">
+        <h3 class="font-bold text-lg">Rejeter l'avis</h3>
+        <p class="py-4">Veuillez indiquer la raison du rejet :</p>
+        
+        <form method="post" id="rejectForm">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="reject">
+            <input type="hidden" name="review_uid" id="rejectReviewUid">
+            
+            <div class="form-control mb-4">
+                <textarea name="moderation_notes" class="textarea textarea-bordered" placeholder="Raison du rejet..." required></textarea>
+            </div>
+            
+            <div class="modal-action">
+                <button type="submit" class="btn btn-error">Rejeter</button>
+                <button type="button" class="btn btn-ghost" onclick="closeRejectModal()">Annuler</button>
+            </div>
+        </form>
+    </div>
+    <div class="modal-backdrop" onclick="closeRejectModal()"></div>
+</div>
+
+<script>
+function rejectReview(reviewUid) {
+    document.getElementById('rejectReviewUid').value = reviewUid;
+    document.getElementById('rejectForm').action = `/products/reviews/moderate/${reviewUid}/`;
+    document.getElementById('rejectModal').classList.add('modal-open');
+}
+
+function closeRejectModal() {
+    document.getElementById('rejectModal').classList.remove('modal-open');
+    document.getElementById('rejectForm').reset();
+}
+</script>
+{% endblock %}

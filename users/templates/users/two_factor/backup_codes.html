@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Codes de sauvegarde 2FA{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h3><i class="fas fa-shield-alt"></i> Authentification 2FA activée !</h3>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Important :</strong> Conservez ces codes de sauvegarde dans un endroit sûr. 
+                        Ils vous permettront d'accéder à votre compte si vous perdez votre téléphone ou si vous n'avez pas accès à votre email.
+                    </div>
+                    
+                    <h5><i class="fas fa-key"></i> Vos codes de sauvegarde :</h5>
+                    <div class="row">
+                        {% for code in backup_codes %}
+                        <div class="col-md-3 col-sm-4 col-6 mb-2">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <code class="fs-5">{{ code }}</code>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="alert alert-info mt-3">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Conseils de sécurité :</strong>
+                        <ul class="mb-0">
+                            <li>Imprimez ces codes ou sauvegardez-les dans un gestionnaire de mots de passe</li>
+                            <li>Ne partagez jamais ces codes avec qui que ce soit</li>
+                            <li>Chaque code ne peut être utilisé qu'une seule fois</li>
+                            <li>Vous pouvez régénérer de nouveaux codes à tout moment</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="button" class="btn btn-success" onclick="printCodes()">
+                            <i class="fas fa-print"></i> Imprimer les codes
+                        </button>
+                        <a href="{% url 'users:two_factor_status' %}" class="btn btn-primary">
+                            <i class="fas fa-check"></i> Terminer la configuration
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function printCodes() {
+    const printWindow = window.open('', '_blank');
+    const codes = {{ backup_codes|safe }};
+    
+    let printContent = `
+        <html>
+        <head>
+            <title>Codes de sauvegarde 2FA</title>
+            <style>
+                body { font-family: Arial, sans-serif; margin: 20px; }
+                .header { text-align: center; margin-bottom: 30px; }
+                .codes { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+                .code { border: 1px solid #ccc; padding: 10px; text-align: center; font-family: monospace; font-size: 16px; }
+                .warning { background-color: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; margin: 20px 0; }
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <h1>Codes de sauvegarde 2FA</h1>
+                <p>Date : ${new Date().toLocaleDateString()}</p>
+            </div>
+            
+            <div class="warning">
+                <strong>Important :</strong> Conservez ce document dans un endroit sûr. 
+                Ces codes vous permettront d'accéder à votre compte si vous perdez votre téléphone.
+            </div>
+            
+            <div class="codes">
+    `;
+    
+    codes.forEach(code => {
+        printContent += `<div class="code">${code}</div>`;
+    });
+    
+    printContent += `
+            </div>
+        </body>
+        </html>
+    `;
+    
+    printWindow.document.write(printContent);
+    printWindow.document.close();
+    printWindow.print();
+}
+</script>
+{% endblock %}

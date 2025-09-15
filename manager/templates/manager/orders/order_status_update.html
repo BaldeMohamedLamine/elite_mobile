@@ -1,0 +1,361 @@
+{% extends 'manager/base.html' %}
+{% load static %}
+
+{% block title %}Modifier le statut - Commande #{{ order.uid }}{% endblock %}
+{% block page_title %}Modifier le statut{% endblock %}
+{% block page_description %}Changer le statut de la commande #{{ order.uid }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-slate-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 py-8">
+    <div class="container mx-auto px-4 max-w-4xl">
+        <!-- Header -->
+        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 animate-fade-in">
+            <div>
+                <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-3">
+                    <div class="w-12 h-12 bg-gradient-to-r from-warning to-orange-500 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-edit text-2xl text-white"></i>
+                    </div>
+                    Modifier le statut
+                </h1>
+                <p class="text-gray-600 dark:text-gray-300">Changer le statut de la commande #{{ order.uid }}</p>
+            </div>
+            <div class="flex flex-wrap gap-3 mt-4 lg:mt-0">
+                <a href="{% url 'manager:order_detail' order.uid %}" class="btn btn-outline btn-secondary hover-scale transition-all">
+                    <i class="fas fa-arrow-left mr-2"></i>
+                    Retour
+                </a>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Formulaire de modification -->
+            <div class="lg:col-span-2">
+                <div class="card bg-white dark:bg-gray-800 shadow-xl animate-slide-in">
+                    <div class="card-body">
+                        <h2 class="card-title text-xl mb-6">
+                            <i class="fas fa-cogs text-primary mr-2"></i>
+                            Modifier le statut
+                        </h2>
+                        
+                        <form method="post" class="space-y-6">
+                            {% csrf_token %}
+                            
+                            <!-- Informations de la commande -->
+                            <div class="bg-gray-50 dark:bg-gray-700 p-6 rounded-lg mb-6">
+                                <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                                    <i class="fas fa-info-circle text-primary"></i>
+                                    Informations de la commande
+                                </h3>
+                                
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="label">
+                                            <span class="label-text font-semibold">Client</span>
+                                        </label>
+                                        <div class="text-lg">
+                                            {{ order.customer.first_name }} {{ order.customer.last_name }}
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="label">
+                                            <span class="label-text font-semibold">Date de commande</span>
+                                        </label>
+                                        <div class="text-lg">
+                                            {{ order.created_at|date:"d/m/Y à H:i" }}
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="label">
+                                            <span class="label-text font-semibold">Montant</span>
+                                        </label>
+                                        <div class="text-lg font-bold text-primary">
+                                            {{ order.total_amount|floatformat:0 }} FCFA
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="label">
+                                            <span class="label-text font-semibold">Statut actuel</span>
+                                        </label>
+                                        <span class="badge badge-{% if order.status == 'pending' %}warning{% elif order.status == 'paid' %}info{% elif order.status == 'shipped' %}primary{% elif order.status == 'delivered' %}success{% elif order.status == 'cancelled' %}error{% endif %} badge-lg">
+                                            {{ order.get_status_display }}
+                                        </span>
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="label">
+                                            <span class="label-text font-semibold">Statut du paiement</span>
+                                        </label>
+                                        <span class="badge badge-{% if order.payment_status == 'paid' %}success{% elif order.payment_status == 'pending' %}warning{% else %}error{% endif %} badge-lg">
+                                            {{ order.get_payment_status_display }}
+                                        </span>
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="label">
+                                            <span class="label-text font-semibold">Méthode de paiement</span>
+                                        </label>
+                                        <div class="flex items-center gap-2">
+                                            {% if order.payment_method == 'orange_money' %}
+                                                <i class="fas fa-mobile-alt text-orange-500"></i>
+                                                <span>Orange Money</span>
+                                            {% elif order.payment_method == 'visa' %}
+                                                <i class="fas fa-credit-card text-blue-500"></i>
+                                                <span>Visa/Mastercard</span>
+                                            {% else %}
+                                                <i class="fas fa-money-bill-wave text-green-500"></i>
+                                                <span>Paiement à la livraison</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Sélection du nouveau statut -->
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text font-semibold text-lg">Nouveau statut</span>
+                                </label>
+                                <select name="status" class="select select-bordered select-lg" required>
+                                    <option value="">Sélectionner un statut</option>
+                                    {% for value, label in status_choices %}
+                                        <option value="{{ value }}" {% if order.status == value %}selected{% endif %}>
+                                            {{ label }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                <label class="label">
+                                    <span class="label-text-alt">Choisissez le nouveau statut pour cette commande</span>
+                                </label>
+                            </div>
+                            
+                            <!-- Notes optionnelles -->
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text font-semibold">Notes (optionnel)</span>
+                                </label>
+                                <textarea name="notes" class="textarea textarea-bordered h-24" placeholder="Ajoutez des notes sur ce changement de statut..."></textarea>
+                                <label class="label">
+                                    <span class="label-text-alt">Ces notes seront visibles dans l'historique de la commande</span>
+                                </label>
+                            </div>
+                            
+                            <!-- Boutons d'action -->
+                            <div class="flex flex-col sm:flex-row gap-4 pt-6">
+                                <button type="submit" class="btn btn-primary btn-lg flex-1 hover-glow transition-all">
+                                    <i class="fas fa-save mr-2"></i>
+                                    Mettre à jour le statut
+                                </button>
+                                
+                                <a href="{% url 'manager:order_detail' order.uid %}" class="btn btn-outline btn-lg flex-1 hover-scale transition-all">
+                                    <i class="fas fa-times mr-2"></i>
+                                    Annuler
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Informations contextuelles -->
+            <div class="space-y-6">
+                <!-- Guide des statuts -->
+                <div class="card bg-white dark:bg-gray-800 shadow-xl animate-slide-in">
+                    <div class="card-body">
+                        <h2 class="card-title text-xl mb-6">
+                            <i class="fas fa-info-circle text-primary mr-2"></i>
+                            Guide des statuts
+                        </h2>
+                        
+                        <div class="space-y-4">
+                            <div class="flex items-start gap-3">
+                                <span class="badge badge-warning badge-sm mt-1">En attente</span>
+                                <div class="text-sm">
+                                    <div class="font-semibold">Commande en attente</div>
+                                    <div class="text-gray-500">La commande a été créée et attend traitement</div>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start gap-3">
+                                <span class="badge badge-info badge-sm mt-1">Payée</span>
+                                <div class="text-sm">
+                                    <div class="font-semibold">Commande payée</div>
+                                    <div class="text-gray-500">Le paiement a été confirmé, prêt pour la préparation</div>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start gap-3">
+                                <span class="badge badge-primary badge-sm mt-1">Expédiée</span>
+                                <div class="text-sm">
+                                    <div class="font-semibold">Commande expédiée</div>
+                                    <div class="text-gray-500">La commande a été envoyée au client</div>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start gap-3">
+                                <span class="badge badge-success badge-sm mt-1">Livrée</span>
+                                <div class="text-sm">
+                                    <div class="font-semibold">Commande livrée</div>
+                                    <div class="text-gray-500">La commande a été livrée avec succès</div>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start gap-3">
+                                <span class="badge badge-error badge-sm mt-1">Annulée</span>
+                                <div class="text-sm">
+                                    <div class="font-semibold">Commande annulée</div>
+                                    <div class="text-gray-500">La commande a été annulée</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actions rapides -->
+                <div class="card bg-white dark:bg-gray-800 shadow-xl animate-slide-in">
+                    <div class="card-body">
+                        <h2 class="card-title text-xl mb-6">
+                            <i class="fas fa-bolt text-primary mr-2"></i>
+                            Actions rapides
+                        </h2>
+                        
+                        <div class="space-y-3">
+                            {% if order.payment_method == 'cash_on_delivery' and order.payment_status == 'pending' %}
+                            <a href="{% url 'manager:cash_payment_confirmation' order.uid %}" class="btn btn-outline btn-success w-full hover-scale transition-all">
+                                <i class="fas fa-money-bill-wave mr-2"></i>
+                                Confirmer le paiement
+                            </a>
+                            {% endif %}
+                            
+                            <a href="{% url 'manager:order_invoice_pdf' order.uid %}" class="btn btn-outline btn-info w-full hover-scale transition-all" target="_blank">
+                                <i class="fas fa-file-pdf mr-2"></i>
+                                Générer facture
+                            </a>
+                            
+                            <a href="{% url 'manager:order_receipt_pdf' order.uid %}" class="btn btn-outline btn-info w-full hover-scale transition-all" target="_blank">
+                                <i class="fas fa-receipt mr-2"></i>
+                                Générer reçu
+                            </a>
+                            
+                            <a href="{% url 'manager:order_detail' order.uid %}" class="btn btn-outline btn-secondary w-full hover-scale transition-all">
+                                <i class="fas fa-eye mr-2"></i>
+                                Voir détails
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Historique récent -->
+                <div class="card bg-white dark:bg-gray-800 shadow-xl animate-slide-in">
+                    <div class="card-body">
+                        <h2 class="card-title text-xl mb-6">
+                            <i class="fas fa-history text-primary mr-2"></i>
+                            Historique récent
+                        </h2>
+                        
+                        <div class="space-y-3">
+                            <div class="flex items-center gap-3">
+                                <div class="w-2 h-2 bg-success rounded-full"></div>
+                                <div class="text-sm">
+                                    <div class="font-semibold">Commande créée</div>
+                                    <div class="text-gray-500">{{ order.created_at|date:"d/m/Y H:i" }}</div>
+                                </div>
+                            </div>
+                            
+                            {% if order.payment_status == 'paid' %}
+                            <div class="flex items-center gap-3">
+                                <div class="w-2 h-2 bg-success rounded-full"></div>
+                                <div class="text-sm">
+                                    <div class="font-semibold">Paiement confirmé</div>
+                                    <div class="text-gray-500">
+                                        {% for payment in order.payments.all %}
+                                            {% if payment.status == 'completed' %}
+                                                {{ payment.updated_at|date:"d/m/Y H:i" }}
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            <div class="flex items-center gap-3">
+                                <div class="w-2 h-2 bg-{% if order.status == 'pending' %}warning{% elif order.status == 'paid' %}info{% elif order.status == 'shipped' %}primary{% elif order.status == 'delivered' %}success{% elif order.status == 'cancelled' %}error{% endif %} rounded-full"></div>
+                                <div class="text-sm">
+                                    <div class="font-semibold">Statut actuel: {{ order.get_status_display }}</div>
+                                    <div class="text-gray-500">{{ order.updated_at|date:"d/m/Y H:i" }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add ripple effect to buttons
+    document.querySelectorAll('.btn').forEach(button => {
+        button.addEventListener('click', function(e) {
+            createRipple(e, this);
+        });
+    });
+
+    // Form validation
+    const form = document.querySelector('form');
+    const statusSelect = document.querySelector('select[name="status"]');
+    
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            if (!statusSelect.value) {
+                e.preventDefault();
+                statusSelect.focus();
+                statusSelect.classList.add('input-error');
+                
+                // Show error message
+                showToast('Veuillez sélectionner un statut', 'error');
+                
+                setTimeout(() => {
+                    statusSelect.classList.remove('input-error');
+                }, 3000);
+            }
+        });
+    }
+
+    // Status change confirmation
+    statusSelect.addEventListener('change', function() {
+        const currentStatus = '{{ order.status }}';
+        const newStatus = this.value;
+        
+        if (newStatus && newStatus !== currentStatus) {
+            const statusLabels = {
+                'pending': 'En attente',
+                'paid': 'Payée',
+                'shipped': 'Expédiée',
+                'delivered': 'Livrée',
+                'cancelled': 'Annulée'
+            };
+            
+            const currentLabel = statusLabels[currentStatus] || currentStatus;
+            const newLabel = statusLabels[newStatus] || newStatus;
+            
+            if (confirm(`Êtes-vous sûr de vouloir changer le statut de "${currentLabel}" à "${newLabel}" ?`)) {
+                // Status change confirmed
+                this.classList.add('select-success');
+                setTimeout(() => {
+                    this.classList.remove('select-success');
+                }, 2000);
+            } else {
+                // Revert selection
+                this.value = currentStatus;
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,335 @@
+{% extends 'manager/base.html' %}
+{% load static %}
+
+{% block navbar_title %}{{ title }}{% endblock %}
+{% block header_title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Header -->
+    <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 gap-4">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">
+                <i class="fas fa-{% if object %}edit{% else %}plus{% endif %} text-primary mr-3"></i>
+                {{ title }}
+            </h1>
+            <p class="text-gray-600">
+                {% if object %}
+                    Modifiez les informations de ce produit
+                {% else %}
+                    Créez un nouveau produit pour votre catalogue
+                {% endif %}
+            </p>
+        </div>
+        
+        <div class="flex gap-3">
+            <a href="{% url 'manager:product_list' %}" 
+               class="btn btn-outline hover-glow transition-all">
+                <i class="fas fa-arrow-left mr-2"></i>
+                Retour à la liste
+            </a>
+        </div>
+    </div>
+
+    <!-- Formulaire -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Formulaire principal -->
+        <div class="lg:col-span-2">
+            <div class="card bg-base-100 shadow-xl">
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data" class="space-y-6">
+                        {% csrf_token %}
+                        
+                        <!-- Informations de base -->
+                        <div class="form-section">
+                            <h3 class="text-xl font-semibold mb-4 text-primary">
+                                <i class="fas fa-info-circle mr-2"></i>
+                                Informations de base
+                            </h3>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="form-control">
+                                    <label class="label">
+                                        <span class="label-text font-medium">Nom du produit *</span>
+                                    </label>
+                                    {{ form.name }}
+                                    {% if form.name.errors %}
+                                        <div class="text-error text-sm mt-1">{{ form.name.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="form-control">
+                                    <label class="label">
+                                        <span class="label-text font-medium">Catégorie *</span>
+                                    </label>
+                                    {{ form.category }}
+                                    {% if form.category.errors %}
+                                        <div class="text-error text-sm mt-1">{{ form.category.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="form-control mt-4">
+                                <label class="label">
+                                    <span class="label-text font-medium">Description *</span>
+                                </label>
+                                {{ form.description }}
+                                {% if form.description.errors %}
+                                    <div class="text-error text-sm mt-1">{{ form.description.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Prix et stock -->
+                        <div class="form-section">
+                            <h3 class="text-xl font-semibold mb-4 text-primary">
+                                <i class="fas fa-dollar-sign mr-2"></i>
+                                Prix et stock
+                            </h3>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div class="form-control">
+                                    <label class="label">
+                                        <span class="label-text font-medium">Prix de vente *</span>
+                                    </label>
+                                    <div class="relative">
+                                        {{ form.price }}
+                                        <span class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">GNF</span>
+                                    </div>
+                                    {% if form.price.errors %}
+                                        <div class="text-error text-sm mt-1">{{ form.price.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="form-control">
+                                    <label class="label">
+                                        <span class="label-text font-medium">Prix d'achat</span>
+                                    </label>
+                                    <div class="relative">
+                                        {{ form.cost_price }}
+                                        <span class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">GNF</span>
+                                    </div>
+                                    {% if form.cost_price.errors %}
+                                        <div class="text-error text-sm mt-1">{{ form.cost_price.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="form-control">
+                                    <label class="label">
+                                        <span class="label-text font-medium">Stock initial *</span>
+                                    </label>
+                                    {{ form.quantity }}
+                                    {% if form.quantity.errors %}
+                                        <div class="text-error text-sm mt-1">{{ form.quantity.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                                <div class="form-control">
+                                    <label class="label">
+                                        <span class="label-text font-medium">Stock minimum</span>
+                                    </label>
+                                    {{ form.min_stock_level }}
+                                    {% if form.min_stock_level.errors %}
+                                        <div class="text-error text-sm mt-1">{{ form.min_stock_level.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="form-control">
+                                    <label class="label">
+                                        <span class="label-text font-medium">Stock maximum</span>
+                                    </label>
+                                    {{ form.max_stock_level }}
+                                    {% if form.max_stock_level.errors %}
+                                        <div class="text-error text-sm mt-1">{{ form.max_stock_level.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="form-control">
+                                    <label class="label">
+                                        <span class="label-text font-medium">Quantité réservée</span>
+                                    </label>
+                                    {{ form.reserved_quantity }}
+                                    {% if form.reserved_quantity.errors %}
+                                        <div class="text-error text-sm mt-1">{{ form.reserved_quantity.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                                <div class="form-control">
+                                    <label class="label">
+                                        <span class="label-text font-medium">Poids (kg)</span>
+                                    </label>
+                                    {{ form.weight }}
+                                    {% if form.weight.errors %}
+                                        <div class="text-error text-sm mt-1">{{ form.weight.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="form-control">
+                                    <label class="label">
+                                        <span class="label-text font-medium">Image du produit</span>
+                                    </label>
+                                    {{ form.image }}
+                                    {% if form.image.errors %}
+                                        <div class="text-error text-sm mt-1">{{ form.image.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Codes et identification -->
+                        <div class="form-section">
+                            <h3 class="text-xl font-semibold mb-4 text-primary">
+                                <i class="fas fa-barcode mr-2"></i>
+                                Codes et identification
+                            </h3>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="form-control">
+                                    <label class="label">
+                                        <span class="label-text font-medium">Code SKU *</span>
+                                    </label>
+                                    {{ form.sku }}
+                                    {% if form.sku.errors %}
+                                        <div class="text-error text-sm mt-1">{{ form.sku.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="form-control">
+                                    <label class="label">
+                                        <span class="label-text font-medium">Code-barres</span>
+                                    </label>
+                                    {{ form.barcode }}
+                                    {% if form.barcode.errors %}
+                                        <div class="text-error text-sm mt-1">{{ form.barcode.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="form-control mt-4">
+                                <label class="label">
+                                    <span class="label-text font-medium">Dimensions</span>
+                                </label>
+                                {{ form.dimensions }}
+                                {% if form.dimensions.errors %}
+                                    <div class="text-error text-sm mt-1">{{ form.dimensions.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Statut et options -->
+                        <div class="form-section">
+                            <h3 class="text-xl font-semibold mb-4 text-primary">
+                                <i class="fas fa-cog mr-2"></i>
+                                Statut et options
+                            </h3>
+                            
+                            <div class="form-control">
+                                <label class="label cursor-pointer">
+                                    {{ form.is_active }}
+                                    <span class="label-text font-medium ml-2">Produit actif</span>
+                                </label>
+                                <div class="text-sm text-gray-500">Le produit sera visible dans le catalogue</div>
+                            </div>
+                        </div>
+
+                        <!-- Boutons d'action -->
+                        <div class="flex justify-end gap-4 pt-6 border-t">
+                            <a href="{% url 'manager:product_list' %}" 
+                               class="btn btn-outline">
+                                <i class="fas fa-times mr-2"></i>
+                                Annuler
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save mr-2"></i>
+                                {{ submit_text }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar avec aide -->
+        <div class="lg:col-span-1">
+            <div class="card bg-base-100 shadow-xl">
+                <div class="card-body">
+                    <h3 class="card-title text-primary">
+                        <i class="fas fa-lightbulb mr-2"></i>
+                        Conseils
+                    </h3>
+                    
+                    <div class="space-y-4">
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i>
+                            <div>
+                                <div class="font-semibold">Nom du produit</div>
+                                <div class="text-sm">Utilisez un nom descriptif et attractif</div>
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <div>
+                                <div class="font-semibold">Code SKU</div>
+                                <div class="text-sm">Doit être unique pour chaque produit</div>
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-success">
+                            <i class="fas fa-chart-line"></i>
+                            <div>
+                                <div class="font-semibold">Prix d'achat</div>
+                                <div class="text-sm">Permet de calculer la marge bénéficiaire</div>
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-primary">
+                            <i class="fas fa-warehouse"></i>
+                            <div>
+                                <div class="font-semibold">Gestion des stocks</div>
+                                <div class="text-sm">Configurez les seuils d'alerte</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.form-section {
+    @apply border-b border-gray-200 pb-6 mb-6;
+}
+
+.form-section:last-child {
+    @apply border-b-0 pb-0 mb-0;
+}
+
+.alert {
+    @apply p-3 rounded-lg;
+}
+
+.alert-info {
+    @apply bg-blue-50 border border-blue-200 text-blue-800;
+}
+
+.alert-warning {
+    @apply bg-yellow-50 border border-yellow-200 text-yellow-800;
+}
+
+.alert-success {
+    @apply bg-green-50 border border-green-200 text-green-800;
+}
+
+.alert-primary {
+    @apply bg-purple-50 border border-purple-200 text-purple-800;
+}
+</style>
+{% endblock %}

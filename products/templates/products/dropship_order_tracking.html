@@ -1,0 +1,250 @@
+{% extends 'manager/base.html' %}
+{% load static %}
+
+{% block page_title %}Suivi des commandes dropshipping{% endblock %}
+{% block page_description %}Gestion et suivi des commandes dropshipping{% endblock %}
+
+{% block manager_content %}
+<div class="space-y-6">
+    <!-- En-tête -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+            <h1 class="text-3xl font-bold">
+                <i class="fas fa-truck text-primary mr-2"></i>
+                Suivi des commandes dropshipping
+            </h1>
+            <p class="text-base-content/70 mt-2">
+                Gérez et suivez toutes les commandes dropshipping
+            </p>
+        </div>
+        
+        <div class="flex gap-2">
+            <button class="btn btn-outline btn-sm" onclick="refreshOrders()">
+                <i class="fas fa-sync-alt mr-2"></i>
+                Actualiser
+            </button>
+        </div>
+    </div>
+    
+    <!-- Filtres -->
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h3 class="card-title mb-4">
+                <i class="fas fa-filter"></i>
+                Filtres
+            </h3>
+            
+            <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Statut</span>
+                    </label>
+                    <select name="status" class="select select-bordered">
+                        <option value="">Tous les statuts</option>
+                        <option value="pending" {% if request.GET.status == 'pending' %}selected{% endif %}>En attente</option>
+                        <option value="processing" {% if request.GET.status == 'processing' %}selected{% endif %}>En cours</option>
+                        <option value="shipped" {% if request.GET.status == 'shipped' %}selected{% endif %}>Expédiée</option>
+                        <option value="delivered" {% if request.GET.status == 'delivered' %}selected{% endif %}>Livrée</option>
+                        <option value="cancelled" {% if request.GET.status == 'cancelled' %}selected{% endif %}>Annulée</option>
+                    </select>
+                </div>
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Fournisseur</span>
+                    </label>
+                    <select name="supplier" class="select select-bordered">
+                        <option value="">Tous les fournisseurs</option>
+                        {% for supplier in suppliers %}
+                        <option value="{{ supplier.id }}" {% if request.GET.supplier == supplier.id|stringformat:"s" %}selected{% endif %}>
+                            {{ supplier.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Date de début</span>
+                    </label>
+                    <input type="date" name="date_from" class="input input-bordered" 
+                           value="{{ request.GET.date_from }}">
+                </div>
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Date de fin</span>
+                    </label>
+                    <input type="date" name="date_to" class="input input-bordered" 
+                           value="{{ request.GET.date_to }}">
+                </div>
+                
+                <div class="form-control md:col-span-4">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search mr-2"></i>
+                        Filtrer
+                    </button>
+                    <a href="{% url 'products:suppliers:dropship_order_tracking' %}" class="btn btn-outline ml-2">
+                        <i class="fas fa-times mr-2"></i>
+                        Effacer
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Statistiques -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="stat bg-base-100 shadow rounded-lg">
+            <div class="stat-figure text-primary">
+                <i class="fas fa-clock text-2xl"></i>
+            </div>
+            <div class="stat-title">En attente</div>
+            <div class="stat-value text-warning">{{ stats.pending }}</div>
+        </div>
+        
+        <div class="stat bg-base-100 shadow rounded-lg">
+            <div class="stat-figure text-primary">
+                <i class="fas fa-cog text-2xl"></i>
+            </div>
+            <div class="stat-title">En cours</div>
+            <div class="stat-value text-info">{{ stats.processing }}</div>
+        </div>
+        
+        <div class="stat bg-base-100 shadow rounded-lg">
+            <div class="stat-figure text-primary">
+                <i class="fas fa-truck text-2xl"></i>
+            </div>
+            <div class="stat-title">Expédiées</div>
+            <div class="stat-value text-secondary">{{ stats.shipped }}</div>
+        </div>
+        
+        <div class="stat bg-base-100 shadow rounded-lg">
+            <div class="stat-figure text-primary">
+                <i class="fas fa-check-circle text-2xl"></i>
+            </div>
+            <div class="stat-title">Livrées</div>
+            <div class="stat-value text-success">{{ stats.delivered }}</div>
+        </div>
+    </div>
+    
+    <!-- Liste des commandes -->
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h3 class="card-title mb-4">
+                <i class="fas fa-list"></i>
+                Commandes ({{ orders.count }})
+            </h3>
+            
+            {% if orders %}
+            <div class="overflow-x-auto">
+                <table class="table table-zebra w-full">
+                    <thead>
+                        <tr>
+                            <th>Commande</th>
+                            <th>Client</th>
+                            <th>Fournisseur</th>
+                            <th>Produit</th>
+                            <th>Statut</th>
+                            <th>Montant</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in orders %}
+                        <tr>
+                            <td>
+                                <div class="font-mono text-sm">#{{ order.uid|slice:":8" }}</div>
+                            </td>
+                            <td>
+                                <div class="font-semibold">{{ order.customer.get_full_name }}</div>
+                                <div class="text-sm text-base-content/70">{{ order.customer.email }}</div>
+                            </td>
+                            <td>
+                                <div class="font-semibold">{{ order.supplier.name }}</div>
+                            </td>
+                            <td>
+                                <div class="font-semibold">{{ order.product.name }}</div>
+                                <div class="text-sm text-base-content/70">Qty: {{ order.quantity }}</div>
+                            </td>
+                            <td>
+                                <span class="badge badge-{{ order.status == 'delivered' and 'success' or order.status == 'shipped' and 'info' or order.status == 'processing' and 'warning' or 'error' }}">
+                                    {{ order.get_status_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="font-semibold">{{ order.total_amount }} GNF</div>
+                            </td>
+                            <td>
+                                <div class="text-sm">{{ order.created_at|date:"d/m/Y" }}</div>
+                                <div class="text-xs text-base-content/70">{{ order.created_at|time:"H:i" }}</div>
+                            </td>
+                            <td>
+                                <div class="flex gap-1">
+                                    <a href="{% url 'products:suppliers:dropship_order_detail' order.uid %}" 
+                                       class="btn btn-ghost btn-sm">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    {% if order.status == 'pending' or order.status == 'processing' %}
+                                    <a href="{% url 'products:suppliers:dropship_order_status' order.uid %}" 
+                                       class="btn btn-ghost btn-sm">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Pagination -->
+            {% if orders.has_other_pages %}
+            <div class="flex justify-center mt-6">
+                <div class="btn-group">
+                    {% if orders.has_previous %}
+                    <a href="?page={{ orders.previous_page_number }}" class="btn btn-outline">«</a>
+                    {% endif %}
+                    
+                    {% for num in orders.paginator.page_range %}
+                    {% if orders.number == num %}
+                    <span class="btn btn-active">{{ num }}</span>
+                    {% else %}
+                    <a href="?page={{ num }}" class="btn btn-outline">{{ num }}</a>
+                    {% endif %}
+                    {% endfor %}
+                    
+                    {% if orders.has_next %}
+                    <a href="?page={{ orders.next_page_number }}" class="btn btn-outline">»</a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+            
+            {% else %}
+            <div class="text-center py-8">
+                <i class="fas fa-inbox text-4xl text-base-content/30 mb-4"></i>
+                <h3 class="text-lg font-semibold mb-2">Aucune commande trouvée</h3>
+                <p class="text-base-content/70">Aucune commande dropshipping ne correspond à vos critères de recherche.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+function refreshOrders() {
+    window.location.reload();
+}
+
+// Auto-refresh toutes les 30 secondes
+setInterval(function() {
+    // Vérifier si l'utilisateur est actif
+    if (document.visibilityState === 'visible') {
+        refreshOrders();
+    }
+}, 30000);
+</script>
+{% endblock %}

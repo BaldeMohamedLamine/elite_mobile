@@ -1,0 +1,318 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load product_filters %}
+
+{% block title %}Confirmation Paiement - Online Shop{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 dark:from-gray-900 dark:to-gray-800 py-12">
+    <div class="container mx-auto px-4">
+        <div class="max-w-6xl mx-auto">
+            <!-- Header -->
+            <div class="text-center mb-8 animate-fade-in">
+                <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full mb-4">
+                    <i class="fas fa-money-bill-wave text-3xl text-white"></i>
+                </div>
+                <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2">Confirmation Paiement à la Livraison</h1>
+                <p class="text-gray-600 dark:text-gray-300">Confirmez le paiement reçu pour cette commande</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Order Information -->
+                <div class="lg:col-span-2 space-y-6">
+                    <!-- Order Details -->
+                    <div class="card bg-white dark:bg-gray-800 shadow-2xl animate-slide-in">
+                        <div class="card-body">
+                            <h2 class="card-title text-2xl mb-6">
+                                <i class="fas fa-receipt text-primary mr-2"></i>
+                                Commande #{{ order.uid }}
+                            </h2>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <h3 class="font-semibold text-lg mb-4 text-primary">Informations client</h3>
+                                    <div class="space-y-3">
+                                        <div class="flex justify-between items-center p-3 bg-base-200 rounded-lg">
+                                            <span class="font-semibold">Client :</span>
+                                            <span>{{ order.customer.first_name }} {{ order.customer.last_name }}</span>
+                                        </div>
+                                        <div class="flex justify-between items-center p-3 bg-base-200 rounded-lg">
+                                            <span class="font-semibold">Email :</span>
+                                            <span class="font-mono text-sm">{{ order.customer.email }}</span>
+                                        </div>
+                                        <div class="flex justify-between items-center p-3 bg-base-200 rounded-lg">
+                                            <span class="font-semibold">Date de commande :</span>
+                                            <span>{{ order.created_at|date:"d/m/Y H:i" }}</span>
+                                        </div>
+                                        <div class="flex justify-between items-center p-3 bg-base-200 rounded-lg">
+                                            <span class="font-semibold">Statut :</span>
+                                            <span class="badge badge-warning">{{ order.get_status_display }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <h3 class="font-semibold text-lg mb-4 text-primary">Informations de livraison</h3>
+                                    <div class="space-y-3">
+                                        <div class="p-3 bg-base-200 rounded-lg">
+                                            <span class="font-semibold block mb-1">Adresse :</span>
+                                            <span class="text-sm">{{ order.delivery_address }}</span>
+                                        </div>
+                                        <div class="flex justify-between items-center p-3 bg-base-200 rounded-lg">
+                                            <span class="font-semibold">Téléphone :</span>
+                                            <span class="font-mono">{{ order.delivery_phone }}</span>
+                                        </div>
+                                        {% if order.delivery_notes %}
+                                        <div class="p-3 bg-base-200 rounded-lg">
+                                            <span class="font-semibold block mb-1">Notes :</span>
+                                            <span class="text-sm">{{ order.delivery_notes }}</span>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Order Items -->
+                    <div class="card bg-white dark:bg-gray-800 shadow-2xl animate-slide-in">
+                        <div class="card-body">
+                            <h2 class="card-title text-2xl mb-6">
+                                <i class="fas fa-shopping-cart text-primary mr-2"></i>
+                                Articles commandés
+                            </h2>
+                            
+                            <div class="overflow-x-auto">
+                                <table class="table table-zebra w-full">
+                                    <thead>
+                                        <tr>
+                                            <th>Produit</th>
+                                            <th>Prix unitaire</th>
+                                            <th>Quantité</th>
+                                            <th>Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for item in order.items.all %}
+                                        <tr>
+                                            <td>
+                                                <div class="flex items-center gap-3">
+                                                    {% if item.product.image %}
+                                                    <div class="avatar">
+                                                        <div class="w-12 h-12 rounded">
+                                                            <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}">
+                                                        </div>
+                                                    </div>
+                                                    {% endif %}
+                                                    <div>
+                                                        <div class="font-medium">{{ item.product.name }}</div>
+                                                        <div class="text-sm text-base-content/70">{{ item.product.category.name }}</div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="font-semibold">{{ item.price_at_time|floatformat:0 }} FCFA</span>
+                                            </td>
+                                            <td>
+                                                <span class="badge badge-primary">{{ item.quantity }}</span>
+                                            </td>
+                                            <td>
+                                                <span class="font-bold">{{ item.price_at_time|floatformat:0|mul:item.quantity }} FCFA</span>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                    <tfoot>
+                                        <tr class="border-t-2">
+                                            <th colspan="3">Sous-total :</th>
+                                            <th class="text-lg">{{ order.subtotal|floatformat:0 }} FCFA</th>
+                                        </tr>
+                                        <tr>
+                                            <th colspan="3">Frais de livraison :</th>
+                                            <th class="text-lg">{{ order.delivery_fee|floatformat:0 }} FCFA</th>
+                                        </tr>
+                                        <tr class="bg-success text-success-content">
+                                            <th colspan="3" class="text-lg">Total à payer :</th>
+                                            <th class="text-xl font-bold">{{ order.total_amount|floatformat:0 }} FCFA</th>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Confirmation Form -->
+                <div class="lg:col-span-1 space-y-6">
+                    <!-- Payment Form -->
+                    <div class="card bg-white dark:bg-gray-800 shadow-2xl animate-slide-in">
+                        <div class="card-body">
+                            <h2 class="card-title text-2xl mb-6">
+                                <i class="fas fa-check-circle text-success mr-2"></i>
+                                Confirmer le Paiement
+                            </h2>
+                            
+                            <form method="post" class="space-y-4" id="payment-form">
+                                {% csrf_token %}
+                                
+                                <div class="form-control">
+                                    <label class="label">
+                                        <span class="label-text font-semibold">
+                                            <i class="fas fa-money-bill text-green-500 mr-2"></i>
+                                            {{ form.cash_received.label }}
+                                        </span>
+                                    </label>
+                                    {{ form.cash_received }}
+                                    {% if form.cash_received.errors %}
+                                        <label class="label">
+                                            <span class="label-text-alt text-error">{{ form.cash_received.errors.0 }}</span>
+                                        </label>
+                                    {% endif %}
+                                    {% if form.cash_received.help_text %}
+                                        <label class="label">
+                                            <span class="label-text-alt text-gray-500">{{ form.cash_received.help_text }}</span>
+                                        </label>
+                                    {% endif %}
+                                </div>
+
+                                <div class="form-control">
+                                    <label class="label">
+                                        <span class="label-text font-semibold">
+                                            <i class="fas fa-sticky-note text-blue-500 mr-2"></i>
+                                            {{ form.notes.label }}
+                                        </span>
+                                    </label>
+                                    {{ form.notes }}
+                                    {% if form.notes.errors %}
+                                        <label class="label">
+                                            <span class="label-text-alt text-error">{{ form.notes.errors.0 }}</span>
+                                        </label>
+                                    {% endif %}
+                                </div>
+
+                                <div class="alert alert-info">
+                                    <div class="flex items-start gap-3">
+                                        <i class="fas fa-info-circle text-2xl text-blue-500 mt-1"></i>
+                                        <div>
+                                            <h3 class="font-bold text-lg mb-2">Instructions</h3>
+                                            <ul class="space-y-1 text-sm">
+                                                <li class="flex items-center gap-2">
+                                                    <i class="fas fa-check text-green-500"></i>
+                                                    Vérifiez que le montant reçu correspond au total
+                                                </li>
+                                                <li class="flex items-center gap-2">
+                                                    <i class="fas fa-check text-green-500"></i>
+                                                    La monnaie sera calculée automatiquement
+                                                </li>
+                                                <li class="flex items-center gap-2">
+                                                    <i class="fas fa-exclamation-triangle text-yellow-500"></i>
+                                                    Cette action ne peut pas être annulée
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="flex flex-col gap-3 pt-4">
+                                    <button type="submit" class="btn btn-success btn-lg hover-glow transition-all">
+                                        <i class="fas fa-check mr-2"></i>
+                                        Confirmer le Paiement
+                                    </button>
+                                    <a href="{% url 'admin:index' %}" class="btn btn-outline btn-secondary hover-scale transition-all">
+                                        <i class="fas fa-arrow-left mr-2"></i>
+                                        Retour à l'admin
+                                    </a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Change Calculator -->
+                    <div class="card bg-white dark:bg-gray-800 shadow-xl animate-slide-in">
+                        <div class="card-body">
+                            <h2 class="card-title text-xl mb-6">
+                                <i class="fas fa-calculator text-primary mr-2"></i>
+                                Calcul de la Monnaie
+                            </h2>
+                            
+                            <div class="space-y-4">
+                                <div class="flex justify-between items-center p-3 bg-base-200 rounded-lg">
+                                    <span class="font-semibold">Total à payer :</span>
+                                    <span class="font-bold text-lg" id="total-amount">{{ order.total_amount|floatformat:0 }} FCFA</span>
+                                </div>
+                                
+                                <div class="flex justify-between items-center p-3 bg-base-200 rounded-lg">
+                                    <span class="font-semibold">Montant reçu :</span>
+                                    <span class="font-bold text-lg" id="received-amount">0 FCFA</span>
+                                </div>
+                                
+                                <div class="divider"></div>
+                                
+                                <div class="flex justify-between items-center p-4 bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900 dark:to-emerald-900 rounded-lg">
+                                    <span class="font-bold text-lg">Monnaie à rendre :</span>
+                                    <span class="font-bold text-xl" id="change-amount">0 FCFA</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Calcul automatique de la monnaie
+    const cashReceivedField = document.getElementById('{{ form.cash_received.id_for_label }}');
+    if (cashReceivedField) {
+        cashReceivedField.addEventListener('input', function() {
+            const totalAmount = {{ order.total_amount }};
+            const receivedAmount = parseFloat(this.value) || 0;
+            const changeAmount = receivedAmount - totalAmount;
+            
+            document.getElementById('received-amount').textContent = receivedAmount.toFixed(0) + ' FCFA';
+            document.getElementById('change-amount').textContent = changeAmount.toFixed(0) + ' FCFA';
+            
+            const changeElement = document.getElementById('change-amount');
+            if (changeAmount < 0) {
+                changeElement.className = 'font-bold text-xl text-error';
+                changeElement.parentElement.className = 'flex justify-between items-center p-4 bg-gradient-to-r from-red-100 to-pink-100 dark:from-red-900 dark:to-pink-900 rounded-lg';
+            } else if (changeAmount > 0) {
+                changeElement.className = 'font-bold text-xl text-success';
+                changeElement.parentElement.className = 'flex justify-between items-center p-4 bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900 dark:to-emerald-900 rounded-lg';
+            } else {
+                changeElement.className = 'font-bold text-xl text-primary';
+                changeElement.parentElement.className = 'flex justify-between items-center p-4 bg-gradient-to-r from-blue-100 to-indigo-100 dark:from-blue-900 dark:to-indigo-900 rounded-lg';
+            }
+        });
+    }
+
+    // Validation en temps réel
+    const form = document.getElementById('payment-form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<span class="loading loading-spinner loading-sm mr-2"></span>Confirmation...';
+            submitBtn.disabled = true;
+            
+            // Re-enable after 5 seconds as fallback
+            setTimeout(() => {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }, 5000);
+        });
+    }
+
+    // Add ripple effect to buttons
+    document.querySelectorAll('.btn').forEach(button => {
+        button.addEventListener('click', function(e) {
+            createRipple(e, this);
+        });
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,471 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - Boutique E-commerce{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header avec design moderne -->
+        <div class="mb-8">
+            <div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+                <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+                    <div class="flex items-center space-x-4">
+                        <div class="p-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl shadow-lg">
+                            <i class="fas fa-{% if object %}edit{% else %}plus{% endif %} text-white text-xl"></i>
+                        </div>
+                        <div>
+                            <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ title }}</h1>
+                            <p class="text-gray-600 text-lg">
+                                {% if object %}
+                                    Modifiez les informations de ce produit
+                                {% else %}
+                                    Créez un nouveau produit pour votre catalogue
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-3">
+                        <a href="{% url 'products:home' %}" 
+                           class="btn btn-outline btn-lg hover:shadow-lg transition-all duration-300">
+                            <i class="fas fa-arrow-left mr-2"></i>
+                            Retour à la liste
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Formulaire principal -->
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            <!-- Formulaire principal -->
+            <div class="lg:col-span-3">
+                <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+                    <form method="post" enctype="multipart/form-data" class="p-8">
+                        {% csrf_token %}
+                        
+                        <!-- Informations de base -->
+                        <div class="form-section mb-8">
+                            <div class="flex items-center mb-6">
+                                <div class="p-2 bg-blue-100 rounded-lg mr-3">
+                                    <i class="fas fa-info-circle text-blue-600"></i>
+                                </div>
+                                <h3 class="text-xl font-bold text-gray-900">Informations de base</h3>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="form-group">
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                        Nom du produit <span class="text-red-500">*</span>
+                                    </label>
+                                    <div class="relative">
+                                        {{ form.name }}
+                                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                            <i class="fas fa-tag text-gray-400"></i>
+                                        </div>
+                                    </div>
+                                    {% if form.name.errors %}
+                                        <div class="text-red-500 text-sm mt-2 flex items-center">
+                                            <i class="fas fa-exclamation-circle mr-1"></i>
+                                            {{ form.name.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                        Catégorie <span class="text-red-500">*</span>
+                                    </label>
+                                    <div class="relative">
+                                        {{ form.category }}
+                                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                            <i class="fas fa-list text-gray-400"></i>
+                                        </div>
+                                    </div>
+                                    {% if form.category.errors %}
+                                        <div class="text-red-500 text-sm mt-2 flex items-center">
+                                            <i class="fas fa-exclamation-circle mr-1"></i>
+                                            {{ form.category.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="form-group mt-6">
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                    Description <span class="text-red-500">*</span>
+                                </label>
+                                {{ form.description }}
+                                {% if form.description.errors %}
+                                    <div class="text-red-500 text-sm mt-2 flex items-center">
+                                        <i class="fas fa-exclamation-circle mr-1"></i>
+                                        {{ form.description.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Prix et informations commerciales -->
+                        <div class="form-section mb-8">
+                            <div class="flex items-center mb-6">
+                                <div class="p-2 bg-green-100 rounded-lg mr-3">
+                                    <i class="fas fa-dollar-sign text-green-600"></i>
+                                </div>
+                                <h3 class="text-xl font-bold text-gray-900">Prix et informations commerciales</h3>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="form-group">
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                        Prix de vente <span class="text-red-500">*</span>
+                                    </label>
+                                    <div class="relative">
+                                        {{ form.price }}
+                                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                            <span class="text-gray-500 font-medium">GNF</span>
+                                        </div>
+                                    </div>
+                                    {% if form.price.errors %}
+                                        <div class="text-red-500 text-sm mt-2 flex items-center">
+                                            <i class="fas fa-exclamation-circle mr-1"></i>
+                                            {{ form.price.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                        Prix d'achat
+                                    </label>
+                                    <div class="relative">
+                                        {{ form.cost_price }}
+                                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                            <span class="text-gray-500 font-medium">GNF</span>
+                                        </div>
+                                    </div>
+                                    {% if form.cost_price.errors %}
+                                        <div class="text-red-500 text-sm mt-2 flex items-center">
+                                            <i class="fas fa-exclamation-circle mr-1"></i>
+                                            {{ form.cost_price.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                                <div class="form-group">
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                        Poids (kg)
+                                    </label>
+                                    <div class="relative">
+                                        {{ form.weight }}
+                                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                            <i class="fas fa-weight text-gray-400"></i>
+                                        </div>
+                                    </div>
+                                    {% if form.weight.errors %}
+                                        <div class="text-red-500 text-sm mt-2 flex items-center">
+                                            <i class="fas fa-exclamation-circle mr-1"></i>
+                                            {{ form.weight.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                        Image du produit
+                                    </label>
+                                    <div class="relative">
+                                        {{ form.image }}
+                                    </div>
+                                    {% if form.image.errors %}
+                                        <div class="text-red-500 text-sm mt-2 flex items-center">
+                                            <i class="fas fa-exclamation-circle mr-1"></i>
+                                            {{ form.image.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Codes et identification -->
+                        <div class="form-section mb-8">
+                            <div class="flex items-center mb-6">
+                                <div class="p-2 bg-purple-100 rounded-lg mr-3">
+                                    <i class="fas fa-barcode text-purple-600"></i>
+                                </div>
+                                <h3 class="text-xl font-bold text-gray-900">Codes et identification</h3>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="form-group">
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                        Code SKU <span class="text-red-500">*</span>
+                                    </label>
+                                    <div class="relative">
+                                        {{ form.sku }}
+                                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                            <i class="fas fa-hashtag text-gray-400"></i>
+                                        </div>
+                                    </div>
+                                    {% if form.sku.errors %}
+                                        <div class="text-red-500 text-sm mt-2 flex items-center">
+                                            <i class="fas fa-exclamation-circle mr-1"></i>
+                                            {{ form.sku.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                        Code-barres
+                                    </label>
+                                    <div class="relative">
+                                        {{ form.barcode }}
+                                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                            <i class="fas fa-barcode text-gray-400"></i>
+                                        </div>
+                                    </div>
+                                    {% if form.barcode.errors %}
+                                        <div class="text-red-500 text-sm mt-2 flex items-center">
+                                            <i class="fas fa-exclamation-circle mr-1"></i>
+                                            {{ form.barcode.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="form-group mt-6">
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                    Dimensions
+                                </label>
+                                <div class="relative">
+                                    {{ form.dimensions }}
+                                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                        <i class="fas fa-ruler text-gray-400"></i>
+                                    </div>
+                                </div>
+                                {% if form.dimensions.errors %}
+                                    <div class="text-red-500 text-sm mt-2 flex items-center">
+                                        <i class="fas fa-exclamation-circle mr-1"></i>
+                                        {{ form.dimensions.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Statut et options -->
+                        <div class="form-section mb-8">
+                            <div class="flex items-center mb-6">
+                                <div class="p-2 bg-orange-100 rounded-lg mr-3">
+                                    <i class="fas fa-cog text-orange-600"></i>
+                                </div>
+                                <h3 class="text-xl font-bold text-gray-900">Statut et options</h3>
+                            </div>
+                            
+                            <div class="bg-gray-50 rounded-xl p-6">
+                                <div class="form-control">
+                                    <label class="label cursor-pointer justify-start">
+                                        {{ form.is_active }}
+                                        <div>
+                                            <span class="label-text font-semibold text-gray-900">Produit actif</span>
+                                            <div class="text-sm text-gray-600">Le produit sera visible dans le catalogue</div>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Note sur la gestion du stock -->
+                        <div class="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-8">
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0">
+                                    <i class="fas fa-info-circle text-blue-600 text-xl"></i>
+                                </div>
+                                <div class="ml-3">
+                                    <h4 class="text-sm font-semibold text-blue-900 mb-1">Gestion du stock</h4>
+                                    <p class="text-sm text-blue-800">
+                                        Le stock de ce produit sera géré séparément. Une fois le produit créé, 
+                                        vous pourrez configurer les quantités et seuils depuis la section 
+                                        <a href="{% url 'products:stock:stock_list' %}" class="font-semibold underline hover:text-blue-600">Gestion du stock</a>.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Boutons d'action -->
+                        <div class="flex justify-end gap-4 pt-6 border-t border-gray-200">
+                            <a href="{% url 'products:home' %}" 
+                               class="btn btn-outline btn-lg hover:shadow-lg transition-all duration-300">
+                                <i class="fas fa-times mr-2"></i>
+                                Annuler
+                            </a>
+                            <button type="submit" class="btn btn-primary btn-lg hover:shadow-lg transition-all duration-300">
+                                <i class="fas fa-save mr-2"></i>
+                                {{ submit_text }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Sidebar avec aide -->
+            <div class="lg:col-span-1">
+                <div class="space-y-6">
+                    <!-- Conseils -->
+                    <div class="bg-white rounded-2xl shadow-xl border border-gray-100 p-6">
+                        <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                            <i class="fas fa-lightbulb text-yellow-500 mr-2"></i>
+                            Conseils
+                        </h3>
+                        
+                        <div class="space-y-4">
+                            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                <div class="flex items-start">
+                                    <i class="fas fa-info-circle text-blue-600 mt-1 mr-3"></i>
+                                    <div>
+                                        <div class="font-semibold text-blue-900 text-sm">Nom du produit</div>
+                                        <div class="text-xs text-blue-800 mt-1">Utilisez un nom descriptif et attractif</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                                <div class="flex items-start">
+                                    <i class="fas fa-exclamation-triangle text-yellow-600 mt-1 mr-3"></i>
+                                    <div>
+                                        <div class="font-semibold text-yellow-900 text-sm">Code SKU</div>
+                                        <div class="text-xs text-yellow-800 mt-1">Doit être unique pour chaque produit</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                                <div class="flex items-start">
+                                    <i class="fas fa-chart-line text-green-600 mt-1 mr-3"></i>
+                                    <div>
+                                        <div class="font-semibold text-green-900 text-sm">Prix d'achat</div>
+                                        <div class="text-xs text-green-800 mt-1">Permet de calculer la marge bénéficiaire</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Liens rapides -->
+                    <div class="bg-white rounded-2xl shadow-xl border border-gray-100 p-6">
+                        <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                            <i class="fas fa-link text-purple-500 mr-2"></i>
+                            Liens rapides
+                        </h3>
+                        
+                        <div class="space-y-3">
+                            <a href="{% url 'products:stock:stock_list' %}" 
+                               class="block p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors duration-200">
+                                <div class="flex items-center">
+                                    <i class="fas fa-warehouse text-gray-600 mr-3"></i>
+                                    <span class="text-sm font-medium text-gray-900">Gestion du stock</span>
+                                </div>
+                            </a>
+                            
+                            <a href="{% url 'products:category_list' %}" 
+                               class="block p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors duration-200">
+                                <div class="flex items-center">
+                                    <i class="fas fa-tags text-gray-600 mr-3"></i>
+                                    <span class="text-sm font-medium text-gray-900">Catégories</span>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Styles personnalisés pour le formulaire de produit */
+.form-group {
+    @apply mb-4;
+}
+
+.form-group:last-child {
+    @apply mb-0;
+}
+
+/* Animation pour les boutons */
+.btn {
+    @apply transition-all duration-300 ease-in-out;
+}
+
+.btn:hover {
+    @apply transform scale-105;
+}
+
+/* Styles pour les inputs avec focus */
+.input:focus,
+.textarea:focus,
+.select:focus,
+.file-input:focus {
+    @apply ring-2 ring-blue-500 border-blue-500 shadow-lg;
+}
+
+/* Animation pour les cartes */
+.card {
+    @apply transition-all duration-300 ease-in-out;
+}
+
+.card:hover {
+    @apply shadow-2xl;
+}
+
+/* Styles pour les icônes dans les inputs */
+.input-group {
+    @apply relative;
+}
+
+.input-group .input {
+    @apply pr-10;
+}
+
+/* Animation pour les alertes */
+.alert {
+    @apply transition-all duration-300 ease-in-out;
+}
+
+.alert:hover {
+    @apply transform scale-105;
+}
+
+/* Gradient personnalisé pour le background */
+.bg-gradient-custom {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+/* Animation pour les sections du formulaire */
+.form-section {
+    @apply transition-all duration-500 ease-in-out;
+}
+
+/* Styles pour les liens rapides */
+.quick-link {
+    @apply transition-all duration-200 ease-in-out;
+}
+
+.quick-link:hover {
+    @apply transform translate-x-2;
+}
+
+/* Animation pour les icônes */
+.icon-animate {
+    @apply transition-all duration-300 ease-in-out;
+}
+
+.icon-animate:hover {
+    @apply transform rotate-12 scale-110;
+}
+</style>
+{% endblock %}

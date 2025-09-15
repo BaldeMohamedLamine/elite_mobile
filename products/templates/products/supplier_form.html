@@ -1,0 +1,488 @@
+{% extends 'manager/base.html' %}
+{% load static %}
+
+{% block page_title %}{{ title }}{% endblock %}
+{% block page_description %}Formulaire de gestion des fournisseurs{% endblock %}
+
+{% block manager_content %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div class="lg:col-span-2">
+        <div class="card bg-base-100 shadow-xl animate-slide-in">
+            <div class="card-body">
+                <h2 class="card-title text-2xl mb-6">
+                    <i class="fas fa-truck text-primary mr-2"></i>
+                    {{ title }}
+                </h2>
+                
+                <form method="post" enctype="multipart/form-data" class="space-y-6">
+                    {% csrf_token %}
+                    
+                    <!-- Informations générales -->
+                    <div class="divider">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-info-circle text-primary"></i>
+                            <span class="font-semibold">Informations Générales</span>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text">Nom du fournisseur <span class="text-error">*</span></span>
+                            </label>
+                            {{ form.name }}
+                            {% if form.name.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.name.errors.0 }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text">Nom de l'entreprise</span>
+                            </label>
+                            {{ form.company_name }}
+                            {% if form.company_name.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.company_name.errors.0 }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text">Personne de contact</span>
+                            </label>
+                            {{ form.contact_person }}
+                            {% if form.contact_person.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.contact_person.errors.0 }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text">Email <span class="text-error">*</span></span>
+                            </label>
+                            {{ form.email }}
+                            {% if form.email.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.email.errors.0 }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text">Téléphone</span>
+                            </label>
+                            {{ form.phone }}
+                            {% if form.phone.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.phone.errors.0 }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text">Site web</span>
+                            </label>
+                            {{ form.website }}
+                            {% if form.website.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.website.errors.0 }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Adresse -->
+                    <div class="divider">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-map-marker-alt text-primary"></i>
+                            <span class="font-semibold">Adresse</span>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text">Adresse ligne 1</span>
+                            </label>
+                            {{ form.address_line1 }}
+                            {% if form.address_line1.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.address_line1.errors.0 }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text">Adresse ligne 2</span>
+                            </label>
+                            {{ form.address_line2 }}
+                            {% if form.address_line2.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.address_line2.errors.0 }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text">Ville</span>
+                            </label>
+                            {{ form.city }}
+                            {% if form.city.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.city.errors.0 }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text">Région/Province</span>
+                            </label>
+                            {{ form.state_province }}
+                            {% if form.state_province.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.state_province.errors.0 }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text">Code postal</span>
+                            </label>
+                            {{ form.postal_code }}
+                            {% if form.postal_code.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.postal_code.errors.0 }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text">Pays</span>
+                            </label>
+                            {{ form.country }}
+                            {% if form.country.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.country.errors.0 }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Informations commerciales -->
+                    <div class="divider">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-briefcase text-primary"></i>
+                            <span class="font-semibold">Informations Commerciales</span>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text">Numéro de TVA/Impôt</span>
+                            </label>
+                            {{ form.tax_id }}
+                            {% if form.tax_id.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.tax_id.errors.0 }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text">Numéro de licence</span>
+                            </label>
+                            {{ form.business_license }}
+                            {% if form.business_license.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.business_license.errors.0 }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text">Conditions de paiement</span>
+                            </label>
+                            {{ form.payment_terms }}
+                            {% if form.payment_terms.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.payment_terms.errors.0 }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text">Limite de crédit (FCFA)</span>
+                            </label>
+                            {{ form.credit_limit }}
+                            {% if form.credit_limit.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.credit_limit.errors.0 }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text">Remise standard (%)</span>
+                            </label>
+                            {{ form.discount_percentage }}
+                            {% if form.discount_percentage.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.discount_percentage.errors.0 }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Statut et options -->
+                    <div class="divider">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-cog text-primary"></i>
+                            <span class="font-semibold">Statut et Options</span>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text">Statut</span>
+                            </label>
+                            {{ form.status }}
+                            {% if form.status.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.status.errors.0 }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-control">
+                            <label class="label cursor-pointer">
+                                {{ form.is_verified }}
+                                <span class="label-text ml-2">Fournisseur vérifié</span>
+                            </label>
+                            {% if form.is_verified.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.is_verified.errors.0 }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Notes -->
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">Notes internes</span>
+                        </label>
+                        {{ form.notes }}
+                        {% if form.notes.errors %}
+                            <label class="label">
+                                <span class="label-text-alt text-error">{{ form.notes.errors.0 }}</span>
+                            </label>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Boutons -->
+                    <div class="flex justify-between pt-6">
+                        <a href="{% url 'products:suppliers:supplier_list' %}" class="btn btn-secondary hover-scale transition-all">
+                            <i class="fas fa-arrow-left mr-2"></i>
+                            Annuler
+                        </a>
+                        <button type="submit" class="btn btn-primary hover-glow transition-all">
+                            <i class="fas fa-save mr-2"></i>
+                            {{ submit_text }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Aide -->
+    <div class="lg:col-span-1">
+        <div class="card bg-base-100 shadow-xl animate-slide-in">
+            <div class="card-body">
+                <h2 class="card-title text-xl mb-6">
+                    <i class="fas fa-question-circle text-primary mr-2"></i>
+                    Aide
+                </h2>
+                
+                <div class="space-y-6">
+                    <div>
+                        <h3 class="font-semibold mb-3">Informations requises</h3>
+                        <ul class="space-y-2">
+                            <li class="flex items-center gap-2">
+                                <i class="fas fa-check text-success"></i>
+                                <span class="text-sm">Nom du fournisseur</span>
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <i class="fas fa-check text-success"></i>
+                                <span class="text-sm">Email de contact</span>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div>
+                        <h3 class="font-semibold mb-3">Statuts disponibles</h3>
+                        <div class="space-y-2">
+                            <div class="flex items-center gap-2">
+                                <span class="badge badge-success badge-sm">Actif</span>
+                                <span class="text-sm">Fournisseur opérationnel</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="badge badge-error badge-sm">Inactif</span>
+                                <span class="text-sm">Fournisseur suspendu</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="badge badge-warning badge-sm">Suspendu</span>
+                                <span class="text-sm">Temporairement suspendu</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="badge badge-neutral badge-sm">En attente</span>
+                                <span class="text-sm">En cours de validation</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h3 class="font-semibold mb-3">Conditions de paiement</h3>
+                        <div class="space-y-2">
+                            <div class="text-sm">
+                                <strong>Net 15/30/45/60 jours</strong> - Paiement à échéance
+                            </div>
+                            <div class="text-sm">
+                                <strong>Prépayé</strong> - Paiement à la commande
+                            </div>
+                            <div class="text-sm">
+                                <strong>Paiement à la livraison</strong> - Paiement à la réception
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Validation en temps réel
+document.addEventListener('DOMContentLoaded', function() {
+    const emailField = document.getElementById('{{ form.email.id_for_label }}');
+    const phoneField = document.getElementById('{{ form.phone.id_for_label }}');
+    const websiteField = document.getElementById('{{ form.website.id_for_label }}');
+    
+    // Validation email
+    if (emailField) {
+        emailField.addEventListener('blur', function() {
+            const email = this.value;
+            if (email && !isValidEmail(email)) {
+                this.classList.add('input-error');
+                showFieldError(this, 'Format d\'email invalide');
+            } else {
+                this.classList.remove('input-error');
+                hideFieldError(this);
+            }
+        });
+    }
+    
+    // Validation téléphone
+    if (phoneField) {
+        phoneField.addEventListener('blur', function() {
+            const phone = this.value;
+            if (phone && !isValidPhone(phone)) {
+                this.classList.add('input-error');
+                showFieldError(this, 'Format de téléphone invalide');
+            } else {
+                this.classList.remove('input-error');
+                hideFieldError(this);
+            }
+        });
+    }
+    
+    // Validation site web
+    if (websiteField) {
+        websiteField.addEventListener('blur', function() {
+            const website = this.value;
+            if (website && !isValidURL(website)) {
+                this.classList.add('input-error');
+                showFieldError(this, 'Format d\'URL invalide');
+            } else {
+                this.classList.remove('input-error');
+                hideFieldError(this);
+            }
+        });
+    }
+});
+
+function isValidEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+}
+
+function isValidPhone(phone) {
+    const phoneRegex = /^[\+]?[0-9\s\-\(\)]{8,}$/;
+    return phoneRegex.test(phone);
+}
+
+function isValidURL(url) {
+    try {
+        new URL(url);
+        return true;
+    } catch {
+        return false;
+    }
+}
+
+function showFieldError(field, message) {
+    hideFieldError(field);
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'text-error text-sm mt-1 field-error';
+    errorDiv.textContent = message;
+    field.parentNode.appendChild(errorDiv);
+}
+
+function hideFieldError(field) {
+    const existingError = field.parentNode.querySelector('.field-error');
+    if (existingError) {
+        existingError.remove();
+    }
+}
+
+// Add ripple effect to buttons
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.btn').forEach(button => {
+        button.addEventListener('click', function(e) {
+            // createRipple(e, this);
+        });
+    });
+});
+</script>
+{% endblock %}

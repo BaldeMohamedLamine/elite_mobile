@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Supprimer le produit - {{ product.name }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-slate-50 to-red-50 flex items-center justify-center">
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-2xl mx-auto">
+            <!-- Header -->
+            <div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-100 mb-8">
+                <div class="flex items-center space-x-4 mb-6">
+                    <div class="p-3 bg-red-100 rounded-xl">
+                        <i class="fas fa-exclamation-triangle text-red-600 text-2xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-900">Confirmer la suppression</h1>
+                        <p class="text-gray-600">Cette action est irréversible</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Product Info -->
+            <div class="bg-white rounded-2xl shadow-xl border border-gray-100 mb-8">
+                <div class="p-8">
+                    <h2 class="text-xl font-bold text-gray-900 mb-4">Produit à supprimer</h2>
+                    
+                    <div class="flex items-start space-x-6">
+                        {% if product.image %}
+                        <div class="flex-shrink-0">
+                            <img src="{{ product.image.url }}" 
+                                 alt="{{ product.name }}" 
+                                 class="w-24 h-24 object-cover rounded-xl">
+                        </div>
+                        {% else %}
+                        <div class="w-24 h-24 bg-gray-200 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-image text-gray-400 text-2xl"></i>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="flex-1">
+                            <h3 class="text-lg font-bold text-gray-900 mb-2">{{ product.name }}</h3>
+                            <p class="text-gray-600 mb-2">{{ product.description|truncatewords:20 }}</p>
+                            <div class="flex items-center space-x-4 text-sm text-gray-500">
+                                <span><i class="fas fa-tag mr-1"></i>{{ product.category.name }}</span>
+                                <span><i class="fas fa-dollar-sign mr-1"></i>{{ product.price|floatformat:0 }} GNF</span>
+                                <span><i class="fas fa-hashtag mr-1"></i>{{ product.sku }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Warning -->
+            <div class="bg-red-50 border border-red-200 rounded-2xl p-6 mb-8">
+                <div class="flex items-start">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-exclamation-circle text-red-600 text-xl"></i>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-lg font-semibold text-red-900 mb-2">Attention !</h3>
+                        <p class="text-red-800 mb-3">
+                            La suppression de ce produit entraînera également la suppression de :
+                        </p>
+                        <ul class="list-disc list-inside text-red-800 space-y-1">
+                            <li>Toutes les données de stock associées</li>
+                            <li>L'historique des mouvements de stock</li>
+                            <li>Toutes les commandes contenant ce produit</li>
+                            <li>Les images et fichiers associés</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex flex-col sm:flex-row gap-4">
+                <a href="{% url 'products:product_manager_list' %}" 
+                   class="btn btn-outline btn-lg flex-1 hover:shadow-lg transition-all duration-300">
+                    <i class="fas fa-arrow-left mr-2"></i>
+                    Annuler
+                </a>
+                
+                <form method="post" class="flex-1">
+                    {% csrf_token %}
+                    <button type="submit" 
+                            class="btn btn-error btn-lg w-full hover:shadow-lg transition-all duration-300"
+                            onclick="return confirm('Êtes-vous absolument sûr de vouloir supprimer ce produit ? Cette action est irréversible.')">
+                        <i class="fas fa-trash mr-2"></i>
+                        Supprimer définitivement
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Animation pour les boutons */
+.btn {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Animation pour les cartes */
+.card {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Animation d'entrée */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-fade-in-up {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .container {
+        padding: 1rem;
+    }
+    
+    .btn {
+        padding: 0.75rem 1.5rem;
+    }
+}
+</style>
+{% endblock %}

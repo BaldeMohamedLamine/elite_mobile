@@ -1,0 +1,373 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard Analytics{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+        <div>
+            <h1 class="text-3xl font-bold mb-2">Dashboard Analytics</h1>
+            <p class="text-base-content/70">Analysez les performances de votre boutique en ligne</p>
+        </div>
+        
+        <div class="flex gap-2">
+            <select id="period-selector" class="select select-bordered">
+                <option value="7" {% if selected_days == 7 %}selected{% endif %}>7 derniers jours</option>
+                <option value="30" {% if selected_days == 30 %}selected{% endif %}>30 derniers jours</option>
+                <option value="90" {% if selected_days == 90 %}selected{% endif %}>90 derniers jours</option>
+            </select>
+            
+            <a href="{% url 'analytics:events' %}" class="btn btn-outline btn-sm">
+                <i class="fas fa-list mr-2"></i>
+                Événements
+            </a>
+            
+            <a href="{% url 'analytics:export_data' %}" class="btn btn-primary btn-sm">
+                <i class="fas fa-download mr-2"></i>
+                Exporter
+            </a>
+        </div>
+    </div>
+
+    <!-- Overview Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="stat bg-base-100 shadow rounded-lg">
+            <div class="stat-figure text-primary">
+                <i class="fas fa-users text-2xl"></i>
+            </div>
+            <div class="stat-title">Visiteurs</div>
+            <div class="stat-value text-primary">{{ dashboard_data.overview.total_visitors }}</div>
+            <div class="stat-desc">Total sur {{ selected_days }} jours</div>
+        </div>
+        
+        <div class="stat bg-base-100 shadow rounded-lg">
+            <div class="stat-figure text-success">
+                <i class="fas fa-shopping-cart text-2xl"></i>
+            </div>
+            <div class="stat-title">Commandes</div>
+            <div class="stat-value text-success">{{ dashboard_data.overview.total_orders }}</div>
+            <div class="stat-desc">Total sur {{ selected_days }} jours</div>
+        </div>
+        
+        <div class="stat bg-base-100 shadow rounded-lg">
+            <div class="stat-figure text-warning">
+                <i class="fas fa-chart-line text-2xl"></i>
+            </div>
+            <div class="stat-title">Taux de conversion</div>
+            <div class="stat-value text-warning">{{ dashboard_data.overview.conversion_rate }}%</div>
+            <div class="stat-desc">Visiteurs vers commandes</div>
+        </div>
+        
+        <div class="stat bg-base-100 shadow rounded-lg">
+            <div class="stat-figure text-info">
+                <i class="fas fa-money-bill-wave text-2xl"></i>
+            </div>
+            <div class="stat-title">Revenus</div>
+            <div class="stat-value text-info">{{ dashboard_data.overview.total_revenue|floatformat:0 }} GNF</div>
+            <div class="stat-desc">Total sur {{ selected_days }} jours</div>
+        </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <!-- Traffic Chart -->
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title mb-4">
+                    <i class="fas fa-chart-area mr-2"></i>
+                    Trafic et Pages Vues
+                </h2>
+                <div class="h-64 flex items-center justify-center">
+                    <canvas id="trafficChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Revenue Chart -->
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title mb-4">
+                    <i class="fas fa-chart-line mr-2"></i>
+                    Revenus Quotidiens
+                </h2>
+                <div class="h-64 flex items-center justify-center">
+                    <canvas id="revenueChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Metrics -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <!-- Traffic Metrics -->
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title mb-4">
+                    <i class="fas fa-globe mr-2"></i>
+                    Métriques de Trafic
+                </h2>
+                
+                <div class="space-y-4">
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm">Pages vues</span>
+                        <span class="font-semibold">{{ dashboard_data.traffic.page_views }}</span>
+                    </div>
+                    
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm">Visiteurs uniques</span>
+                        <span class="font-semibold">{{ dashboard_data.traffic.unique_visitors }}</span>
+                    </div>
+                    
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm">Durée moyenne de session</span>
+                        <span class="font-semibold">
+                            {% if dashboard_data.traffic.avg_session_duration %}
+                                {{ dashboard_data.traffic.avg_session_duration|floatformat:0 }}s
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </span>
+                    </div>
+                    
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm">Taux de rebond</span>
+                        <span class="font-semibold">{{ dashboard_data.traffic.bounce_rate }}%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- User Metrics -->
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title mb-4">
+                    <i class="fas fa-users mr-2"></i>
+                    Métriques Utilisateurs
+                </h2>
+                
+                <div class="space-y-4">
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm">Nouveaux utilisateurs</span>
+                        <span class="font-semibold">{{ dashboard_data.users.new_users }}</span>
+                    </div>
+                    
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm">Utilisateurs récurrents</span>
+                        <span class="font-semibold">{{ dashboard_data.users.returning_users }}</span>
+                    </div>
+                    
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm">Taux de rétention</span>
+                        <span class="font-semibold">
+                            {% if dashboard_data.users.new_users > 0 %}
+                                {{ dashboard_data.users.returning_users|floatformat:0|add:0|div:dashboard_data.users.new_users|floatformat:0|add:0|mul:100 }}%
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Conversion Metrics -->
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title mb-4">
+                    <i class="fas fa-funnel-dollar mr-2"></i>
+                    Métriques de Conversion
+                </h2>
+                
+                <div class="space-y-4">
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm">Taux de conversion global</span>
+                        <span class="font-semibold">{{ dashboard_data.overview.conversion_rate }}%</span>
+                    </div>
+                    
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm">Abandon de panier</span>
+                        <span class="font-semibold">{{ dashboard_data.conversions.cart_abandonment_rate }}%</span>
+                    </div>
+                    
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm">Valeur moyenne commande</span>
+                        <span class="font-semibold">
+                            {% if dashboard_data.revenue.avg_order_value %}
+                                {{ dashboard_data.revenue.avg_order_value|floatformat:0 }} GNF
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Products -->
+    <div class="card bg-base-100 shadow-xl mb-8">
+        <div class="card-body">
+            <h2 class="card-title mb-4">
+                <i class="fas fa-star mr-2"></i>
+                Produits les Plus Consultés
+            </h2>
+            
+            {% if dashboard_data.products.top_products %}
+                <div class="overflow-x-auto">
+                    <table class="table table-zebra w-full">
+                        <thead>
+                            <tr>
+                                <th>Produit</th>
+                                <th>Vues</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for product in dashboard_data.products.top_products %}
+                                <tr>
+                                    <td>
+                                        <div class="flex items-center gap-3">
+                                            <div class="avatar">
+                                                <div class="mask mask-squircle w-12 h-12">
+                                                    <div class="bg-base-300 flex items-center justify-center">
+                                                        <i class="fas fa-image"></i>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <div class="font-bold">Produit #{{ product.event_data__product_id }}</div>
+                                                <div class="text-sm opacity-50">ID: {{ product.event_data__product_id }}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-primary">{{ product.views }}</span>
+                                    </td>
+                                    <td>
+                                        <a href="#" class="btn btn-ghost btn-xs">
+                                            <i class="fas fa-eye mr-1"></i>
+                                            Voir détails
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-8">
+                    <i class="fas fa-chart-bar text-4xl text-base-content/30 mb-4"></i>
+                    <p class="text-base-content/70">Aucune donnée de produit disponible</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title mb-4">
+                <i class="fas fa-bolt mr-2"></i>
+                Actions Rapides
+            </h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <a href="{% url 'analytics:funnel' %}" class="btn btn-outline">
+                    <i class="fas fa-funnel-dollar mr-2"></i>
+                    Entonnoir de Conversion
+                </a>
+                
+                <a href="{% url 'analytics:ab_test_list' %}" class="btn btn-outline">
+                    <i class="fas fa-flask mr-2"></i>
+                    Tests A/B
+                </a>
+                
+                <a href="{% url 'analytics:report_template_list' %}" class="btn btn-outline">
+                    <i class="fas fa-file-alt mr-2"></i>
+                    Rapports
+                </a>
+                
+                <a href="{% url 'analytics:export_data' %}" class="btn btn-outline">
+                    <i class="fas fa-download mr-2"></i>
+                    Exporter Données
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+// Configuration des graphiques
+const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+        legend: {
+            position: 'top',
+        },
+    },
+    scales: {
+        y: {
+            beginAtZero: true
+        }
+    }
+};
+
+// Graphique de trafic
+const trafficCtx = document.getElementById('trafficChart').getContext('2d');
+const trafficChart = new Chart(trafficCtx, {
+    type: 'line',
+    data: {
+        labels: ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'],
+        datasets: [{
+            label: 'Visiteurs',
+            data: [12, 19, 3, 5, 2, 3, 7],
+            borderColor: 'rgb(59, 130, 246)',
+            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            tension: 0.1
+        }, {
+            label: 'Pages vues',
+            data: [25, 35, 15, 20, 12, 18, 30],
+            borderColor: 'rgb(16, 185, 129)',
+            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+            tension: 0.1
+        }]
+    },
+    options: chartOptions
+});
+
+// Graphique de revenus
+const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+const revenueChart = new Chart(revenueCtx, {
+    type: 'bar',
+    data: {
+        labels: ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'],
+        datasets: [{
+            label: 'Revenus (GNF)',
+            data: [120000, 190000, 300000, 500000, 200000, 300000, 700000],
+            backgroundColor: 'rgba(245, 158, 11, 0.8)',
+            borderColor: 'rgb(245, 158, 11)',
+            borderWidth: 1
+        }]
+    },
+    options: chartOptions
+});
+
+// Gestionnaire de changement de période
+document.getElementById('period-selector').addEventListener('change', function() {
+    const days = this.value;
+    window.location.href = `{% url 'analytics:dashboard' %}?days=${days}`;
+});
+
+// Actualisation automatique des données (optionnel)
+setInterval(function() {
+    // Ici vous pourriez ajouter une logique pour actualiser les données
+    // sans recharger la page complète
+}, 300000); // Toutes les 5 minutes
+</script>
+{% endblock %}
