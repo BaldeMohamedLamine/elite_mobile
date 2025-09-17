@@ -16,8 +16,57 @@
     
     <!-- Custom CSS -->
     <style>
+        :root {
+            --primary: 25 95% 53%; /* Orange vif */
+            --primary-content: 0 0% 100%; /* Blanc */
+            --secondary: 0 0% 9%; /* Noir */
+            --secondary-content: 0 0% 100%; /* Blanc */
+            --accent: 25 95% 53%; /* Orange vif */
+            --accent-content: 0 0% 100%; /* Blanc */
+            --neutral: 0 0% 9%; /* Noir */
+            --neutral-content: 0 0% 100%; /* Blanc */
+            --base-100: 0 0% 100%; /* Blanc */
+            --base-200: 0 0% 96%; /* Gris très clair */
+            --base-300: 0 0% 90%; /* Gris clair */
+            --base-content: 0 0% 9%; /* Noir */
+        }
+        
+        /* Force les couleurs orange, blanc, noir */
+        .btn-primary {
+            background-color: #ff6b35 !important;
+            border-color: #ff6b35 !important;
+        }
+        .btn-primary:hover {
+            background-color: #e55a2b !important;
+            border-color: #e55a2b !important;
+        }
+        .text-primary {
+            color: #ff6b35 !important;
+        }
+        .bg-primary {
+            background-color: #ff6b35 !important;
+        }
+        .border-primary {
+            border-color: #ff6b35 !important;
+        }
+        .text-secondary {
+            color: #1a1a1a !important;
+        }
+        .bg-secondary {
+            background-color: #1a1a1a !important;
+        }
+        .text-base-content {
+            color: #1a1a1a !important;
+        }
+        .bg-base-100 {
+            background-color: #ffffff !important;
+        }
+        .bg-base-200 {
+            background-color: #f5f5f5 !important;
+        }
+        
         .gradient-bg {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
         }
         .glass-effect {
             backdrop-filter: blur(10px);

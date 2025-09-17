@@ -143,7 +143,10 @@
                         <td>
                             <div class="flex flex-col gap-1">
                                 <span class="badge badge-{% if product.is_out_of_stock %}error{% elif product.is_low_stock %}warning{% else %}success{% endif %}">
-                                    {{ product.virtual_stock }}
+                                    {{ product.virtual_stock }} virtuel
+                                </span>
+                                <span class="badge badge-primary">
+                                    {{ product.total_stock_available }} total
                                 </span>
                                 {% if product.is_low_stock %}
                                 <span class="text-xs text-warning">Seuil: {{ product.reorder_threshold }}</span>

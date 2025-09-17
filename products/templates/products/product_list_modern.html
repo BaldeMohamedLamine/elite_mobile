@@ -6,9 +6,9 @@
 
 {% block content %}
 {% csrf_token %}
-<div class="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+<div class="min-h-screen bg-gradient-to-br from-base-100 to-base-200">
     <!-- Hero Section -->
-    <section class="relative py-16 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-700 overflow-hidden">
+    <section class="relative py-16 bg-gradient-to-r from-primary via-accent to-secondary overflow-hidden">
         <div class="absolute inset-0 bg-black opacity-20"></div>
         <div class="relative container mx-auto px-4">
             <div class="text-center text-white">
@@ -23,9 +23,9 @@
                     <div class="relative">
                         <input type="text" 
                                placeholder="Rechercher un produit..." 
-                               class="w-full px-6 py-4 text-lg rounded-2xl border-0 shadow-xl focus:ring-4 focus:ring-blue-300 focus:outline-none"
+                               class="w-full px-6 py-4 text-lg rounded-2xl border-0 shadow-xl focus:ring-4 focus:ring-primary/30 focus:outline-none"
                                id="product-search">
-                        <button class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-xl transition-all duration-300"
+                        <button class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-primary hover:bg-primary/90 text-primary-content px-6 py-2 rounded-xl transition-all duration-300"
                                 id="search-btn">
                             <i class="fas fa-search"></i>
                         </button>
@@ -43,11 +43,11 @@
     </section>
 
     <!-- Filters Section -->
-    <section class="py-8 bg-white shadow-lg">
+    <section class="py-8 bg-base-100 shadow-lg">
         <div class="container mx-auto px-4">
             <div class="flex flex-wrap gap-4 justify-center items-center">
                 <div class="form-control">
-                    <select class="select select-bordered w-full max-w-xs focus:ring-2 focus:ring-blue-500" id="category-filter">
+                    <select class="select select-bordered w-full max-w-xs focus:ring-2 focus:ring-primary" id="category-filter">
                         <option value="">Toutes les catégories</option>
                         {% for category in categories %}
                         <option value="{{ category.id }}">{{ category.name }}</option>
@@ -55,7 +55,7 @@
                     </select>
                 </div>
                 <div class="form-control">
-                    <select class="select select-bordered w-full max-w-xs focus:ring-2 focus:ring-blue-500" id="price-filter">
+                    <select class="select select-bordered w-full max-w-xs focus:ring-2 focus:ring-primary" id="price-filter">
                         <option value="">Tous les prix</option>
                         <option value="0-50000">Moins de 50 000 GNF</option>
                         <option value="50000-100000">50 000 - 100 000 GNF</option>
@@ -64,7 +64,7 @@
                     </select>
                 </div>
                 <div class="form-control">
-                    <select class="select select-bordered w-full max-w-xs focus:ring-2 focus:ring-blue-500" id="sort-filter">
+                    <select class="select select-bordered w-full max-w-xs focus:ring-2 focus:ring-primary" id="sort-filter">
                         <option value="">Trier par</option>
                         <option value="name">Nom (A-Z)</option>
                         <option value="-name">Nom (Z-A)</option>
@@ -87,18 +87,18 @@
             <!-- Results header -->
             <div class="flex justify-between items-center mb-8">
                 <div>
-                    <h2 class="text-2xl font-bold text-gray-900">
+                    <h2 class="text-2xl font-bold text-base-content">
                         <span id="product-count">{{ products|length }}</span> produit{{ products|length|pluralize }}
                     </h2>
-                    <p class="text-gray-600">Trouvez exactement ce que vous cherchez</p>
+                    <p class="text-base-content/70">Trouvez exactement ce que vous cherchez</p>
                 </div>
                 
                 <!-- View toggle -->
-                <div class="flex bg-gray-100 rounded-lg p-1">
-                    <button class="px-4 py-2 rounded-md bg-white shadow-sm text-gray-700" id="grid-view">
+                <div class="flex bg-base-200 rounded-lg p-1">
+                    <button class="px-4 py-2 rounded-md bg-base-100 shadow-sm text-base-content" id="grid-view">
                         <i class="fas fa-th-large"></i>
                     </button>
-                    <button class="px-4 py-2 rounded-md text-gray-500" id="list-view">
+                    <button class="px-4 py-2 rounded-md text-base-content/50" id="list-view">
                         <i class="fas fa-list"></i>
                     </button>
                 </div>

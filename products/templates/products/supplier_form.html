@@ -391,6 +391,74 @@
 </div>
 {% endblock %}
 
+{% block extra_css %}
+<style>
+/* Amélioration des styles pour les champs du formulaire */
+.form-control input, .form-control select, .form-control textarea {
+    transition: all 0.3s ease;
+}
+
+.form-control input:focus, .form-control select:focus, .form-control textarea:focus {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Styles pour les champs désactivés */
+.form-control input:disabled, .form-control select:disabled, .form-control textarea:disabled {
+    opacity: 0.6;
+    background-color: #f5f5f5;
+    cursor: not-allowed;
+}
+
+/* Amélioration des labels */
+.label-text {
+    font-weight: 600;
+    color: #374151;
+}
+
+/* Styles pour les erreurs */
+.input-error {
+    border-color: #ef4444 !important;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1) !important;
+}
+
+/* Animation pour les sections */
+.divider {
+    animation: slideIn 0.5s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Styles pour les champs numériques */
+input[type="number"] {
+    text-align: right;
+}
+
+/* Amélioration des checkboxes */
+.checkbox {
+    transform: scale(1.2);
+}
+
+/* Styles pour les selects */
+.select {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.5rem center;
+    background-repeat: no-repeat;
+    background-size: 1.5em 1.5em;
+    padding-right: 2.5rem;
+}
+</style>
+{% endblock %}
+
 {% block extra_js %}
 <script>
 // Validation en temps réel
@@ -398,6 +466,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const emailField = document.getElementById('{{ form.email.id_for_label }}');
     const phoneField = document.getElementById('{{ form.phone.id_for_label }}');
     const websiteField = document.getElementById('{{ form.website.id_for_label }}');
+    const creditLimitField = document.getElementById('{{ form.credit_limit.id_for_label }}');
+    const discountField = document.getElementById('{{ form.discount_percentage.id_for_label }}');
     
     // Validation email
     if (emailField) {
@@ -440,6 +510,59 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+    
+    // Validation limite de crédit
+    if (creditLimitField) {
+        creditLimitField.addEventListener('blur', function() {
+            const value = parseFloat(this.value);
+            if (this.value && (isNaN(value) || value < 0)) {
+                this.classList.add('input-error');
+                showFieldError(this, 'La limite de crédit doit être un nombre positif');
+            } else {
+                this.classList.remove('input-error');
+                hideFieldError(this);
+            }
+        });
+    }
+    
+    // Validation pourcentage de remise
+    if (discountField) {
+        discountField.addEventListener('blur', function() {
+            const value = parseFloat(this.value);
+            if (this.value && (isNaN(value) || value < 0 || value > 100)) {
+                this.classList.add('input-error');
+                showFieldError(this, 'Le pourcentage doit être entre 0 et 100');
+            } else {
+                this.classList.remove('input-error');
+                hideFieldError(this);
+            }
+        });
+    }
+    
+    // Auto-formatage des champs numériques
+    [creditLimitField, discountField].forEach(field => {
+        if (field) {
+            field.addEventListener('input', function() {
+                // Supprimer les caractères non numériques sauf le point
+                this.value = this.value.replace(/[^0-9.]/g, '');
+            });
+        }
+    });
+    
+    // Auto-formatage du téléphone
+    if (phoneField) {
+        phoneField.addEventListener('input', function() {
+            let value = this.value.replace(/\D/g, '');
+            if (value.length > 0) {
+                if (value.startsWith('224')) {
+                    value = '+' + value;
+                } else if (!value.startsWith('+')) {
+                    value = '+224' + value;
+                }
+            }
+            this.value = value;
+        });
+    }
 });
 
 function isValidEmail(email) {
@@ -476,13 +599,18 @@ function hideFieldError(field) {
     }
 }
 
-// Add ripple effect to buttons
+// Animation des sections
 document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('.btn').forEach(button => {
-        button.addEventListener('click', function(e) {
-            // createRipple(e, this);
-        });
+    const sections = document.querySelectorAll('.divider');
+    sections.forEach((section, index) => {
+        section.style.animationDelay = `${index * 0.1}s`;
     });
+    
+    // Focus automatique sur le premier champ
+    const firstInput = document.querySelector('input[type="text"], input[type="email"]');
+    if (firstInput) {
+        firstInput.focus();
+    }
 });
 </script>
 {% endblock %}

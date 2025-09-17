@@ -3,7 +3,8 @@ Formulaires pour la gestion des fournisseurs et dropshipping
 """
 from django import forms
 from django.core.exceptions import ValidationError
-from .models import Supplier, DropshipProduct, Product
+from .dropshipping_models import Supplier, DropshipProduct
+from .models import Product
 
 
 class SupplierForm(forms.ModelForm):
@@ -19,77 +20,77 @@ class SupplierForm(forms.ModelForm):
         ]
         widgets = {
             'name': forms.TextInput(attrs={
-                'class': 'form-control',
+                'class': 'input input-bordered w-full',
                 'placeholder': 'Nom du fournisseur'
             }),
             'company_name': forms.TextInput(attrs={
-                'class': 'form-control',
+                'class': 'input input-bordered w-full',
                 'placeholder': 'Nom de l\'entreprise'
             }),
             'contact_person': forms.TextInput(attrs={
-                'class': 'form-control',
+                'class': 'input input-bordered w-full',
                 'placeholder': 'Personne de contact'
             }),
             'email': forms.EmailInput(attrs={
-                'class': 'form-control',
+                'class': 'input input-bordered w-full',
                 'placeholder': 'email@exemple.com'
             }),
             'phone': forms.TextInput(attrs={
-                'class': 'form-control',
+                'class': 'input input-bordered w-full',
                 'placeholder': '+224 XXX XX XX XX'
             }),
             'website': forms.URLInput(attrs={
-                'class': 'form-control',
+                'class': 'input input-bordered w-full',
                 'placeholder': 'https://www.exemple.com'
             }),
             'address_line1': forms.TextInput(attrs={
-                'class': 'form-control',
+                'class': 'input input-bordered w-full',
                 'placeholder': 'Adresse ligne 1'
             }),
             'address_line2': forms.TextInput(attrs={
-                'class': 'form-control',
+                'class': 'input input-bordered w-full',
                 'placeholder': 'Adresse ligne 2 (optionnel)'
             }),
             'city': forms.TextInput(attrs={
-                'class': 'form-control',
+                'class': 'input input-bordered w-full',
                 'placeholder': 'Ville'
             }),
             'state_province': forms.TextInput(attrs={
-                'class': 'form-control',
+                'class': 'input input-bordered w-full',
                 'placeholder': 'Région/Province'
             }),
             'postal_code': forms.TextInput(attrs={
-                'class': 'form-control',
+                'class': 'input input-bordered w-full',
                 'placeholder': 'Code postal'
             }),
             'country': forms.TextInput(attrs={
-                'class': 'form-control',
+                'class': 'input input-bordered w-full',
                 'value': 'Guinée'
             }),
             'tax_id': forms.TextInput(attrs={
-                'class': 'form-control',
+                'class': 'input input-bordered w-full',
                 'placeholder': 'Numéro de TVA/Impôt'
             }),
             'business_license': forms.TextInput(attrs={
-                'class': 'form-control',
+                'class': 'input input-bordered w-full',
                 'placeholder': 'Numéro de licence'
             }),
-            'payment_terms': forms.Select(attrs={'class': 'form-select'}),
+            'payment_terms': forms.Select(attrs={'class': 'select select-bordered w-full'}),
             'credit_limit': forms.NumberInput(attrs={
-                'class': 'form-control',
+                'class': 'input input-bordered w-full',
                 'step': '0.01',
                 'min': '0'
             }),
             'discount_percentage': forms.NumberInput(attrs={
-                'class': 'form-control',
+                'class': 'input input-bordered w-full',
                 'step': '0.01',
                 'min': '0',
                 'max': '100'
             }),
-            'status': forms.Select(attrs={'class': 'form-select'}),
-            'is_verified': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'status': forms.Select(attrs={'class': 'select select-bordered w-full'}),
+            'is_verified': forms.CheckboxInput(attrs={'class': 'checkbox checkbox-primary'}),
             'notes': forms.Textarea(attrs={
-                'class': 'form-control',
+                'class': 'textarea textarea-bordered w-full',
                 'rows': 4,
                 'placeholder': 'Notes internes sur ce fournisseur...'
             }),
@@ -147,58 +148,59 @@ class DropshipProductForm(forms.ModelForm):
             'reorder_threshold', 'supplier_sku', 'supplier_url', 'notes'
         ]
         widgets = {
-            'supplier': forms.Select(attrs={'class': 'form-select'}),
-            'product': forms.Select(attrs={'class': 'form-select'}),
+            'supplier': forms.Select(attrs={'class': 'select select-bordered w-full'}),
+            'product': forms.Select(attrs={'class': 'select select-bordered w-full'}),
             'supplier_price': forms.NumberInput(attrs={
-                'class': 'form-control',
+                'class': 'input input-bordered w-full',
                 'step': '0.01',
                 'min': '0',
                 'placeholder': '0.00'
             }),
             'selling_price': forms.NumberInput(attrs={
-                'class': 'form-control',
+                'class': 'input input-bordered w-full',
                 'step': '0.01',
                 'min': '0',
                 'placeholder': '0.00'
             }),
             'virtual_stock': forms.NumberInput(attrs={
-                'class': 'form-control',
-                'min': '0'
+                'class': 'input input-bordered w-full',
+                'min': '0',
+                'placeholder': 'Quantité disponible chez le fournisseur'
             }),
             'min_order_quantity': forms.NumberInput(attrs={
-                'class': 'form-control',
+                'class': 'input input-bordered w-full',
                 'min': '1'
             }),
             'max_order_quantity': forms.NumberInput(attrs={
-                'class': 'form-control',
+                'class': 'input input-bordered w-full',
                 'min': '1'
             }),
             'estimated_delivery_days': forms.NumberInput(attrs={
-                'class': 'form-control',
+                'class': 'input input-bordered w-full',
                 'min': '1'
             }),
             'shipping_cost': forms.NumberInput(attrs={
-                'class': 'form-control',
+                'class': 'input input-bordered w-full',
                 'step': '0.01',
                 'min': '0'
             }),
-            'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-            'is_featured': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-            'auto_reorder': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'is_active': forms.CheckboxInput(attrs={'class': 'checkbox checkbox-primary'}),
+            'is_featured': forms.CheckboxInput(attrs={'class': 'checkbox checkbox-primary'}),
+            'auto_reorder': forms.CheckboxInput(attrs={'class': 'checkbox checkbox-primary'}),
             'reorder_threshold': forms.NumberInput(attrs={
-                'class': 'form-control',
+                'class': 'input input-bordered w-full',
                 'min': '0'
             }),
             'supplier_sku': forms.TextInput(attrs={
-                'class': 'form-control',
+                'class': 'input input-bordered w-full',
                 'placeholder': 'SKU du fournisseur'
             }),
             'supplier_url': forms.URLInput(attrs={
-                'class': 'form-control',
+                'class': 'input input-bordered w-full',
                 'placeholder': 'https://www.exemple.com/produit'
             }),
             'notes': forms.Textarea(attrs={
-                'class': 'form-control',
+                'class': 'textarea textarea-bordered w-full',
                 'rows': 3,
                 'placeholder': 'Notes sur ce produit...'
             }),
@@ -284,7 +286,7 @@ class SupplierBulkImportForm(forms.Form):
     
     csv_file = forms.FileField(
         widget=forms.FileInput(attrs={
-            'class': 'form-control',
+            'class': 'file-input file-input-bordered w-full',
             'accept': '.csv'
         }),
         help_text="Fichier CSV avec les colonnes: name,company_name,email,phone,address_line1,city,country"
@@ -309,13 +311,13 @@ class DropshipProductBulkImportForm(forms.Form):
     
     supplier = forms.ModelChoiceField(
         queryset=Supplier.objects.filter(status='active'),
-        widget=forms.Select(attrs={'class': 'form-select'}),
+        widget=forms.Select(attrs={'class': 'select select-bordered w-full'}),
         help_text="Fournisseur pour les produits à importer"
     )
     
     csv_file = forms.FileField(
         widget=forms.FileInput(attrs={
-            'class': 'form-control',
+            'class': 'file-input file-input-bordered w-full',
             'accept': '.csv'
         }),
         help_text="Fichier CSV avec les colonnes: product_id,supplier_price,selling_price,virtual_stock,supplier_sku"

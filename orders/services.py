@@ -9,6 +9,7 @@ import logging
 
 from .models import Order, OrderItem, Cart, CartItem, Payment
 from products.models import Product
+from products.stock_management_service import StockManagementService
 from users.models import User
 
 logger = logging.getLogger(__name__)
@@ -65,14 +66,30 @@ class OrderService:
                     total_amount=total_amount
                 )
                 
-                # Créer les articles de commande
+                # Créer les articles de commande et gérer les stocks
                 for cart_item in cart_items:
-                    OrderItem.objects.create(
+                    # Créer l'article de commande
+                    order_item = OrderItem.objects.create(
                         order=order,
                         product=cart_item.product,
                         quantity=cart_item.quantity,
                         price_at_time=cart_item.product.price
                     )
+                    
+                    # Vendre la quantité en respectant la logique FIFO
+                    try:
+                        sales_records = StockManagementService.sell_quantity(
+                            cart_item.product, 
+                            cart_item.quantity, 
+                            order_item, 
+                            f"Commande {order.order_number or order.uid}"
+                        )
+                        logger.info(f"Vendu {cart_item.quantity} unités de {cart_item.product.name} pour la commande {order.uid}")
+                    except ValidationError as e:
+                        logger.error(f"Erreur de stock pour {cart_item.product.name}: {e}")
+                        # Annuler la commande si problème de stock
+                        order.delete()
+                        raise ValidationError(f"Stock insuffisant pour {cart_item.product.name}")
                 
                 # Vider le panier
                 cart.items.all().delete()
@@ -160,17 +177,14 @@ class CartService:
             Dictionnaire avec le résultat de l'opération
         """
         try:
-            # Vérifier le stock
-            available_qty = 0
-            if hasattr(product, 'stock') and product.stock:
-                available_qty = product.stock.available_quantity
-            elif hasattr(product, 'quantity'):
-                available_qty = product.quantity
+            # Vérifier le stock avec la nouvelle logique hybride
+            stock_info = StockManagementService.get_available_stock(product)
+            total_available = stock_info['total']
             
-            if available_qty < quantity:
+            if total_available < quantity:
                 return {
                     'success': False,
-                    'message': f'Stock insuffisant. Disponible: {available_qty}'
+                    'message': f'Stock insuffisant. Disponible: {total_available} (Physique: {stock_info["physical"]}, Virtuel: {stock_info["virtual"]})'
                 }
             
             with transaction.atomic():
@@ -187,10 +201,10 @@ class CartService:
                 if not created:
                     # Mettre à jour la quantité
                     new_quantity = cart_item.quantity + quantity
-                    if new_quantity > available_qty:
+                    if new_quantity > total_available:
                         return {
                             'success': False,
-                            'message': f'Quantité totale dépasserait le stock disponible ({available_qty})'
+                            'message': f'Quantité totale dépasserait le stock disponible ({total_available})'
                         }
                     cart_item.quantity = new_quantity
                     cart_item.save()

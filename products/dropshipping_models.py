@@ -151,9 +151,9 @@ class DropshipProduct(models.Model):
     )
     
     # Stock virtuel
-    virtual_stock = models.IntegerField(
+    virtual_stock = models.PositiveIntegerField(
         default=0,
-        validators=[MinValueValidator(0)],
+        verbose_name='Stock virtuel (quantité disponible chez le fournisseur)',
         help_text="Stock virtuel (disponible chez le fournisseur)"
     )
     min_order_quantity = models.IntegerField(
@@ -233,6 +233,40 @@ class DropshipProduct(models.Model):
         if self.supplier_price > 0:
             return ((self.selling_price - self.supplier_price) / self.supplier_price) * 100
         return 0
+    
+    @property
+    def total_stock_available(self):
+        """Stock total disponible (physique + virtuel)"""
+        physical_stock = self.product.stock.available_quantity if hasattr(self.product, 'stock') else 0
+        return physical_stock + self.virtual_stock
+    
+    def update_virtual_stock(self, quantity, reason='Mise à jour'):
+        """Met à jour le stock virtuel"""
+        old_quantity = self.virtual_stock
+        self.virtual_stock = max(0, quantity)
+        self.save()
+        
+        # Log de la modification
+        print(f"Stock virtuel mis à jour pour {self.product.name}: {old_quantity} -> {self.virtual_stock} ({reason})")
+    
+    def decrease_virtual_stock(self, quantity, reason='Vente'):
+        """Diminue le stock virtuel"""
+        if quantity > self.virtual_stock:
+            raise ValueError(f"Stock virtuel insuffisant. Disponible: {self.virtual_stock}, Demandé: {quantity}")
+        
+        self.virtual_stock -= quantity
+        self.save()
+        
+        # Log de la modification
+        print(f"Stock virtuel diminué pour {self.product.name}: -{quantity} ({reason})")
+    
+    def increase_virtual_stock(self, quantity, reason='Réapprovisionnement'):
+        """Augmente le stock virtuel"""
+        self.virtual_stock += quantity
+        self.save()
+        
+        # Log de la modification
+        print(f"Stock virtuel augmenté pour {self.product.name}: +{quantity} ({reason})")
     
     def save(self, *args, **kwargs):
         # Calculer automatiquement la marge

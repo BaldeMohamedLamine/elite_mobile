@@ -5,8 +5,6 @@ from .views import (
     ProductUpdateView, ProductDeleteView, ProductToggleStatusView,
     ProductManagerListView, CategoryListView, StockListView, StockDashboardView, StockAlertListView,
     StockMovementListView, ProductStockDetailView, StockAdjustmentView,
-    SupplierListView, SupplierDashboardView, SupplierCreateView,
-    SupplierDetailView, SupplierUpdateView, SupplierDeleteView,
     AddToCartView, GetCartCountView
 )
 

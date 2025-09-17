@@ -247,6 +247,11 @@ document.addEventListener('DOMContentLoaded', function() {
         item.style.animationDelay = `${index * 0.1}s`;
         item.classList.add('animate-fade-in');
     });
+    
+    // Fallback function for updateCartCount (called from base template)
+    window.updateCartCount = function() {
+        console.log('updateCartCount called in manager context - no action needed');
+    };
 });
 </script>
 

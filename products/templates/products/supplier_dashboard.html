@@ -1,0 +1,306 @@
+{% extends 'manager/base.html' %}
+{% load static %}
+
+{% block page_title %}Tableau de Bord Fournisseurs{% endblock %}
+{% block page_description %}Vue d'ensemble des fournisseurs et gestion des stocks hybrides{% endblock %}
+
+{% block manager_content %}
+<!-- Statistiques générales -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div class="stat bg-primary text-primary-content">
+        <div class="stat-figure text-primary-content">
+            <i class="fas fa-truck text-3xl"></i>
+        </div>
+        <div class="stat-title text-primary-content">Total Fournisseurs</div>
+        <div class="stat-value text-primary-content">{{ summary.total_suppliers }}</div>
+        <div class="stat-desc text-primary-content">{{ summary.active_suppliers }} actifs</div>
+    </div>
+    
+    <div class="stat bg-secondary text-secondary-content">
+        <div class="stat-figure text-secondary-content">
+            <i class="fas fa-box text-3xl"></i>
+        </div>
+        <div class="stat-title text-secondary-content">Produits Dropship</div>
+        <div class="stat-value text-secondary-content">{{ summary.total_dropship_products }}</div>
+        <div class="stat-desc text-secondary-content">{{ summary.active_dropship_products }} actifs</div>
+    </div>
+    
+    <div class="stat bg-warning text-warning-content">
+        <div class="stat-figure text-warning-content">
+            <i class="fas fa-exclamation-triangle text-3xl"></i>
+        </div>
+        <div class="stat-title text-warning-content">Stock Faible</div>
+        <div class="stat-value text-warning-content">{{ summary.low_stock_products }}</div>
+        <div class="stat-desc text-warning-content">Produits à réapprovisionner</div>
+    </div>
+    
+    <div class="stat bg-error text-error-content">
+        <div class="stat-figure text-error-content">
+            <i class="fas fa-times-circle text-3xl"></i>
+        </div>
+        <div class="stat-title text-error-content">Rupture de Stock</div>
+        <div class="stat-value text-error-content">{{ summary.out_of_stock_products }}</div>
+        <div class="stat-desc text-error-content">Produits indisponibles</div>
+    </div>
+</div>
+
+<!-- Statistiques des stocks hybrides -->
+<div class="card bg-base-100 shadow-xl mb-8">
+    <div class="card-body">
+        <h2 class="card-title text-2xl mb-6">
+            <i class="fas fa-chart-pie text-primary mr-2"></i>
+            Statistiques des Stocks Hybrides
+        </h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="stat bg-base-200">
+                <div class="stat-figure text-primary">
+                    <i class="fas fa-warehouse text-2xl"></i>
+                </div>
+                <div class="stat-title">Stock Physique Total</div>
+                <div class="stat-value text-primary">{{ stock_stats.total_physical_stock }}</div>
+                <div class="stat-desc">Unités en stock physique</div>
+            </div>
+            
+            <div class="stat bg-base-200">
+                <div class="stat-figure text-secondary">
+                    <i class="fas fa-cloud text-2xl"></i>
+                </div>
+                <div class="stat-title">Stock Virtuel Total</div>
+                <div class="stat-value text-secondary">{{ stock_stats.total_virtual_stock }}</div>
+                <div class="stat-desc">Unités chez les fournisseurs</div>
+            </div>
+            
+            <div class="stat bg-base-200">
+                <div class="stat-figure text-accent">
+                    <i class="fas fa-layer-group text-2xl"></i>
+                </div>
+                <div class="stat-title">Produits Hybrides</div>
+                <div class="stat-value text-accent">{{ stock_stats.products_with_both }}</div>
+                <div class="stat-desc">Physique + Virtuel</div>
+            </div>
+        </div>
+        
+        <div class="divider"></div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="text-center">
+                <div class="text-2xl font-bold text-info">{{ stock_stats.products_with_physical_only }}</div>
+                <div class="text-sm text-base-content/70">Physique uniquement</div>
+            </div>
+            <div class="text-center">
+                <div class="text-2xl font-bold text-warning">{{ stock_stats.products_with_virtual_only }}</div>
+                <div class="text-sm text-base-content/70">Virtuel uniquement</div>
+            </div>
+            <div class="text-center">
+                <div class="text-2xl font-bold text-error">{{ stock_stats.out_of_stock_products }}</div>
+                <div class="text-sm text-base-content/70">En rupture</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Produits avec stock faible -->
+{% if low_stock_products %}
+<div class="card bg-base-100 shadow-xl mb-8">
+    <div class="card-body">
+        <h2 class="card-title text-2xl mb-6">
+            <i class="fas fa-exclamation-triangle text-warning mr-2"></i>
+            Produits avec Stock Faible
+        </h2>
+        
+        <div class="overflow-x-auto">
+            <table class="table table-zebra w-full">
+                <thead>
+                    <tr>
+                        <th>Produit</th>
+                        <th>Fournisseur</th>
+                        <th>Stock Physique</th>
+                        <th>Stock Virtuel</th>
+                        <th>Total</th>
+                        <th>Seuil</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in low_stock_products %}
+                    <tr>
+                        <td>
+                            <div class="font-bold">{{ item.dropship_product.product.name }}</div>
+                            <div class="text-sm text-base-content/70">{{ item.dropship_product.product.category.name }}</div>
+                        </td>
+                        <td>
+                            <div class="font-medium">{{ item.dropship_product.supplier.name }}</div>
+                            <div class="text-sm text-base-content/70">{{ item.dropship_product.supplier.company_name }}</div>
+                        </td>
+                        <td>
+                            <span class="badge badge-info">{{ item.stock_info.physical }}</span>
+                        </td>
+                        <td>
+                            <span class="badge badge-secondary">{{ item.stock_info.virtual }}</span>
+                        </td>
+                        <td>
+                            <span class="badge {% if item.stock_info.total == 0 %}badge-error{% elif item.stock_info.total <= item.dropship_product.reorder_threshold %}badge-warning{% else %}badge-success{% endif %}">
+                                {{ item.stock_info.total }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge badge-outline">{{ item.dropship_product.reorder_threshold }}</span>
+                        </td>
+                        <td>
+                            <div class="flex gap-2">
+                                <a href="{% url 'products:suppliers:dropship_product_edit' item.dropship_product.uid %}" 
+                                   class="btn btn-sm btn-primary">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'products:suppliers:dropship_product_detail' item.dropship_product.uid %}" 
+                                   class="btn btn-sm btn-info">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Top fournisseurs -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+    <!-- Top fournisseurs par nombre de produits -->
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title text-2xl mb-6">
+                <i class="fas fa-trophy text-warning mr-2"></i>
+                Top Fournisseurs (Produits)
+            </h2>
+            
+            <div class="space-y-4">
+                {% for supplier in top_suppliers_by_products %}
+                <div class="flex items-center justify-between p-4 bg-base-200 rounded-lg">
+                    <div>
+                        <div class="font-bold">{{ supplier.name }}</div>
+                        <div class="text-sm text-base-content/70">{{ supplier.company_name }}</div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-2xl font-bold text-primary">{{ supplier.product_count }}</div>
+                        <div class="text-sm text-base-content/70">produits</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Top fournisseurs par valeur des ventes -->
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title text-2xl mb-6">
+                <i class="fas fa-chart-line text-success mr-2"></i>
+                Top Fournisseurs (Ventes)
+            </h2>
+            
+            <div class="space-y-4">
+                {% for supplier in top_suppliers_by_sales %}
+                <div class="flex items-center justify-between p-4 bg-base-200 rounded-lg">
+                    <div>
+                        <div class="font-bold">{{ supplier.name }}</div>
+                        <div class="text-sm text-base-content/70">{{ supplier.company_name }}</div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-2xl font-bold text-success">{{ supplier.sales_value|floatformat:0 }} FCFA</div>
+                        <div class="text-sm text-base-content/70">valeur totale</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Ventes récentes -->
+{% if recent_sales %}
+<div class="card bg-base-100 shadow-xl">
+    <div class="card-body">
+        <h2 class="card-title text-2xl mb-6">
+            <i class="fas fa-history text-info mr-2"></i>
+            Ventes Récentes
+        </h2>
+        
+        <div class="overflow-x-auto">
+            <table class="table table-zebra w-full">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Produit</th>
+                        <th>Fournisseur</th>
+                        <th>Quantité</th>
+                        <th>Montant</th>
+                        <th>Statut</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sale in recent_sales %}
+                    <tr>
+                        <td>{{ sale.created_at|date:"d/m/Y H:i" }}</td>
+                        <td>
+                            <div class="font-bold">{{ sale.dropship_product.product.name }}</div>
+                        </td>
+                        <td>
+                            <div class="font-medium">{{ sale.supplier.name }}</div>
+                        </td>
+                        <td>
+                            <span class="badge badge-info">{{ sale.quantity }}</span>
+                        </td>
+                        <td>
+                            <span class="font-bold">{{ sale.total_amount|floatformat:0 }} FCFA</span>
+                        </td>
+                        <td>
+                            <span class="badge {% if sale.status == 'pending' %}badge-warning{% elif sale.status == 'confirmed' %}badge-info{% elif sale.status == 'delivered' %}badge-success{% else %}badge-error{% endif %}">
+                                {{ sale.get_status_display }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Actions rapides -->
+<div class="card bg-base-100 shadow-xl">
+    <div class="card-body">
+        <h2 class="card-title text-2xl mb-6">
+            <i class="fas fa-bolt text-warning mr-2"></i>
+            Actions Rapides
+        </h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <a href="{% url 'products:suppliers:supplier_create' %}" class="btn btn-primary btn-lg">
+                <i class="fas fa-plus mr-2"></i>
+                Nouveau Fournisseur
+            </a>
+            
+            <a href="{% url 'products:suppliers:dropship_product_create' %}" class="btn btn-secondary btn-lg">
+                <i class="fas fa-box mr-2"></i>
+                Nouveau Produit
+            </a>
+            
+            <a href="{% url 'products:suppliers:supplier_list' %}" class="btn btn-info btn-lg">
+                <i class="fas fa-list mr-2"></i>
+                Liste Fournisseurs
+            </a>
+            
+            <a href="{% url 'products:suppliers:dropship_product_list' %}" class="btn btn-accent btn-lg">
+                <i class="fas fa-cubes mr-2"></i>
+                Liste Produits
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

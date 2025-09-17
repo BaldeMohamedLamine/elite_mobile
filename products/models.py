@@ -103,8 +103,7 @@ class Product(models.Model):
         return self.name
 
 
-# Import des modèles de dropshipping
-from .dropshipping_models import Supplier, DropshipProduct, SupplierSale, SupplierInvoice, SupplierInvoiceItem
+# Les modèles de dropshipping sont définis dans dropshipping_models.py
 
 
 class Stock(models.Model):

@@ -280,64 +280,7 @@ class StockAdjustmentView(ManagerRequiredMixin, UpdateView):
         return reverse('products:stock:stock_detail', kwargs={'stock_id': self.object.id})
 
 
-# Vues pour la gestion des fournisseurs
-class SupplierListView(ManagerRequiredMixin, ListView):
-    model = Product
-    template_name = 'products/supplier_list.html'
-    context_object_name = 'products'
-    
-    def get_queryset(self):
-        return self.model.objects.select_related('category').all()
-
-
-class SupplierDashboardView(ManagerRequiredMixin, ListView):
-    model = Product
-    template_name = 'products/supplier_dashboard.html'
-    context_object_name = 'products'
-    
-    def get_queryset(self):
-        return self.model.objects.select_related('category').all()
-
-
-class SupplierCreateView(ManagerRequiredMixin, CreateView):
-    model = Product
-    template_name = 'products/supplier_form.html'
-    fields = ['name', 'description', 'price', 'category', 'image', 'sku', 'barcode', 'weight', 'dimensions', 'is_active']
-    
-    def get_success_url(self):
-        return reverse('products:suppliers:supplier_list')
-
-
-class SupplierDetailView(ManagerRequiredMixin, DetailView):
-    model = Product
-    template_name = 'products/supplier_detail.html'
-    context_object_name = 'product'
-    pk_url_kwarg = 'supplier_uid'
-    slug_field = 'uid'
-    slug_url_kwarg = 'supplier_uid'
-
-
-class SupplierUpdateView(ManagerRequiredMixin, UpdateView):
-    model = Product
-    template_name = 'products/supplier_form.html'
-    fields = ['name', 'description', 'price', 'category', 'image', 'sku', 'barcode', 'weight', 'dimensions', 'is_active']
-    pk_url_kwarg = 'supplier_uid'
-    slug_field = 'uid'
-    slug_url_kwarg = 'supplier_uid'
-    
-    def get_success_url(self):
-        return reverse('products:suppliers:supplier_detail', kwargs={'supplier_uid': self.object.uid})
-
-
-class SupplierDeleteView(ManagerRequiredMixin, DeleteView):
-    model = Product
-    template_name = 'products/supplier_confirm_delete.html'
-    pk_url_kwarg = 'supplier_uid'
-    slug_field = 'uid'
-    slug_url_kwarg = 'supplier_uid'
-    
-    def get_success_url(self):
-        return reverse('products:suppliers:supplier_list')
+# Les vues de fournisseurs sont maintenant dans supplier_views.py
 
 
 # Vues AJAX pour l'ajout au panier

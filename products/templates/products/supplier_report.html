@@ -1,0 +1,299 @@
+{% extends 'manager/base.html' %}
+{% load static %}
+{% load product_filters %}
+
+{% block page_title %}{{ report_title }} - {{ supplier.name }}{% endblock %}
+{% block page_description %}{{ report_title }} pour le fournisseur {{ supplier.name }}{% endblock %}
+
+{% block manager_content %}
+<div class="card bg-base-100 shadow-xl mb-8">
+    <div class="card-body">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl font-bold text-primary">{{ report_title }}</h1>
+            <div class="flex gap-2">
+                {% if report_type == 'sold' %}
+                    <a href="{% url 'products:suppliers:supplier_sold_products_pdf' supplier.uid %}" 
+                       class="btn btn-primary">
+                        <i class="fas fa-download mr-2"></i>
+                        Télécharger PDF
+                    </a>
+                {% else %}
+                    <a href="{% url 'products:suppliers:supplier_unsold_products_pdf' supplier.uid %}" 
+                       class="btn btn-primary">
+                        <i class="fas fa-download mr-2"></i>
+                        Télécharger PDF
+                    </a>
+                {% endif %}
+                <a href="{% url 'products:suppliers:supplier_detail' supplier.uid %}" 
+                   class="btn btn-outline">
+                    <i class="fas fa-arrow-left mr-2"></i>
+                    Retour
+                </a>
+            </div>
+        </div>
+        
+        <!-- Informations du fournisseur -->
+        <div class="bg-base-200 p-6 rounded-lg mb-8">
+            <h2 class="text-xl font-bold mb-4">Informations du Fournisseur</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div>
+                    <label class="font-semibold">Nom:</label>
+                    <p>{{ supplier.name }}</p>
+                </div>
+                <div>
+                    <label class="font-semibold">Entreprise:</label>
+                    <p>{{ supplier.company_name }}</p>
+                </div>
+                <div>
+                    <label class="font-semibold">Email:</label>
+                    <p>{{ supplier.email }}</p>
+                </div>
+                <div>
+                    <label class="font-semibold">Téléphone:</label>
+                    <p>{{ supplier.phone }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Statistiques -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            {% if report_type == 'sold' %}
+                <div class="stat bg-primary text-primary-content">
+                    <div class="stat-figure text-primary-content">
+                        <i class="fas fa-box text-3xl"></i>
+                    </div>
+                    <div class="stat-title text-primary-content">Produits Vendus</div>
+                    <div class="stat-value text-primary-content">{{ total_products }}</div>
+                    <div class="stat-desc text-primary-content">types de produits</div>
+                </div>
+                
+                <div class="stat bg-secondary text-secondary-content">
+                    <div class="stat-figure text-secondary-content">
+                        <i class="fas fa-shopping-cart text-3xl"></i>
+                    </div>
+                    <div class="stat-title text-secondary-content">Quantité Totale</div>
+                    <div class="stat-value text-secondary-content">{{ total_quantity }}</div>
+                    <div class="stat-desc text-secondary-content">unités vendues</div>
+                </div>
+                
+                <div class="stat bg-accent text-accent-content">
+                    <div class="stat-figure text-accent-content">
+                        <i class="fas fa-money-bill-wave text-3xl"></i>
+                    </div>
+                    <div class="stat-title text-accent-content">Montant Total</div>
+                    <div class="stat-value text-accent-content">{{ total_amount|floatformat:0 }} FCFA</div>
+                    <div class="stat-desc text-accent-content">chiffre d'affaires</div>
+                </div>
+            {% else %}
+                <div class="stat bg-warning text-warning-content">
+                    <div class="stat-figure text-warning-content">
+                        <i class="fas fa-boxes text-3xl"></i>
+                    </div>
+                    <div class="stat-title text-warning-content">Produits Non Vendus</div>
+                    <div class="stat-value text-warning-content">{{ total_products }}</div>
+                    <div class="stat-desc text-warning-content">types de produits</div>
+                </div>
+                
+                <div class="stat bg-info text-info-content">
+                    <div class="stat-figure text-info-content">
+                        <i class="fas fa-warehouse text-3xl"></i>
+                    </div>
+                    <div class="stat-title text-info-content">Stock Disponible</div>
+                    <div class="stat-value text-info-content">{{ total_quantity }}</div>
+                    <div class="stat-desc text-info-content">unités en stock</div>
+                </div>
+                
+                <div class="stat bg-success text-success-content">
+                    <div class="stat-figure text-success-content">
+                        <i class="fas fa-chart-line text-3xl"></i>
+                    </div>
+                    <div class="stat-title text-success-content">Valeur du Stock</div>
+                    <div class="stat-value text-success-content">{{ total_value|floatformat:0 }} FCFA</div>
+                    <div class="stat-desc text-success-content">valeur totale</div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Tableau des produits -->
+<div class="card bg-base-100 shadow-xl">
+    <div class="card-body">
+        <h2 class="text-2xl font-bold mb-6">
+            {% if report_type == 'sold' %}
+                <i class="fas fa-list text-primary mr-2"></i>
+                Détail des Produits Vendus
+            {% else %}
+                <i class="fas fa-list text-warning mr-2"></i>
+                Détail des Produits Non Vendus
+            {% endif %}
+        </h2>
+        
+        {% if report_type == 'sold' and product_sales %}
+            <div class="overflow-x-auto">
+                <table class="table table-zebra w-full">
+                    <thead>
+                        <tr>
+                            <th>Photo</th>
+                            <th>Produit</th>
+                            <th>Description</th>
+                            <th>Quantité Vendue</th>
+                            <th>Prix Unitaire</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for product_info in product_sales %}
+                        <tr>
+                            <td>
+                                {% if product_info.product.image %}
+                                    <div class="avatar">
+                                        <div class="w-16 h-16 rounded">
+                                            <img src="{{ product_info.product.image.url }}" 
+                                                 alt="{{ product_info.product.name }}"
+                                                 class="object-cover">
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <div class="avatar placeholder">
+                                        <div class="bg-neutral text-neutral-content rounded w-16 h-16">
+                                            <span class="text-xs">Pas d'image</span>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="font-bold">{{ product_info.product.name }}</div>
+                                <div class="text-sm text-base-content/70">{{ product_info.product.category.name }}</div>
+                            </td>
+                            <td>
+                                <div class="max-w-xs">
+                                    <p class="text-sm">{{ product_info.product.description|truncatechars:100 }}</p>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge badge-primary badge-lg">{{ product_info.total_quantity }}</span>
+                            </td>
+                            <td>
+                                <span class="font-bold">{{ product_info.unit_price|floatformat:0 }} FCFA</span>
+                            </td>
+                            <td>
+                                <span class="font-bold text-success">{{ product_info.total_amount|floatformat:0 }} FCFA</span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% elif report_type == 'unsold' and unsold_products %}
+            <div class="overflow-x-auto">
+                <table class="table table-zebra w-full">
+                    <thead>
+                        <tr>
+                            <th>Photo</th>
+                            <th>Produit</th>
+                            <th>Description</th>
+                            <th>Stock Disponible</th>
+                            <th>Quantité Vendue</th>
+                            <th>Prix Unitaire</th>
+                            <th>Valeur Totale</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for product_info in unsold_products %}
+                        <tr>
+                            <td>
+                                {% if product_info.product.image %}
+                                    <div class="avatar">
+                                        <div class="w-16 h-16 rounded">
+                                            <img src="{{ product_info.product.image.url }}" 
+                                                 alt="{{ product_info.product.name }}"
+                                                 class="object-cover">
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <div class="avatar placeholder">
+                                        <div class="bg-neutral text-neutral-content rounded w-16 h-16">
+                                            <span class="text-xs">Pas d'image</span>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="font-bold">{{ product_info.product.name }}</div>
+                                <div class="text-sm text-base-content/70">{{ product_info.product.category.name }}</div>
+                            </td>
+                            <td>
+                                <div class="max-w-xs">
+                                    <p class="text-sm">{{ product_info.product.description|truncatechars:100 }}</p>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge {% if product_info.available_quantity == 0 %}badge-error{% elif product_info.available_quantity <= 5 %}badge-warning{% else %}badge-success{% endif %} badge-lg">
+                                    {{ product_info.available_quantity }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge badge-info">{{ product_info.sold_quantity }}</span>
+                            </td>
+                            <td>
+                                <span class="font-bold">{{ product_info.unit_price|floatformat:0 }} FCFA</span>
+                            </td>
+                            <td>
+                                <span class="font-bold text-success">{{ product_info.total_value|floatformat:0 }} FCFA</span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-12">
+                <i class="fas fa-inbox text-6xl text-base-content/30 mb-4"></i>
+                <h3 class="text-xl font-bold mb-2">Aucun produit trouvé</h3>
+                <p class="text-base-content/70">
+                    {% if report_type == 'sold' %}
+                        Aucun produit n'a été vendu pour ce fournisseur.
+                    {% else %}
+                        Tous les produits de ce fournisseur ont été vendus.
+                    {% endif %}
+                </p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Actions supplémentaires -->
+<div class="card bg-base-100 shadow-xl mt-8">
+    <div class="card-body">
+        <h2 class="text-xl font-bold mb-4">Actions</h2>
+        <div class="flex flex-wrap gap-4">
+            {% if report_type == 'sold' %}
+                <a href="{% url 'products:suppliers:supplier_unsold_products_report' supplier.uid %}" 
+                   class="btn btn-outline">
+                    <i class="fas fa-boxes mr-2"></i>
+                    Voir Produits Non Vendus
+                </a>
+            {% else %}
+                <a href="{% url 'products:suppliers:supplier_sold_products_report' supplier.uid %}" 
+                   class="btn btn-outline">
+                    <i class="fas fa-shopping-cart mr-2"></i>
+                    Voir Produits Vendus
+                </a>
+            {% endif %}
+            
+            <a href="{% url 'products:suppliers:supplier_edit' supplier.uid %}" 
+               class="btn btn-outline">
+                <i class="fas fa-edit mr-2"></i>
+                Modifier Fournisseur
+            </a>
+            
+            <a href="{% url 'products:suppliers:dropship_product_create' %}?supplier={{ supplier.uid }}" 
+               class="btn btn-primary">
+                <i class="fas fa-plus mr-2"></i>
+                Ajouter Produit
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

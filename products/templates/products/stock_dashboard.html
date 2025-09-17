@@ -10,8 +10,8 @@
     <!-- En-tête -->
     <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
         <div>
-            <h1 class="text-3xl font-bold text-gray-900 mb-2">Dashboard Stock</h1>
-            <p class="text-gray-600">Vue d'ensemble de votre gestion de stock</p>
+            <h1 class="text-3xl font-bold text-base-content mb-2">Dashboard Stock</h1>
+            <p class="text-base-content/70">Vue d'ensemble de votre gestion de stock</p>
         </div>
         <div class="mt-4 md:mt-0">
             <a href="{% url 'products:stock:stock_list' %}" 
@@ -24,57 +24,57 @@
 
     <!-- Statistiques principales -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div class="card bg-white shadow-lg">
+        <div class="card bg-base-100 shadow-lg">
             <div class="card-body">
                 <div class="flex items-center">
-                    <div class="p-3 rounded-full bg-blue-100 text-blue-600">
+                    <div class="p-3 rounded-full bg-primary/10 text-primary">
                         <i class="fas fa-boxes text-xl"></i>
                     </div>
                     <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-600">Total Produits</p>
-                        <p class="text-2xl font-bold text-gray-900">{{ summary.total_products }}</p>
+                        <p class="text-sm font-medium text-base-content/70">Total Produits</p>
+                        <p class="text-2xl font-bold text-base-content">{{ summary.total_products }}</p>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="card bg-white shadow-lg">
+        <div class="card bg-base-100 shadow-lg">
             <div class="card-body">
                 <div class="flex items-center">
-                    <div class="p-3 rounded-full bg-green-100 text-green-600">
+                    <div class="p-3 rounded-full bg-success/10 text-success">
                         <i class="fas fa-check-circle text-xl"></i>
                     </div>
                     <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-600">Disponibles</p>
-                        <p class="text-2xl font-bold text-gray-900">{{ summary.available_products }}</p>
+                        <p class="text-sm font-medium text-base-content/70">Disponibles</p>
+                        <p class="text-2xl font-bold text-base-content">{{ summary.available_products }}</p>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="card bg-white shadow-lg">
+        <div class="card bg-base-100 shadow-lg">
             <div class="card-body">
                 <div class="flex items-center">
-                    <div class="p-3 rounded-full bg-yellow-100 text-yellow-600">
+                    <div class="p-3 rounded-full bg-warning/10 text-warning">
                         <i class="fas fa-exclamation-triangle text-xl"></i>
                     </div>
                     <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-600">Stock Faible</p>
-                        <p class="text-2xl font-bold text-gray-900">{{ summary.low_stock_products }}</p>
+                        <p class="text-sm font-medium text-base-content/70">Stock Faible</p>
+                        <p class="text-2xl font-bold text-base-content">{{ summary.low_stock_products }}</p>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="card bg-white shadow-lg">
+        <div class="card bg-base-100 shadow-lg">
             <div class="card-body">
                 <div class="flex items-center">
-                    <div class="p-3 rounded-full bg-red-100 text-red-600">
+                    <div class="p-3 rounded-full bg-error/10 text-error">
                         <i class="fas fa-times-circle text-xl"></i>
                     </div>
                     <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-600">Rupture</p>
-                        <p class="text-2xl font-bold text-gray-900">{{ summary.out_of_stock_products }}</p>
+                        <p class="text-sm font-medium text-base-content/70">Rupture</p>
+                        <p class="text-2xl font-bold text-base-content">{{ summary.out_of_stock_products }}</p>
                     </div>
                 </div>
             </div>
