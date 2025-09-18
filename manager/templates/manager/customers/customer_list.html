@@ -8,7 +8,7 @@
 
 {% block manager_content %}
 <!-- Filters and Search -->
-<div class="card bg-base-100 shadow-xl mb-6">
+<div class="card bg-white shadow-xl mb-6">
     <div class="card-body">
         <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div class="flex-1">
@@ -42,37 +42,37 @@
 
 <!-- Statistics Cards -->
 <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-    <div class="card bg-gradient-to-br from-primary to-primary-focus text-primary-content shadow-xl">
+    <div class="card gradient-primary text-white shadow-xl">
         <div class="card-body text-center">
             <div class="text-3xl font-bold">{{ total_customers }}</div>
-            <div class="text-primary-content/80">Total Clients</div>
+            <div class="text-white/80">Total Clients</div>
         </div>
     </div>
     
-    <div class="card bg-gradient-to-br from-success to-success-focus text-success-content shadow-xl">
+    <div class="card bg-gradient-to-br from-success to-success/80 text-white shadow-xl">
         <div class="card-body text-center">
             <div class="text-3xl font-bold">{{ active_customers }}</div>
-            <div class="text-success-content/80">Clients Actifs</div>
+            <div class="text-white/80">Clients Actifs</div>
         </div>
     </div>
     
-    <div class="card bg-gradient-to-br from-warning to-warning-focus text-warning-content shadow-xl">
+    <div class="card bg-gradient-to-br from-warning to-warning/80 text-white shadow-xl">
         <div class="card-body text-center">
             <div class="text-3xl font-bold">{{ new_customers_this_month }}</div>
-            <div class="text-warning-content/80">Nouveaux ce mois</div>
+            <div class="text-white/80">Nouveaux ce mois</div>
         </div>
     </div>
     
-    <div class="card bg-gradient-to-br from-info to-info-focus text-info-content shadow-xl">
+    <div class="card bg-gradient-to-br from-info to-info/80 text-white shadow-xl">
         <div class="card-body text-center">
             <div class="text-3xl font-bold">{{ total_orders }}</div>
-            <div class="text-info-content/80">Commandes Total</div>
+            <div class="text-white/80">Commandes Total</div>
         </div>
     </div>
 </div>
 
 <!-- Customers List -->
-<div class="card bg-base-100 shadow-xl">
+<div class="card bg-white shadow-xl">
     <div class="card-body">
         <div class="flex justify-between items-center mb-6">
             <h2 class="card-title text-2xl">

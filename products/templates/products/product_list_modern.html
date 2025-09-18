@@ -88,7 +88,11 @@
             <div class="flex justify-between items-center mb-8">
                 <div>
                     <h2 class="text-2xl font-bold text-base-content">
-                        <span id="product-count">{{ products|length }}</span> produit{{ products|length|pluralize }}
+                        {% if is_paginated %}
+                            {{ page_obj.paginator.count }} produit{{ page_obj.paginator.count|pluralize }}
+                        {% else %}
+                            {{ products|length }} produit{{ products|length|pluralize }}
+                        {% endif %}
                     </h2>
                     <p class="text-base-content/70">Trouvez exactement ce que vous cherchez</p>
                 </div>
@@ -105,7 +109,7 @@
             </div>
 
             <!-- Products Grid -->
-            <div id="products-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+            <div id="products-container" class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-8">
                 {% for product in products %}
                 <div class="product-card bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden group">
                     <!-- Product Image -->
@@ -213,26 +217,59 @@
 
             <!-- Pagination -->
             {% if is_paginated %}
-            <div class="flex justify-center mt-12">
-                <div class="btn-group">
+            <div class="flex flex-col items-center mt-12 space-y-4">
+                <!-- Pagination Info -->
+                <div class="text-center">
+                    <p class="text-base-content/70">
+                        Affichage de {{ page_obj.start_index }} à {{ page_obj.end_index }} 
+                        sur {{ page_obj.paginator.count }} produit{{ page_obj.paginator.count|pluralize }}
+                    </p>
+                </div>
+                
+                <!-- Pagination Controls -->
+                <div class="flex flex-wrap justify-center gap-2">
+                    <!-- First Page -->
                     {% if page_obj.has_previous %}
-                    <a href="?page=1" class="btn btn-outline">
+                    <a href="?{% if request.GET.search %}search={{ request.GET.search }}&{% endif %}{% if request.GET.category %}category={{ request.GET.category }}&{% endif %}{% if request.GET.price %}price={{ request.GET.price }}&{% endif %}{% if request.GET.sort %}sort={{ request.GET.sort }}&{% endif %}page=1" 
+                       class="btn btn-outline btn-sm">
                         <i class="fas fa-angle-double-left"></i>
-                    </a>
-                    <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-outline">
-                        <i class="fas fa-angle-left"></i>
+                        <span class="hidden sm:inline ml-1">Première</span>
                     </a>
                     {% endif %}
                     
-                    <span class="btn btn-active">
-                        Page {{ page_obj.number }} sur {{ page_obj.paginator.num_pages }}
-                    </span>
+                    <!-- Previous Page -->
+                    {% if page_obj.has_previous %}
+                    <a href="?{% if request.GET.search %}search={{ request.GET.search }}&{% endif %}{% if request.GET.category %}category={{ request.GET.category }}&{% endif %}{% if request.GET.price %}price={{ request.GET.price }}&{% endif %}{% if request.GET.sort %}sort={{ request.GET.sort }}&{% endif %}page={{ page_obj.previous_page_number }}" 
+                       class="btn btn-outline btn-sm">
+                        <i class="fas fa-angle-left"></i>
+                        <span class="hidden sm:inline ml-1">Précédent</span>
+                    </a>
+                    {% endif %}
                     
+                    <!-- Page Numbers -->
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                        <span class="btn btn-primary btn-sm">{{ num }}</span>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <a href="?{% if request.GET.search %}search={{ request.GET.search }}&{% endif %}{% if request.GET.category %}category={{ request.GET.category }}&{% endif %}{% if request.GET.price %}price={{ request.GET.price }}&{% endif %}{% if request.GET.sort %}sort={{ request.GET.sort }}&{% endif %}page={{ num }}" 
+                           class="btn btn-outline btn-sm">{{ num }}</a>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    <!-- Next Page -->
                     {% if page_obj.has_next %}
-                    <a href="?page={{ page_obj.next_page_number }}" class="btn btn-outline">
+                    <a href="?{% if request.GET.search %}search={{ request.GET.search }}&{% endif %}{% if request.GET.category %}category={{ request.GET.category }}&{% endif %}{% if request.GET.price %}price={{ request.GET.price }}&{% endif %}{% if request.GET.sort %}sort={{ request.GET.sort }}&{% endif %}page={{ page_obj.next_page_number }}" 
+                       class="btn btn-outline btn-sm">
+                        <span class="hidden sm:inline mr-1">Suivant</span>
                         <i class="fas fa-angle-right"></i>
                     </a>
-                    <a href="?page={{ page_obj.paginator.num_pages }}" class="btn btn-outline">
+                    {% endif %}
+                    
+                    <!-- Last Page -->
+                    {% if page_obj.has_next %}
+                    <a href="?{% if request.GET.search %}search={{ request.GET.search }}&{% endif %}{% if request.GET.category %}category={{ request.GET.category }}&{% endif %}{% if request.GET.price %}price={{ request.GET.price }}&{% endif %}{% if request.GET.sort %}sort={{ request.GET.sort }}&{% endif %}page={{ page_obj.paginator.num_pages }}" 
+                       class="btn btn-outline btn-sm">
+                        <span class="hidden sm:inline mr-1">Dernière</span>
                         <i class="fas fa-angle-double-right"></i>
                     </a>
                     {% endif %}
@@ -328,27 +365,56 @@
 }
 
 /* Responsive grid adjustments */
-@media (max-width: 768px) {
+@media (max-width: 640px) {
     .grid {
-        grid-template-columns: repeat(1, minmax(0, 1fr));
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.75rem;
+    }
+    
+    .product-card {
+        border-radius: 1rem;
+    }
+    
+    .product-card .h-64 {
+        height: 8rem;
+    }
+    
+    .product-card .text-lg {
+        font-size: 0.875rem;
+    }
+    
+    .product-card .text-sm {
+        font-size: 0.75rem;
+    }
+    
+    .product-card .btn {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.75rem;
+    }
+}
+
+@media (min-width: 641px) and (max-width: 768px) {
+    .grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1rem;
     }
 }
 
 @media (min-width: 769px) and (max-width: 1024px) {
     .grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 }
 
 @media (min-width: 1025px) and (max-width: 1280px) {
     .grid {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-columns: repeat(4, minmax(0, 1fr));
     }
 }
 
 @media (min-width: 1281px) {
     .grid {
-        grid-template-columns: repeat(4, minmax(0, 1fr));
+        grid-template-columns: repeat(5, minmax(0, 1fr));
     }
 }
 </style>
@@ -357,6 +423,9 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize cart count on page load
+    updateCartCount();
+    
     // Search functionality
     const searchInput = document.getElementById('product-search');
     const searchBtn = document.getElementById('search-btn');
@@ -431,7 +500,13 @@ document.addEventListener('DOMContentLoaded', function() {
             if (data.success) {
                 // Show success message
                 showNotification('Produit ajouté au panier !', 'success');
-                // Update cart count
+                // Update cart count immediately with the returned value
+                const cartCountElement = document.getElementById('cart-count');
+                if (cartCountElement && data.cart_count !== undefined) {
+                    cartCountElement.textContent = data.cart_count;
+                    cartCountElement.style.display = data.cart_count > 0 ? 'inline' : 'none';
+                }
+                // Also update cart count via API call
                 updateCartCount();
             } else {
                 showNotification(data.message || 'Erreur lors de l\'ajout au panier', 'error');
@@ -447,12 +522,13 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function updateCartCount() {
-        fetch('{% url "products:cart_count" %}')
+        fetch('{% url "orders:cart_count" %}')
         .then(response => response.json())
         .then(data => {
-            const cartCountElement = document.querySelector('.cart-count');
-            if (cartCountElement && data.cart_count !== undefined) {
-                cartCountElement.textContent = data.cart_count;
+            const cartCountElement = document.getElementById('cart-count');
+            if (cartCountElement && data.count !== undefined) {
+                cartCountElement.textContent = data.count;
+                cartCountElement.style.display = data.count > 0 ? 'inline' : 'none';
             }
         })
         .catch(error => {

@@ -75,7 +75,7 @@
                                         <span class="label-text font-semibold">Montant total</span>
                                     </label>
                                     <div class="text-2xl font-bold text-primary">
-                                        {{ order.total_amount|floatformat:0 }} FCFA
+                                        {{ order.total_amount|floatformat:0 }} GNF
                                     </div>
                                 </div>
                                 
@@ -222,11 +222,11 @@
                                                 </div>
                                             </div>
                                         </td>
-                                        <td class="font-semibold">{{ item.price|floatformat:0 }} FCFA</td>
+                                        <td class="font-semibold">{{ item.price|floatformat:0 }} GNF</td>
                                         <td>
                                             <span class="badge badge-primary">{{ item.quantity }}</span>
                                         </td>
-                                        <td class="font-bold text-primary">{{ item.total_price|floatformat:0 }} FCFA</td>
+                                        <td class="font-bold text-primary">{{ item.total_price|floatformat:0 }} GNF</td>
                                     </tr>
                                     {% endfor %}
                                 </tbody>
@@ -239,16 +239,16 @@
                             <div class="text-right space-y-2">
                                 <div class="flex justify-between gap-8">
                                     <span>Sous-total :</span>
-                                    <span class="font-semibold">{{ order.subtotal|floatformat:0 }} FCFA</span>
+                                    <span class="font-semibold">{{ order.subtotal|floatformat:0 }} GNF</span>
                                 </div>
                                 <div class="flex justify-between gap-8">
                                     <span>Frais de livraison :</span>
-                                    <span class="font-semibold">{{ order.delivery_fee|floatformat:0 }} FCFA</span>
+                                    <span class="font-semibold">{{ order.delivery_fee|floatformat:0 }} GNF</span>
                                 </div>
                                 <div class="divider my-2"></div>
                                 <div class="flex justify-between gap-8 text-lg">
                                     <span class="font-bold">Total :</span>
-                                    <span class="font-bold text-primary">{{ order.total_amount|floatformat:0 }} FCFA</span>
+                                    <span class="font-bold text-primary">{{ order.total_amount|floatformat:0 }} GNF</span>
                                 </div>
                             </div>
                         </div>

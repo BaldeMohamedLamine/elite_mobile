@@ -31,8 +31,13 @@ def generate_supplier_report_pdf(supplier, product_data, report_type, report_tit
         report_type: 'sold' ou 'unsold'
         report_title: Titre du rapport
     """
+    from manager.models import CompanySettings
+    
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=72, leftMargin=72, topMargin=72, bottomMargin=18)
+    
+    # Récupérer les paramètres de l'entreprise
+    company_settings = CompanySettings.get_settings()
     
     # Styles
     styles = getSampleStyleSheet()
@@ -64,10 +69,43 @@ def generate_supplier_report_pdf(supplier, product_data, report_type, report_tit
         spaceAfter=6
     )
     
+    # Style pour l'en-tête de l'entreprise
+    company_header_style = ParagraphStyle(
+        'CompanyHeader',
+        parent=styles['Heading2'],
+        fontSize=16,
+        spaceAfter=12,
+        alignment=TA_CENTER,
+        textColor=colors.darkblue
+    )
+    
     # Contenu du document
     story = []
     
-    # En-tête
+    # En-tête de l'entreprise
+    if company_settings.show_logo_on_reports and company_settings.logo:
+        # Note: ReportLab ne supporte pas directement les images de Django
+        # On pourrait ajouter le logo ici si nécessaire
+        pass
+    
+    story.append(Paragraph(company_settings.company_name, company_header_style))
+    if company_settings.address:
+        story.append(Paragraph(company_settings.address, normal_style))
+    if company_settings.phone or company_settings.email:
+        contact_info = []
+        if company_settings.phone:
+            contact_info.append(f"Tél: {company_settings.phone}")
+        if company_settings.email:
+            contact_info.append(f"Email: {company_settings.email}")
+        story.append(Paragraph(" | ".join(contact_info), normal_style))
+    if company_settings.website:
+        story.append(Paragraph(f"Site: {company_settings.website}", normal_style))
+    if company_settings.tax_number:
+        story.append(Paragraph(f"TVA/RC: {company_settings.tax_number}", normal_style))
+    
+    story.append(Spacer(1, 20))
+    
+    # En-tête du rapport
     story.append(Paragraph(report_title, title_style))
     story.append(Spacer(1, 12))
     
@@ -88,7 +126,7 @@ def generate_supplier_report_pdf(supplier, product_data, report_type, report_tit
             ['Statistiques', 'Valeur'],
             ['Nombre de produits vendus', str(total_products)],
             ['Quantité totale vendue', str(total_quantity)],
-            ['Montant total des ventes', f"{total_amount:,.2f} FCFA"]
+            ['Montant total des ventes', f"{total_amount:,.2f} GNF"]
         ]
     else:  # unsold
         total_products = len(product_data)
@@ -99,7 +137,7 @@ def generate_supplier_report_pdf(supplier, product_data, report_type, report_tit
             ['Statistiques', 'Valeur'],
             ['Nombre de produits non vendus', str(total_products)],
             ['Quantité disponible', str(total_quantity)],
-            ['Valeur totale du stock', f"{total_value:,.2f} FCFA"]
+            ['Valeur totale du stock', f"{total_value:,.2f} GNF"]
         ]
     
     stats_table = Table(stats_data, colWidths=[3*inch, 2*inch])
@@ -135,8 +173,8 @@ def generate_supplier_report_pdf(supplier, product_data, report_type, report_tit
                 product.name,
                 description,
                 str(quantity),
-                f"{unit_price:,.2f} FCFA",
-                f"{total:,.2f} FCFA"
+                f"{unit_price:,.2f} GNF",
+                f"{total:,.2f} GNF"
             ])
     else:  # unsold
         # En-têtes pour les produits non vendus
@@ -155,8 +193,8 @@ def generate_supplier_report_pdf(supplier, product_data, report_type, report_tit
                 product.name,
                 description,
                 str(available_quantity),
-                f"{unit_price:,.2f} FCFA",
-                f"{total_value:,.2f} FCFA"
+                f"{unit_price:,.2f} GNF",
+                f"{total_value:,.2f} GNF"
             ])
     
     # Créer le tableau

@@ -111,13 +111,13 @@
                                                 </div>
                                             </td>
                                             <td>
-                                                <span class="font-semibold">{{ item.price_at_time|floatformat:0 }} FCFA</span>
+                                                <span class="font-semibold">{{ item.price_at_time|floatformat:0 }} GNF</span>
                                             </td>
                                             <td>
                                                 <span class="badge badge-primary">{{ item.quantity }}</span>
                                             </td>
                                             <td>
-                                                <span class="font-bold">{{ item.price_at_time|floatformat:0|mul:item.quantity }} FCFA</span>
+                                                <span class="font-bold">{{ item.price_at_time|floatformat:0|mul:item.quantity }} GNF</span>
                                             </td>
                                         </tr>
                                         {% endfor %}
@@ -125,15 +125,15 @@
                                     <tfoot>
                                         <tr class="border-t-2">
                                             <th colspan="3">Sous-total :</th>
-                                            <th class="text-lg">{{ order.subtotal|floatformat:0 }} FCFA</th>
+                                            <th class="text-lg">{{ order.subtotal|floatformat:0 }} GNF</th>
                                         </tr>
                                         <tr>
                                             <th colspan="3">Frais de livraison :</th>
-                                            <th class="text-lg">{{ order.delivery_fee|floatformat:0 }} FCFA</th>
+                                            <th class="text-lg">{{ order.delivery_fee|floatformat:0 }} GNF</th>
                                         </tr>
                                         <tr class="bg-success text-success-content">
                                             <th colspan="3" class="text-lg">Total à payer :</th>
-                                            <th class="text-xl font-bold">{{ order.total_amount|floatformat:0 }} FCFA</th>
+                                            <th class="text-xl font-bold">{{ order.total_amount|floatformat:0 }} GNF</th>
                                         </tr>
                                     </tfoot>
                                 </table>
@@ -238,19 +238,19 @@
                             <div class="space-y-4">
                                 <div class="flex justify-between items-center p-3 bg-base-200 rounded-lg">
                                     <span class="font-semibold">Total à payer :</span>
-                                    <span class="font-bold text-lg" id="total-amount">{{ order.total_amount|floatformat:0 }} FCFA</span>
+                                    <span class="font-bold text-lg" id="total-amount">{{ order.total_amount|floatformat:0 }} GNF</span>
                                 </div>
                                 
                                 <div class="flex justify-between items-center p-3 bg-base-200 rounded-lg">
                                     <span class="font-semibold">Montant reçu :</span>
-                                    <span class="font-bold text-lg" id="received-amount">0 FCFA</span>
+                                    <span class="font-bold text-lg" id="received-amount">0 GNF</span>
                                 </div>
                                 
                                 <div class="divider"></div>
                                 
                                 <div class="flex justify-between items-center p-4 bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900 dark:to-emerald-900 rounded-lg">
                                     <span class="font-bold text-lg">Monnaie à rendre :</span>
-                                    <span class="font-bold text-xl" id="change-amount">0 FCFA</span>
+                                    <span class="font-bold text-xl" id="change-amount">0 GNF</span>
                                 </div>
                             </div>
                         </div>
@@ -273,8 +273,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const receivedAmount = parseFloat(this.value) || 0;
             const changeAmount = receivedAmount - totalAmount;
             
-            document.getElementById('received-amount').textContent = receivedAmount.toFixed(0) + ' FCFA';
-            document.getElementById('change-amount').textContent = changeAmount.toFixed(0) + ' FCFA';
+            document.getElementById('received-amount').textContent = receivedAmount.toFixed(0) + ' GNF';
+            document.getElementById('change-amount').textContent = changeAmount.toFixed(0) + ' GNF';
             
             const changeElement = document.getElementById('change-amount');
             if (changeAmount < 0) {

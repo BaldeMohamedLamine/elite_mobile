@@ -364,8 +364,8 @@
                             <div class="product-category">{{ item.product.category.name }}</div>
                         </td>
                         <td style="text-align: center; font-weight: 600;">{{ item.quantity }}</td>
-                        <td style="text-align: right;">{{ item.price_at_time|floatformat:0 }} FCFA</td>
-                        <td style="text-align: right; font-weight: 600;">{{ item.price_at_time|floatformat:0|mul:item.quantity }} FCFA</td>
+                        <td style="text-align: right;">{{ item.price_at_time|floatformat:0 }} GNF</td>
+                        <td style="text-align: right; font-weight: 600;">{{ item.price_at_time|floatformat:0|mul:item.quantity }} GNF</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -374,15 +374,15 @@
             <div class="total-section">
                 <div class="total-line">
                     <span>Sous-total :</span>
-                    <span>{{ order.subtotal|floatformat:0 }} FCFA</span>
+                    <span>{{ order.subtotal|floatformat:0 }} GNF</span>
                 </div>
                 <div class="total-line">
                     <span>Frais de livraison :</span>
-                    <span>{{ order.delivery_fee|floatformat:0 }} FCFA</span>
+                    <span>{{ order.delivery_fee|floatformat:0 }} GNF</span>
                 </div>
                 <div class="total-line total-final">
                     <span>TOTAL :</span>
-                    <span>{{ order.total_amount|floatformat:0 }} FCFA</span>
+                    <span>{{ order.total_amount|floatformat:0 }} GNF</span>
                 </div>
             </div>
             

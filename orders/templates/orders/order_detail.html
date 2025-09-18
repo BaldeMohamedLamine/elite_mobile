@@ -167,26 +167,26 @@
                                                 </div>
                                             </div>
                                         </td>
-                                        <td class="font-medium">{{ item.price_at_time|floatformat:0 }} FCFA</td>
+                                        <td class="font-medium">{{ item.price_at_time|floatformat:0 }} GNF</td>
                                         <td>
                                             <span class="badge badge-outline">{{ item.quantity }}</span>
                                         </td>
-                                        <td class="font-bold text-primary">{{ item.price_at_time|floatformat:0|mul:item.quantity }} FCFA</td>
+                                        <td class="font-bold text-primary">{{ item.price_at_time|floatformat:0|mul:item.quantity }} GNF</td>
                                     </tr>
                                     {% endfor %}
                                 </tbody>
                                 <tfoot>
                                     <tr>
                                         <th colspan="3">Sous-total</th>
-                                        <th class="text-lg">{{ order.subtotal|floatformat:0 }} FCFA</th>
+                                        <th class="text-lg">{{ order.subtotal|floatformat:0 }} GNF</th>
                                     </tr>
                                     <tr>
                                         <th colspan="3">Frais de livraison</th>
-                                        <th class="text-lg">{{ order.delivery_fee|floatformat:0 }} FCFA</th>
+                                        <th class="text-lg">{{ order.delivery_fee|floatformat:0 }} GNF</th>
                                     </tr>
                                     <tr class="bg-primary/10">
                                         <th colspan="3" class="text-lg">Total</th>
-                                        <th class="text-xl text-primary font-bold">{{ order.total_amount|floatformat:0 }} FCFA</th>
+                                        <th class="text-xl text-primary font-bold">{{ order.total_amount|floatformat:0 }} GNF</th>
                                     </tr>
                                 </tfoot>
                             </table>
@@ -293,7 +293,7 @@
                                     </span>
                                 </div>
                                 <div class="text-sm text-base-content/70">
-                                    <div>Montant: {{ payment.amount|floatformat:0 }} FCFA</div>
+                                    <div>Montant: {{ payment.amount|floatformat:0 }} GNF</div>
                                     {% if payment.orange_money_phone %}
                                     <div>Téléphone: {{ payment.orange_money_phone }}</div>
                                     {% endif %}

@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Supprimer la Catégorie{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Breadcrumb -->
+    <div class="breadcrumbs text-sm mb-6">
+        <ul>
+            <li><a href="{% url 'manager:dashboard' %}" class="link link-hover">Dashboard</a></li>
+            <li><a href="{% url 'manager:category_list' %}" class="link link-hover">Catégories</a></li>
+            <li>Supprimer</li>
+        </ul>
+    </div>
+
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-base-content">Supprimer la Catégorie</h1>
+        <p class="text-base-content/70 mt-2">Confirmez la suppression de cette catégorie</p>
+    </div>
+
+    <!-- Warning Card -->
+    <div class="card bg-error/10 border border-error/20 shadow-xl max-w-2xl">
+        <div class="card-body">
+            <div class="flex items-start gap-4">
+                <div class="text-error text-2xl">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="flex-1">
+                    <h2 class="card-title text-error mb-4">
+                        Attention ! Cette action est irréversible
+                    </h2>
+                    
+                    <div class="space-y-4">
+                        <p class="text-base-content">
+                            Vous êtes sur le point de supprimer la catégorie :
+                        </p>
+                        
+                        <div class="bg-base-100 p-4 rounded-lg border">
+                            <h3 class="font-semibold text-lg text-base-content">
+                                {{ object.name }}
+                            </h3>
+                            <p class="text-base-content/70 text-sm mt-1">
+                                Créée le {{ object.created_at|date:"d/m/Y à H:i" }}
+                            </p>
+                        </div>
+
+                        {% if object.product_count > 0 %}
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <div>
+                                    <h4 class="font-semibold">Attention !</h4>
+                                    <p>
+                                        Cette catégorie contient <strong>{{ object.product_count }} produit{{ object.product_count|pluralize }}</strong>.
+                                        La suppression de cette catégorie affectera tous ces produits.
+                                    </p>
+                                </div>
+                            </div>
+                        {% endif %}
+
+                        <p class="text-base-content/70">
+                            Êtes-vous sûr de vouloir continuer ? Cette action ne peut pas être annulée.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="card-actions justify-end pt-6">
+                <form method="post" class="flex gap-4">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-error gap-2">
+                        <i class="fas fa-trash"></i>
+                        Oui, supprimer
+                    </button>
+                    <a href="{% url 'manager:category_list' %}" 
+                       class="btn btn-outline gap-2">
+                        <i class="fas fa-arrow-left"></i>
+                        Annuler
+                    </a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

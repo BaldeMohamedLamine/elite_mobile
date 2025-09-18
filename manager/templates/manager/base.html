@@ -105,61 +105,81 @@
         <!-- Sidebar -->
         <div class="drawer-side">
             <label for="drawer-toggle" class="drawer-overlay"></label>
-            <aside class="min-h-full w-80 bg-gradient-to-b from-primary to-secondary text-primary-content">
+            <aside class="min-h-full w-80 bg-gradient-to-b from-gray-800 to-gray-900 text-white">
                 <div class="p-6">
                     <!-- Logo -->
                     <div class="text-center mb-8">
-                        <div class="avatar placeholder mb-4">
-                            <div class="bg-primary-content text-primary rounded-full w-16">
-                                <i class="fas fa-store text-2xl"></i>
+                        {% if company_logo %}
+                            <div class="avatar mb-4">
+                                <div class="w-16 rounded-full bg-white p-2">
+                                    <img src="{{ company_logo.url }}" alt="{{ company_name|default:'Logo' }}" class="w-full h-full object-contain">
+                                </div>
                             </div>
-                        </div>
-                        <h3 class="text-2xl font-bold">Gestionnaire</h3>
-                        <p class="text-primary-content/70 text-sm">Boutique E-commerce</p>
+                        {% else %}
+                            <div class="avatar placeholder mb-4">
+                                <div class="bg-white text-primary rounded-full w-16">
+                                    <i class="fas fa-store text-2xl"></i>
+                                </div>
+                            </div>
+                        {% endif %}
+                        <h3 class="text-2xl font-bold">{{ company_name|default:"Gestionnaire" }}</h3>
+                        <p class="text-white/70 text-sm">{% if company_description %}{{ company_description|truncatechars:30 }}{% else %}Boutique E-commerce{% endif %}</p>
                     </div>
 
                     <!-- Navigation -->
                     <nav class="space-y-2">
                         <a href="{% url 'manager:dashboard' %}" 
-                           class="flex items-center p-3 rounded-lg transition-all hover:bg-primary-content/20 hover-scale {% if request.resolver_match.url_name == 'dashboard' %}bg-primary-content/20 shadow-lg{% endif %}">
+                           class="flex items-center p-3 rounded-lg transition-all hover:bg-white/10 hover-scale {% if request.resolver_match.url_name == 'dashboard' %}bg-white/10 shadow-lg{% endif %}">
                             <i class="fas fa-tachometer-alt w-5 mr-3"></i>
                             <span class="font-medium">Dashboard</span>
                         </a>
                         
                         <a href="{% url 'manager:order_list' %}" 
-                           class="flex items-center p-3 rounded-lg transition-all hover:bg-primary-content/20 hover-scale {% if 'order' in request.resolver_match.url_name %}bg-primary-content/20 shadow-lg{% endif %}">
+                           class="flex items-center p-3 rounded-lg transition-all hover:bg-white/10 hover-scale {% if 'order' in request.resolver_match.url_name %}bg-white/10 shadow-lg{% endif %}">
                             <i class="fas fa-shopping-cart w-5 mr-3"></i>
                             <span class="font-medium">Commandes</span>
                         </a>
                         
                         <a href="{% url 'products:product_manager_list' %}" 
-                           class="flex items-center p-3 rounded-lg transition-all hover:bg-primary-content/20 hover-scale {% if 'product' in request.resolver_match.url_name %}bg-primary-content/20 shadow-lg{% endif %}">
+                           class="flex items-center p-3 rounded-lg transition-all hover:bg-white/10 hover-scale {% if 'product' in request.resolver_match.url_name %}bg-white/10 shadow-lg{% endif %}">
                             <i class="fas fa-box w-5 mr-3"></i>
                             <span class="font-medium">Produits</span>
                         </a>
                         
                         <a href="{% url 'manager:customer_list' %}" 
-                           class="flex items-center p-3 rounded-lg transition-all hover:bg-primary-content/20 hover-scale {% if 'customer' in request.resolver_match.url_name %}bg-primary-content/20 shadow-lg{% endif %}">
+                           class="flex items-center p-3 rounded-lg transition-all hover:bg-white/10 hover-scale {% if 'customer' in request.resolver_match.url_name %}bg-white/10 shadow-lg{% endif %}">
                             <i class="fas fa-users w-5 mr-3"></i>
                             <span class="font-medium">Clients</span>
                         </a>
                         
                         <a href="{% url 'products:stock:stock_list' %}" 
-                           class="flex items-center p-3 rounded-lg transition-all hover:bg-primary-content/20 hover-scale {% if 'stock' in request.resolver_match.url_name %}bg-primary-content/20 shadow-lg{% endif %}">
+                           class="flex items-center p-3 rounded-lg transition-all hover:bg-white/10 hover-scale {% if 'stock' in request.resolver_match.url_name %}bg-white/10 shadow-lg{% endif %}">
                             <i class="fas fa-warehouse w-5 mr-3"></i>
                             <span class="font-medium">Stock</span>
                         </a>
                         
                         <a href="{% url 'products:suppliers:supplier_list' %}" 
-                           class="flex items-center p-3 rounded-lg transition-all hover:bg-primary-content/20 hover-scale {% if 'supplier' in request.resolver_match.url_name %}bg-primary-content/20 shadow-lg{% endif %}">
+                           class="flex items-center p-3 rounded-lg transition-all hover:bg-white/10 hover-scale {% if 'supplier' in request.resolver_match.url_name %}bg-white/10 shadow-lg{% endif %}">
                             <i class="fas fa-truck w-5 mr-3"></i>
                             <span class="font-medium">Fournisseurs</span>
                         </a>
                         
+                        <a href="{% url 'manager:category_list' %}" 
+                           class="flex items-center p-3 rounded-lg transition-all hover:bg-white/10 hover-scale {% if 'category' in request.resolver_match.url_name %}bg-white/10 shadow-lg{% endif %}">
+                            <i class="fas fa-tags w-5 mr-3"></i>
+                            <span class="font-medium">Catégories</span>
+                        </a>
+                        
                         <a href="{% url 'orders:support_ticket_list' %}" 
-                           class="flex items-center p-3 rounded-lg transition-all hover:bg-primary-content/20 hover-scale {% if 'support' in request.resolver_match.url_name %}bg-primary-content/20 shadow-lg{% endif %}">
+                           class="flex items-center p-3 rounded-lg transition-all hover:bg-white/10 hover-scale {% if 'support' in request.resolver_match.url_name %}bg-white/10 shadow-lg{% endif %}">
                             <i class="fas fa-headset w-5 mr-3"></i>
                             <span class="font-medium">Support</span>
+                        </a>
+                        
+                        <a href="{% url 'manager:company_settings' %}" 
+                           class="flex items-center p-3 rounded-lg transition-all hover:bg-white/10 hover-scale {% if 'company_settings' in request.resolver_match.url_name %}bg-white/10 shadow-lg{% endif %}">
+                            <i class="fas fa-cog w-5 mr-3"></i>
+                            <span class="font-medium">Paramètres</span>
                         </a>
                         
                         <div class="divider my-4"></div>
@@ -184,9 +204,9 @@
 
 <!-- Custom Styles for Manager -->
 <style>
-.drawer-side {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
+        .drawer-side {
+            background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+        }
 
 .drawer-side aside {
     background: transparent;

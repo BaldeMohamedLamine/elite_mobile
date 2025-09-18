@@ -22,8 +22,17 @@ urlpatterns = [
     path('products/', views.ProductListView.as_view(), name='product_list'),
     path('products/<str:product_uid>/', views.ProductDetailView.as_view(), name='product_detail'),
     
+    # Catégories
+    path('categories/', views.CategoryListView.as_view(), name='category_list'),
+    path('categories/create/', views.CategoryCreateView.as_view(), name='category_create'),
+    path('categories/<int:pk>/update/', views.CategoryUpdateView.as_view(), name='category_update'),
+    path('categories/<int:pk>/delete/', views.CategoryDeleteView.as_view(), name='category_delete'),
+    
     # Clients
     path('customers/', views.CustomerListView.as_view(), name='customer_list'),
     path('customers/<int:customer_id>/', views.CustomerDetailView.as_view(), name='customer_detail'),
+    
+    # Paramètres de l'entreprise
+    path('settings/', views.CompanySettingsView.as_view(), name='company_settings'),
     
 ]

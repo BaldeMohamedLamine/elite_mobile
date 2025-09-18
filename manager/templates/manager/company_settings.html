@@ -1,0 +1,278 @@
+{% extends 'manager/base.html' %}
+{% load static %}
+
+{% block title %}Paramètres de l'entreprise - Manager{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Header -->
+    <div class="mb-8">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold text-base-content">
+                    <i class="fas fa-cog mr-3 text-primary"></i>
+                    Paramètres de l'entreprise
+                </h1>
+                <p class="text-base-content/70 mt-2">
+                    Configurez les informations et le logo de votre entreprise
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form -->
+    <div class="max-w-4xl mx-auto">
+        <form method="post" enctype="multipart/form-data" class="space-y-8">
+            {% csrf_token %}
+            
+            <!-- Informations de base -->
+            <div class="card bg-base-100 shadow-xl">
+                <div class="card-body">
+                    <h2 class="card-title text-xl mb-6">
+                        <i class="fas fa-building mr-2 text-primary"></i>
+                        Informations de base
+                    </h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Nom de l'entreprise -->
+                        <div class="form-control">
+                            <label class="label" for="{{ form.company_name.id_for_label }}">
+                                <span class="label-text font-semibold">Nom de l'entreprise *</span>
+                            </label>
+                            {{ form.company_name }}
+                            {% if form.company_name.errors %}
+                                <div class="text-error text-sm mt-1">{{ form.company_name.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Logo -->
+                        <div class="form-control">
+                            <label class="label" for="{{ form.logo.id_for_label }}">
+                                <span class="label-text font-semibold">Logo de l'entreprise</span>
+                            </label>
+                            <div class="flex items-center space-x-4">
+                                {% if form.instance.logo %}
+                                    <div class="avatar">
+                                        <div class="w-16 h-16 rounded-lg">
+                                            <img src="{{ form.instance.logo.url }}" alt="Logo actuel" class="w-full h-full object-contain">
+                                        </div>
+                                    </div>
+                                {% endif %}
+                                {{ form.logo }}
+                            </div>
+                            <div class="text-sm text-base-content/60 mt-1">
+                                Format recommandé: PNG ou SVG, taille optimale: 200x80px
+                            </div>
+                            {% if form.logo.errors %}
+                                <div class="text-error text-sm mt-1">{{ form.logo.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="form-control mt-6">
+                        <label class="label" for="{{ form.company_description.id_for_label }}">
+                            <span class="label-text font-semibold">Description de l'entreprise</span>
+                        </label>
+                        {{ form.company_description }}
+                        {% if form.company_description.errors %}
+                            <div class="text-error text-sm mt-1">{{ form.company_description.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Informations de contact -->
+            <div class="card bg-base-100 shadow-xl">
+                <div class="card-body">
+                    <h2 class="card-title text-xl mb-6">
+                        <i class="fas fa-address-book mr-2 text-primary"></i>
+                        Informations de contact
+                    </h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Adresse -->
+                        <div class="form-control md:col-span-2">
+                            <label class="label" for="{{ form.address.id_for_label }}">
+                                <span class="label-text font-semibold">Adresse complète</span>
+                            </label>
+                            {{ form.address }}
+                            {% if form.address.errors %}
+                                <div class="text-error text-sm mt-1">{{ form.address.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Téléphone -->
+                        <div class="form-control">
+                            <label class="label" for="{{ form.phone.id_for_label }}">
+                                <span class="label-text font-semibold">Téléphone</span>
+                            </label>
+                            {{ form.phone }}
+                            {% if form.phone.errors %}
+                                <div class="text-error text-sm mt-1">{{ form.phone.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Email -->
+                        <div class="form-control">
+                            <label class="label" for="{{ form.email.id_for_label }}">
+                                <span class="label-text font-semibold">Email</span>
+                            </label>
+                            {{ form.email }}
+                            {% if form.email.errors %}
+                                <div class="text-error text-sm mt-1">{{ form.email.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Site web -->
+                        <div class="form-control">
+                            <label class="label" for="{{ form.website.id_for_label }}">
+                                <span class="label-text font-semibold">Site web</span>
+                            </label>
+                            {{ form.website }}
+                            {% if form.website.errors %}
+                                <div class="text-error text-sm mt-1">{{ form.website.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Informations légales -->
+            <div class="card bg-base-100 shadow-xl">
+                <div class="card-body">
+                    <h2 class="card-title text-xl mb-6">
+                        <i class="fas fa-gavel mr-2 text-primary"></i>
+                        Informations légales
+                    </h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Numéro de TVA/RC -->
+                        <div class="form-control">
+                            <label class="label" for="{{ form.tax_number.id_for_label }}">
+                                <span class="label-text font-semibold">Numéro de TVA/RC</span>
+                            </label>
+                            {{ form.tax_number }}
+                            {% if form.tax_number.errors %}
+                                <div class="text-error text-sm mt-1">{{ form.tax_number.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Numéro d'enregistrement -->
+                        <div class="form-control">
+                            <label class="label" for="{{ form.registration_number.id_for_label }}">
+                                <span class="label-text font-semibold">Numéro d'enregistrement</span>
+                            </label>
+                            {{ form.registration_number }}
+                            {% if form.registration_number.errors %}
+                                <div class="text-error text-sm mt-1">{{ form.registration_number.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Paramètres d'affichage -->
+            <div class="card bg-base-100 shadow-xl">
+                <div class="card-body">
+                    <h2 class="card-title text-xl mb-6">
+                        <i class="fas fa-eye mr-2 text-primary"></i>
+                        Paramètres d'affichage
+                    </h2>
+                    
+                    <div class="space-y-4">
+                        <!-- Logo sur factures -->
+                        <div class="form-control">
+                            <label class="label cursor-pointer">
+                                <span class="label-text font-semibold">Afficher le logo sur les factures</span>
+                                {{ form.show_logo_on_invoices }}
+                            </label>
+                        </div>
+
+                        <!-- Logo sur reçus -->
+                        <div class="form-control">
+                            <label class="label cursor-pointer">
+                                <span class="label-text font-semibold">Afficher le logo sur les reçus</span>
+                                {{ form.show_logo_on_receipts }}
+                            </label>
+                        </div>
+
+                        <!-- Logo sur rapports -->
+                        <div class="form-control">
+                            <label class="label cursor-pointer">
+                                <span class="label-text font-semibold">Afficher le logo sur les rapports</span>
+                                {{ form.show_logo_on_reports }}
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex justify-end space-x-4">
+                <a href="{% url 'manager:dashboard' %}" class="btn btn-outline">
+                    <i class="fas fa-times mr-2"></i>
+                    Annuler
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save mr-2"></i>
+                    Enregistrer les paramètres
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+/* Style pour les champs de formulaire */
+.form-control input,
+.form-control textarea,
+.form-control select {
+    @apply input input-bordered w-full;
+    background-color: white !important;
+    border-color: #d1d5db !important;
+    color: #1a1a1a !important;
+}
+
+.form-control input:focus,
+.form-control textarea:focus,
+.form-control select:focus {
+    border-color: #f97316 !important;
+    box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1) !important;
+    outline: none !important;
+}
+
+.form-control textarea {
+    @apply textarea textarea-bordered w-full;
+    background-color: white !important;
+    border-color: #d1d5db !important;
+    color: #1a1a1a !important;
+}
+
+.form-control input[type="checkbox"] {
+    @apply toggle toggle-primary;
+}
+
+.form-control input[type="file"] {
+    @apply file-input file-input-bordered w-full;
+    background-color: white !important;
+    border-color: #d1d5db !important;
+    color: #1a1a1a !important;
+}
+
+/* Aperçu du logo */
+.avatar img {
+    border: 2px solid #e5e7eb;
+    border-radius: 0.5rem;
+}
+
+/* S'assurer que les champs ne sont pas désactivés */
+.form-control input:not([disabled]),
+.form-control textarea:not([disabled]),
+.form-control select:not([disabled]) {
+    background-color: white !important;
+    color: #1a1a1a !important;
+    opacity: 1 !important;
+}
+</style>
+{% endblock %}

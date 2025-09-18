@@ -38,9 +38,9 @@
         <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
             <!-- Checkout Form -->
             <div class="lg:col-span-2">
-                <div class="card bg-base-100 shadow-xl animate-slide-in">
+                <div class="card bg-white shadow-xl animate-slide-in">
                     <div class="card-body">
-                        <h2 class="card-title text-2xl mb-6">
+                        <h2 class="card-title text-2xl mb-6 text-base-content">
                             <i class="fas fa-shipping-fast text-primary"></i>
                             Informations de livraison et paiement
                         </h2>
@@ -255,7 +255,7 @@
                                     <div class="text-xs text-base-content/70">Quantité: {{ item.quantity }}</div>
                                 </div>
                                 <div class="text-right">
-                                    <div class="font-bold text-sm">{{ item.product.price|floatformat:0 }} FCFA</div>
+                                    <div class="font-bold text-sm">{{ item.product.price|floatformat:0 }} GNF</div>
                                 </div>
                             </div>
                             {% endfor %}
@@ -265,18 +265,18 @@
                         <div class="space-y-2 mb-4">
                             <div class="flex justify-between">
                                 <span class="text-base-content/70">Sous-total:</span>
-                                <span class="font-medium">{{ cart.amount|floatformat:0 }} FCFA</span>
+                                <span class="font-medium">{{ cart.amount|floatformat:0 }} GNF</span>
                             </div>
                             
                             <div class="flex justify-between">
                                 <span class="text-base-content/70">Frais de livraison:</span>
-                                <span class="font-medium">{{ delivery_fee|floatformat:0 }} FCFA</span>
+                                <span class="font-medium">{{ delivery_fee|floatformat:0 }} GNF</span>
                             </div>
                             
                             {% if dropship_shipping_cost > 0 %}
                             <div class="flex justify-between">
                                 <span class="text-base-content/70">Frais dropshipping:</span>
-                                <span class="font-medium">{{ dropship_shipping_cost|floatformat:0 }} FCFA</span>
+                                <span class="font-medium">{{ dropship_shipping_cost|floatformat:0 }} GNF</span>
                             </div>
                             {% endif %}
                             
@@ -284,7 +284,7 @@
                             
                             <div class="flex justify-between text-lg font-bold">
                                 <span>Total:</span>
-                                <span class="text-primary">{{ cart.amount|add:delivery_fee|add:dropship_shipping_cost|floatformat:0 }} FCFA</span>
+                                <span class="text-primary">{{ cart.amount|add:delivery_fee|add:dropship_shipping_cost|floatformat:0 }} GNF</span>
                             </div>
                         </div>
 

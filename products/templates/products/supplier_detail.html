@@ -109,7 +109,7 @@
                             {% if supplier.credit_limit %}
                             <div class="flex justify-between">
                                 <span class="font-medium">Limite crédit:</span>
-                                <span class="font-bold">{{ supplier.credit_limit|floatformat:0 }} FCFA</span>
+                                <span class="font-bold">{{ supplier.credit_limit|floatformat:0 }} GNF</span>
                             </div>
                             {% endif %}
                             {% if supplier.discount_percentage %}
@@ -167,14 +167,14 @@
                 <div class="divider"></div>
                 
                 <div class="text-center mb-4">
-                    <div class="text-3xl font-bold text-success">{{ stats.total_sales_value|floatformat:0 }} FCFA</div>
+                    <div class="text-3xl font-bold text-success">{{ stats.total_sales_value|floatformat:0 }} GNF</div>
                     <div class="text-sm text-base-content/70">Valeur des Ventes</div>
                 </div>
                 
                 <div class="divider"></div>
                 
                 <div class="text-center">
-                    <div class="text-3xl font-bold text-warning">{{ stats.total_commission_earned|floatformat:0 }} FCFA</div>
+                    <div class="text-3xl font-bold text-warning">{{ stats.total_commission_earned|floatformat:0 }} GNF</div>
                     <div class="text-sm text-base-content/70">Commission Gagnée</div>
                 </div>
             </div>
@@ -281,8 +281,8 @@
                                 <div class="text-sm text-base-content/70">{{ product.supplier_sku|default:"N/A" }}</div>
                             </td>
                             <td>
-                                <div class="font-bold">{{ product.selling_price|floatformat:0 }} FCFA</div>
-                                <div class="text-sm text-base-content/70">Achat: {{ product.supplier_price|floatformat:0 }} FCFA</div>
+                                <div class="font-bold">{{ product.selling_price|floatformat:0 }} GNF</div>
+                                <div class="text-sm text-base-content/70">Achat: {{ product.supplier_price|floatformat:0 }} GNF</div>
                             </td>
                             <td>
                                 <span class="badge badge-{% if product.is_out_of_stock %}error{% elif product.is_low_stock %}warning{% else %}success{% endif %}">

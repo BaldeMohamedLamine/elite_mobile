@@ -350,6 +350,9 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize cart count on page load
+    updateCartCount();
+    
     // Quantity controls
     window.increaseQuantity = function() {
         const quantityInput = document.getElementById('quantity');
@@ -415,7 +418,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Show success toast
                     showToast('success', `"${productName}" (x${quantity}) ajouté au panier !`);
                     
-                    // Update cart count
+                    // Update cart count immediately with the returned value
+                    const cartCountElement = document.getElementById('cart-count');
+                    if (cartCountElement && data.cart_count !== undefined) {
+                        cartCountElement.textContent = data.cart_count;
+                        cartCountElement.style.display = data.cart_count > 0 ? 'inline' : 'none';
+                    }
+                    
+                    // Also update cart count via API call
                     updateCartCount();
                     
                     // Update button state
@@ -483,11 +493,11 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateCartCount() {
         const cartCount = document.getElementById('cart-count');
         if (cartCount) {
-            fetch('{% url "products:cart_count" %}')
+            fetch('{% url "orders:cart_count" %}')
                 .then(response => response.json())
                 .then(data => {
-                    cartCount.textContent = data.cart_count;
-                    cartCount.style.display = data.cart_count > 0 ? 'inline' : 'none';
+                    cartCount.textContent = data.count;
+                    cartCount.style.display = data.count > 0 ? 'inline' : 'none';
                 })
                 .catch(error => console.error('Error updating cart count:', error));
         }

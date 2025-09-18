@@ -201,7 +201,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
                             <label for="price_min" class="block text-sm font-medium text-gray-700 mb-2">
-                                Prix minimum (FCFA)
+                                Prix minimum (GNF)
                             </label>
                             <input 
                                 type="number" 
@@ -215,7 +215,7 @@
                         
                         <div>
                             <label for="price_max" class="block text-sm font-medium text-gray-700 mb-2">
-                                Prix maximum (FCFA)
+                                Prix maximum (GNF)
                             </label>
                             <input 
                                 type="number" 
@@ -237,11 +237,11 @@
                                 onchange="setPriceRange(this.value)"
                             >
                                 <option value="">Sélectionner une gamme</option>
-                                <option value="0-50000">Moins de 50,000 FCFA</option>
-                                <option value="50000-100000">50,000 - 100,000 FCFA</option>
-                                <option value="100000-200000">100,000 - 200,000 FCFA</option>
-                                <option value="200000-500000">200,000 - 500,000 FCFA</option>
-                                <option value="500000-999999999">Plus de 500,000 FCFA</option>
+                                <option value="0-50000">Moins de 50,000 GNF</option>
+                                <option value="50000-100000">50,000 - 100,000 GNF</option>
+                                <option value="100000-200000">100,000 - 200,000 GNF</option>
+                                <option value="200000-500000">200,000 - 500,000 GNF</option>
+                                <option value="500000-999999999">Plus de 500,000 GNF</option>
                             </select>
                         </div>
                     </div>
@@ -262,8 +262,8 @@
                                 oninput="updatePriceFromSlider()"
                             >
                             <div class="flex justify-between text-xs text-gray-500 mt-1">
-                                <span>{{ min_price|floatformat:0 }} FCFA</span>
-                                <span>{{ max_price|floatformat:0 }} FCFA</span>
+                                <span>{{ min_price|floatformat:0 }} GNF</span>
+                                <span>{{ max_price|floatformat:0 }} GNF</span>
                             </div>
                         </div>
                     </div>
@@ -478,8 +478,8 @@ function updatePreview() {
     const priceMin = formData.get('price_min');
     const priceMax = formData.get('price_max');
     if (priceMin || priceMax) {
-        const min = priceMin ? `${parseInt(priceMin).toLocaleString()} FCFA` : '0 FCFA';
-        const max = priceMax ? `${parseInt(priceMax).toLocaleString()} FCFA` : 'Aucune limite';
+        const min = priceMin ? `${parseInt(priceMin).toLocaleString()} GNF` : '0 GNF';
+        const max = priceMax ? `${parseInt(priceMax).toLocaleString()} GNF` : 'Aucune limite';
         criteria.push(`Prix: ${min} - ${max}`);
     }
     

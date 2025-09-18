@@ -1,90 +1,89 @@
-{% extends 'manager/base.html' %}
+{% extends 'base.html' %}
 {% load static %}
 
-{% block navbar_title %}Gestion des Catégories{% endblock %}
-{% block header_title %}Gestion des Catégories{% endblock %}
+{% block title %}Gestion des Catégories{% endblock %}
 
 {% block content %}
 <div class="container mx-auto px-4 py-8">
     <!-- Header -->
-    <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 gap-4">
+    <div class="flex justify-between items-center mb-8">
         <div>
-            <h1 class="text-3xl font-bold text-base-content mb-2">
-                <i class="fas fa-tags text-primary mr-3"></i>
-                Gestion des Catégories
-            </h1>
-            <p class="text-base-content/70">Organisez vos produits par catégories</p>
+            <h1 class="text-3xl font-bold text-base-content">Gestion des Catégories</h1>
+            <p class="text-base-content/70 mt-2">Créez et gérez les catégories de produits</p>
         </div>
-        
-        <div class="flex gap-3">
-            <button class="btn btn-primary hover-glow transition-all">
-                <i class="fas fa-plus mr-2"></i>
-                Nouvelle Catégorie
-            </button>
-            <a href="{% url 'manager:product_list' %}" class="btn btn-outline hover-glow transition-all">
-                <i class="fas fa-arrow-left mr-2"></i>
-                Retour aux Produits
-            </a>
-        </div>
+        <a href="{% url 'manager:category_create' %}" 
+           class="btn btn-primary gap-2">
+            <i class="fas fa-plus"></i>
+            Nouvelle Catégorie
+        </a>
     </div>
 
-    <!-- Liste des catégories -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {% for category in categories %}
-        <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all">
-            <div class="card-body">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="card-title text-lg">{{ category.name }}</h3>
-                    <div class="flex gap-2">
-                        <button class="btn btn-ghost btn-sm" title="Modifier">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="btn btn-ghost btn-sm text-error" title="Supprimer">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
+    <!-- Categories Table -->
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body p-0">
+            {% if categories %}
+                <div class="overflow-x-auto">
+                    <table class="table table-zebra w-full">
+                        <thead>
+                            <tr class="bg-base-200">
+                                <th class="text-base-content font-semibold">Nom</th>
+                                <th class="text-base-content font-semibold">Produits</th>
+                                <th class="text-base-content font-semibold">Créée le</th>
+                                <th class="text-base-content font-semibold">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for category in categories %}
+                            <tr class="hover:bg-base-200/50">
+                                <td class="font-medium text-base-content">
+                                    {{ category.name }}
+                                </td>
+                                <td class="text-base-content">
+                                    <span class="badge badge-primary">
+                                        {{ category.product_count }} produit{{ category.product_count|pluralize }}
+                                    </span>
+                                </td>
+                                <td class="text-base-content/70">
+                                    {{ category.created_at|date:"d/m/Y à H:i" }}
+                                </td>
+                                <td>
+                                    <div class="flex gap-2">
+                                        <a href="{% url 'manager:category_update' category.pk %}" 
+                                           class="btn btn-sm btn-outline btn-primary">
+                                            <i class="fas fa-edit"></i>
+                                            Modifier
+                                        </a>
+                                        <a href="{% url 'manager:category_delete' category.pk %}" 
+                                           class="btn btn-sm btn-outline btn-error">
+                                            <i class="fas fa-trash"></i>
+                                            Supprimer
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
-                
-                <div class="space-y-2">
-                    <div class="flex justify-between text-sm">
-                        <span class="text-base-content/70">Produits:</span>
-                        <span class="font-semibold">{{ category.products.count }}</span>
+            {% else %}
+                <div class="text-center py-12">
+                    <div class="text-6xl text-base-content/30 mb-4">
+                        <i class="fas fa-tags"></i>
                     </div>
-                    
-                    <div class="flex justify-between text-sm">
-                        <span class="text-base-content/70">Statut:</span>
-                        {% if category.is_active %}
-                            <span class="badge badge-success">Actif</span>
-                        {% else %}
-                            <span class="badge badge-error">Inactif</span>
-                        {% endif %}
-                    </div>
-                    
-                    {% if category.description %}
-                    <div class="text-sm text-gray-600 mt-2">
-                        {{ category.description|truncatechars:100 }}
-                    </div>
-                    {% endif %}
-                </div>
-                
-                <div class="card-actions justify-end mt-4">
-                    <a href="{% url 'manager:product_list' %}?category={{ category.id }}" 
-                       class="btn btn-primary btn-sm">
-                        <i class="fas fa-eye mr-1"></i>
-                        Voir les produits
+                    <h3 class="text-xl font-semibold text-base-content mb-2">
+                        Aucune catégorie trouvée
+                    </h3>
+                    <p class="text-base-content/70 mb-6">
+                        Commencez par créer votre première catégorie de produits.
+                    </p>
+                    <a href="{% url 'manager:category_create' %}" 
+                       class="btn btn-primary gap-2">
+                        <i class="fas fa-plus"></i>
+                        Créer une catégorie
                     </a>
                 </div>
-            </div>
+            {% endif %}
         </div>
-        {% empty %}
-        <div class="col-span-full text-center py-12">
-            <div class="text-gray-500">
-                <i class="fas fa-tags text-6xl mb-4"></i>
-                <p class="text-xl">Aucune catégorie trouvée</p>
-                <p class="text-sm">Créez votre première catégorie pour organiser vos produits</p>
-            </div>
-        </div>
-        {% endfor %}
     </div>
 </div>
 {% endblock %}

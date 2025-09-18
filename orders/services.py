@@ -209,11 +209,15 @@ class CartService:
                     cart_item.quantity = new_quantity
                     cart_item.save()
                 
+                # Calculer le nombre total d'articles dans le panier
+                cart_count = cart.items.count()
+                
                 return {
                     'success': True,
                     'message': f'{product.name} ajouté au panier',
                     'cart_item_id': cart_item.id,
-                    'quantity': cart_item.quantity
+                    'quantity': cart_item.quantity,
+                    'cart_count': cart_count
                 }
                 
         except Exception as e:

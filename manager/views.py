@@ -1,16 +1,18 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic import TemplateView, ListView, DetailView, UpdateView
+from django.views.generic import TemplateView, ListView, DetailView, UpdateView, CreateView, DeleteView
 from django.contrib import messages
 from django.db.models import Count, Sum, Q
 from django.utils import timezone
 from datetime import datetime, timedelta
 from decimal import Decimal, InvalidOperation
+from django.urls import reverse_lazy
 
 from orders.models import Order, OrderItem, Payment
 from products.models import Product, Category, Stock
 from users.models import User
 from users.mixins import ManagerRequiredMixin
+from .models import CompanySettings
 
 
 class ManagerDashboardView(LoginRequiredMixin, ManagerRequiredMixin, TemplateView):
@@ -360,3 +362,121 @@ class CashPaymentConfirmationView(LoginRequiredMixin, ManagerRequiredMixin, Deta
             )
         
         return self.get(request, *args, **kwargs)
+
+
+# Vues pour la gestion des catégories
+class CategoryListView(LoginRequiredMixin, ManagerRequiredMixin, ListView):
+    """Liste des catégories"""
+    model = Category
+    template_name = 'products/category_list.html'
+    context_object_name = 'categories'
+    
+    def get_queryset(self):
+        return Category.objects.annotate(
+            product_count=Count('products')
+        ).order_by('name')
+
+
+class CategoryCreateView(LoginRequiredMixin, ManagerRequiredMixin, CreateView):
+    """Créer une nouvelle catégorie"""
+    model = Category
+    template_name = 'products/category_form.html'
+    fields = ['name']
+    success_url = reverse_lazy('manager:category_list')
+    
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        form.fields['name'].widget.attrs.update({
+            'class': 'input input-bordered w-full',
+            'placeholder': 'Ex: Électronique, Vêtements, Maison...'
+        })
+        return form
+    
+    def form_valid(self, form):
+        messages.success(self.request, 'Catégorie créée avec succès!')
+        return super().form_valid(form)
+
+
+class CategoryUpdateView(LoginRequiredMixin, ManagerRequiredMixin, UpdateView):
+    """Modifier une catégorie"""
+    model = Category
+    template_name = 'products/category_form.html'
+    fields = ['name']
+    success_url = reverse_lazy('manager:category_list')
+    
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        form.fields['name'].widget.attrs.update({
+            'class': 'input input-bordered w-full',
+            'placeholder': 'Ex: Électronique, Vêtements, Maison...'
+        })
+        return form
+    
+    def form_valid(self, form):
+        messages.success(self.request, 'Catégorie modifiée avec succès!')
+        return super().form_valid(form)
+
+
+class CategoryDeleteView(LoginRequiredMixin, ManagerRequiredMixin, DeleteView):
+    """Supprimer une catégorie"""
+    model = Category
+    template_name = 'products/category_confirm_delete.html'
+    success_url = reverse_lazy('manager:category_list')
+    
+    def delete(self, request, *args, **kwargs):
+        messages.success(self.request, 'Catégorie supprimée avec succès!')
+        return super().delete(request, *args, **kwargs)
+
+
+# Vues pour les paramètres de l'entreprise
+class CompanySettingsView(LoginRequiredMixin, ManagerRequiredMixin, UpdateView):
+    """Gestion des paramètres de l'entreprise"""
+    model = CompanySettings
+    template_name = 'manager/company_settings.html'
+    fields = [
+        'company_name', 'company_description', 'logo', 'address', 
+        'phone', 'email', 'website', 'tax_number', 'registration_number',
+        'show_logo_on_invoices', 'show_logo_on_receipts', 'show_logo_on_reports'
+    ]
+    success_url = reverse_lazy('manager:company_settings')
+    
+    def get_object(self):
+        return CompanySettings.get_settings()
+    
+    def form_valid(self, form):
+        messages.success(self.request, 'Paramètres de l\'entreprise mis à jour avec succès!')
+        return super().form_valid(form)
+    
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        
+        # Appliquer les classes CSS aux champs
+        for field_name, field in form.fields.items():
+            if field_name == 'logo':
+                field.widget.attrs.update({
+                    'class': 'file-input file-input-bordered w-full',
+                    'accept': 'image/*'
+                })
+            elif field_name == 'company_description':
+                field.widget.attrs.update({
+                    'class': 'textarea textarea-bordered w-full',
+                    'rows': '3',
+                    'placeholder': 'Décrivez votre entreprise en quelques mots...'
+                })
+            elif field_name in ['show_logo_on_invoices', 'show_logo_on_receipts', 'show_logo_on_reports']:
+                field.widget.attrs.update({
+                    'class': 'toggle toggle-primary'
+                })
+            else:
+                field.widget.attrs.update({
+                    'class': 'input input-bordered w-full',
+                    'placeholder': f'Entrez {field.label.lower()}...'
+                })
+        
+        return form
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['page_title'] = 'Paramètres de l\'entreprise'
+        context['page_description'] = 'Configurez les informations et le logo de votre entreprise'
+        return context

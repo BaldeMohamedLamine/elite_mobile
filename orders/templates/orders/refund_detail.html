@@ -42,7 +42,7 @@
                                     
                                     <div class="flex justify-between items-center p-3 bg-base-200 rounded-lg">
                                         <span class="font-semibold">Montant:</span>
-                                        <span class="font-bold text-success text-xl">{{ refund.amount|floatformat:0 }} FCFA</span>
+                                        <span class="font-bold text-success text-xl">{{ refund.amount|floatformat:0 }} GNF</span>
                                     </div>
                                     
                                     <div class="flex justify-between items-center p-3 bg-base-200 rounded-lg">
@@ -120,7 +120,7 @@
                                 <div class="space-y-4">
                                     <div class="flex justify-between items-center p-3 bg-base-200 rounded-lg">
                                         <span class="font-semibold">Montant total:</span>
-                                        <span class="font-bold">{{ refund.order.total_amount|floatformat:0 }} FCFA</span>
+                                        <span class="font-bold">{{ refund.order.total_amount|floatformat:0 }} GNF</span>
                                     </div>
                                     
                                     <div class="flex justify-between items-center p-3 bg-base-200 rounded-lg">
@@ -193,10 +193,10 @@
                                                 <span class="badge badge-primary">{{ item.quantity }}</span>
                                             </td>
                                             <td class="text-end">
-                                                <span class="font-semibold">{{ item.price_at_time|floatformat:0 }} FCFA</span>
+                                                <span class="font-semibold">{{ item.price_at_time|floatformat:0 }} GNF</span>
                                             </td>
                                             <td class="text-end">
-                                                <span class="font-bold">{{ item.price_at_time|floatformat:0|mul:item.quantity }} FCFA</span>
+                                                <span class="font-bold">{{ item.price_at_time|floatformat:0|mul:item.quantity }} GNF</span>
                                             </td>
                                         </tr>
                                         {% endfor %}

@@ -21,7 +21,7 @@
                 <div class="card-body text-center">
                     <div class="bg-gradient-to-r from-primary to-secondary text-white rounded-2xl p-6">
                         <h3 class="text-lg font-semibold mb-2">Montant à payer à la livraison</h3>
-                        <div class="text-4xl font-bold">{{ order.total_amount|floatformat:0 }} FCFA</div>
+                        <div class="text-4xl font-bold">{{ order.total_amount|floatformat:0 }} GNF</div>
                     </div>
                 </div>
             </div>
@@ -93,7 +93,7 @@
                                             <span class="badge badge-primary">{{ item.quantity }}</span>
                                         </td>
                                         <td>
-                                            <span class="font-semibold">{{ item.price_at_time|floatformat:0 }} FCFA</span>
+                                            <span class="font-semibold">{{ item.price_at_time|floatformat:0 }} GNF</span>
                                         </td>
                                     </tr>
                                     {% endfor %}
@@ -101,15 +101,15 @@
                                 <tfoot>
                                     <tr class="border-t-2">
                                         <th colspan="2">Sous-total :</th>
-                                        <th class="text-lg">{{ order.subtotal|floatformat:0 }} FCFA</th>
+                                        <th class="text-lg">{{ order.subtotal|floatformat:0 }} GNF</th>
                                     </tr>
                                     <tr>
                                         <th colspan="2">Frais de livraison :</th>
-                                        <th class="text-lg">{{ order.delivery_fee|floatformat:0 }} FCFA</th>
+                                        <th class="text-lg">{{ order.delivery_fee|floatformat:0 }} GNF</th>
                                     </tr>
                                     <tr class="bg-success text-success-content">
                                         <th colspan="2" class="text-lg">Total :</th>
-                                        <th class="text-xl font-bold">{{ order.total_amount|floatformat:0 }} FCFA</th>
+                                        <th class="text-xl font-bold">{{ order.total_amount|floatformat:0 }} GNF</th>
                                     </tr>
                                 </tfoot>
                             </table>
@@ -142,7 +142,7 @@
                             </div>
                             <div class="flex items-start gap-3">
                                 <i class="fas fa-calculator text-purple-500 mt-1"></i>
-                                <span class="text-sm">Préparez le montant exact : <strong>{{ order.total_amount|floatformat:0 }} FCFA</strong></span>
+                                <span class="text-sm">Préparez le montant exact : <strong>{{ order.total_amount|floatformat:0 }} GNF</strong></span>
                             </div>
                             <div class="flex items-start gap-3">
                                 <i class="fas fa-receipt text-indigo-500 mt-1"></i>

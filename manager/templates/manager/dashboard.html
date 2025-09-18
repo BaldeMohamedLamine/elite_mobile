@@ -10,47 +10,47 @@
 <!-- Statistics Cards -->
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
     <!-- Total Orders -->
-    <div class="card bg-gradient-to-br from-primary to-primary-focus text-primary-content shadow-xl hover-lift transition-all animate-fade-in">
+    <div class="card gradient-primary text-white shadow-xl hover-lift transition-all animate-fade-in">
         <div class="card-body text-center">
             <div class="flex justify-center mb-4">
                 <div class="avatar placeholder">
-                    <div class="bg-primary-content text-primary rounded-full w-16">
+                    <div class="bg-white text-primary rounded-full w-16">
                         <i class="fas fa-shopping-cart text-2xl"></i>
                     </div>
                 </div>
             </div>
             <h2 class="card-title justify-center text-4xl font-bold">{{ total_orders }}</h2>
-            <p class="text-primary-content/80">Total Commandes</p>
+            <p class="text-white/80">Total Commandes</p>
         </div>
     </div>
 
     <!-- Total Sales -->
-    <div class="card bg-gradient-to-br from-success to-success-focus text-success-content shadow-xl hover-lift transition-all animate-fade-in" style="animation-delay: 0.1s">
+    <div class="card bg-gradient-to-br from-success to-success/80 text-white shadow-xl hover-lift transition-all animate-fade-in" style="animation-delay: 0.1s">
         <div class="card-body text-center">
             <div class="flex justify-center mb-4">
                 <div class="avatar placeholder">
-                    <div class="bg-success-content text-success rounded-full w-16">
+                    <div class="bg-white text-success rounded-full w-16">
                         <i class="fas fa-money-bill-wave text-2xl"></i>
                     </div>
                 </div>
             </div>
-            <h2 class="card-title justify-center text-4xl font-bold">{{ total_sales|floatformat:0 }} FCFA</h2>
-            <p class="text-success-content/80">Chiffre d'Affaires</p>
+            <h2 class="card-title justify-center text-4xl font-bold">{{ total_sales|floatformat:0 }} GNF</h2>
+            <p class="text-white/80">Chiffre d'Affaires</p>
         </div>
     </div>
 
     <!-- Total Products -->
-    <div class="card bg-gradient-to-br from-warning to-warning-focus text-warning-content shadow-xl hover-lift transition-all animate-fade-in" style="animation-delay: 0.2s">
+    <div class="card bg-gradient-to-br from-warning to-warning/80 text-white shadow-xl hover-lift transition-all animate-fade-in" style="animation-delay: 0.2s">
         <div class="card-body text-center">
             <div class="flex justify-center mb-4">
                 <div class="avatar placeholder">
-                    <div class="bg-warning-content text-warning rounded-full w-16">
+                    <div class="bg-white text-warning rounded-full w-16">
                         <i class="fas fa-box text-2xl"></i>
                     </div>
                 </div>
             </div>
             <h2 class="card-title justify-center text-4xl font-bold">{{ total_products }}</h2>
-            <p class="text-warning-content/80">Produits</p>
+            <p class="text-white/80">Produits</p>
             {% if low_stock_products > 0 %}
             <div class="badge badge-error badge-lg mt-2">
                 <i class="fas fa-exclamation-triangle mr-1"></i>
@@ -61,17 +61,17 @@
     </div>
 
     <!-- Total Customers -->
-    <div class="card bg-gradient-to-br from-info to-info-focus text-info-content shadow-xl hover-lift transition-all animate-fade-in" style="animation-delay: 0.3s">
+    <div class="card bg-gradient-to-br from-info to-info/80 text-white shadow-xl hover-lift transition-all animate-fade-in" style="animation-delay: 0.3s">
         <div class="card-body text-center">
             <div class="flex justify-center mb-4">
                 <div class="avatar placeholder">
-                    <div class="bg-info-content text-info rounded-full w-16">
+                    <div class="bg-white text-info rounded-full w-16">
                         <i class="fas fa-users text-2xl"></i>
                     </div>
                 </div>
             </div>
             <h2 class="card-title justify-center text-4xl font-bold">{{ total_customers }}</h2>
-            <p class="text-info-content/80">Clients</p>
+            <p class="text-white/80">Clients</p>
             <div class="badge badge-success badge-lg mt-2">
                 <i class="fas fa-arrow-up mr-1"></i>
                 +{{ new_customers_this_month }} ce mois
@@ -145,7 +145,7 @@
                                     <div class="font-medium">{{ order.customer.first_name }} {{ order.customer.last_name }}</div>
                                 </td>
                                 <td>
-                                    <div class="font-bold">{{ order.total_amount|floatformat:0 }} FCFA</div>
+                                    <div class="font-bold">{{ order.total_amount|floatformat:0 }} GNF</div>
                                 </td>
                                 <td>
                                     <span class="badge badge-{% if order.status == 'pending' %}warning{% elif order.status == 'paid' %}info{% elif order.status == 'shipped' %}primary{% elif order.status == 'delivered' %}success{% elif order.status == 'cancelled' %}error{% endif %}">
@@ -202,7 +202,7 @@
                             <div class="text-xs text-base-content/70">{{ product.total_sold|default:0 }} vendu(s)</div>
                         </div>
                         <div class="text-right">
-                            <div class="font-bold text-sm">{{ product.price|floatformat:0 }} FCFA</div>
+                            <div class="font-bold text-sm">{{ product.price|floatformat:0 }} GNF</div>
                         </div>
                     </div>
                     {% endfor %}
@@ -296,7 +296,7 @@ document.addEventListener('DOMContentLoaded', function() {
         data: {
             labels: [{% for month in sales_by_month %}'{{ month.month }}'{% if not forloop.last %},{% endif %}{% endfor %}],
             datasets: [{
-                label: 'Ventes (FCFA)',
+                label: 'Ventes (GNF)',
                 data: [{% for month in sales_by_month %}{{ month.sales }}{% if not forloop.last %},{% endif %}{% endfor %}],
                 borderColor: 'rgb(59, 130, 246)',
                 backgroundColor: 'rgba(59, 130, 246, 0.1)',

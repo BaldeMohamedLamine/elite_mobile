@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    {% if object %}Modifier la Catégorie{% else %}Nouvelle Catégorie{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Breadcrumb -->
+    <div class="breadcrumbs text-sm mb-6">
+        <ul>
+            <li><a href="{% url 'manager:dashboard' %}" class="link link-hover">Dashboard</a></li>
+            <li><a href="{% url 'manager:category_list' %}" class="link link-hover">Catégories</a></li>
+            <li>
+                {% if object %}Modifier{% else %}Nouvelle{% endif %}
+            </li>
+        </ul>
+    </div>
+
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-base-content">
+            {% if object %}Modifier la Catégorie{% else %}Nouvelle Catégorie{% endif %}
+        </h1>
+        <p class="text-base-content/70 mt-2">
+            {% if object %}
+                Modifiez les informations de la catégorie "{{ object.name }}"
+            {% else %}
+                Créez une nouvelle catégorie pour organiser vos produits
+            {% endif %}
+        </p>
+    </div>
+
+    <!-- Form -->
+    <div class="card bg-base-100 shadow-xl max-w-2xl">
+        <div class="card-body">
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+                
+                <!-- Name Field -->
+                <div class="form-control">
+                    <label class="label" for="{{ form.name.id_for_label }}">
+                        <span class="label-text font-semibold text-base-content">
+                            Nom de la catégorie *
+                        </span>
+                    </label>
+                    {{ form.name }}
+                    {% if form.name.errors %}
+                        <div class="label">
+                            <span class="label-text-alt text-error">
+                                {% for error in form.name.errors %}{{ error }}{% endfor %}
+                            </span>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Submit Buttons -->
+                <div class="flex gap-4 pt-6">
+                    <button type="submit" class="btn btn-primary gap-2">
+                        <i class="fas fa-save"></i>
+                        {% if object %}Mettre à jour{% else %}Créer{% endif %}
+                    </button>
+                    <a href="{% url 'manager:category_list' %}" 
+                       class="btn btn-outline gap-2">
+                        <i class="fas fa-arrow-left"></i>
+                        Annuler
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

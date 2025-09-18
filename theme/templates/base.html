@@ -31,23 +31,23 @@
             --base-content: 0 0% 9%; /* Noir */
         }
         
-        /* Force les couleurs orange, blanc, noir */
+        /* Couleurs professionnelles - orange subtil */
         .btn-primary {
-            background-color: #ff6b35 !important;
-            border-color: #ff6b35 !important;
+            background-color: #f97316 !important;
+            border-color: #f97316 !important;
         }
         .btn-primary:hover {
-            background-color: #e55a2b !important;
-            border-color: #e55a2b !important;
+            background-color: #ea580c !important;
+            border-color: #ea580c !important;
         }
         .text-primary {
-            color: #ff6b35 !important;
+            color: #f97316 !important;
         }
         .bg-primary {
-            background-color: #ff6b35 !important;
+            background-color: #f97316 !important;
         }
         .border-primary {
-            border-color: #ff6b35 !important;
+            border-color: #f97316 !important;
         }
         .text-secondary {
             color: #1a1a1a !important;
@@ -65,8 +65,133 @@
             background-color: #f5f5f5 !important;
         }
         
+        /* Couleurs harmonisées pour le thème professionnel */
+        .text-accent {
+            color: #f97316 !important;
+        }
+        .bg-accent {
+            background-color: #f97316 !important;
+        }
+        .border-accent {
+            border-color: #f97316 !important;
+        }
+        .btn-accent {
+            background-color: #f97316 !important;
+            border-color: #f97316 !important;
+            color: white !important;
+        }
+        .btn-accent:hover {
+            background-color: #ea580c !important;
+            border-color: #ea580c !important;
+        }
+        
+        /* Couleurs neutres harmonisées */
+        .text-neutral {
+            color: #1a1a1a !important;
+        }
+        .bg-neutral {
+            background-color: #1a1a1a !important;
+        }
+        .text-neutral-content {
+            color: #ffffff !important;
+        }
+        
+        /* Couleurs d'état harmonisées */
+        .text-success {
+            color: #16a34a !important;
+        }
+        .bg-success {
+            background-color: #16a34a !important;
+        }
+        .text-warning {
+            color: #f59e0b !important;
+        }
+        .bg-warning {
+            background-color: #f59e0b !important;
+        }
+        .text-error {
+            color: #dc2626 !important;
+        }
+        .bg-error {
+            background-color: #dc2626 !important;
+        }
+        .text-info {
+            color: #0ea5e9 !important;
+        }
+        .bg-info {
+            background-color: #0ea5e9 !important;
+        }
+        
+        /* Gradients professionnels */
+        .gradient-primary {
+            background: linear-gradient(135deg, #f97316 0%, #fb923c 100%) !important;
+        }
+        .gradient-secondary {
+            background: linear-gradient(135deg, #1f2937 0%, #374151 100%) !important;
+        }
+        .gradient-accent {
+            background: linear-gradient(135deg, #f97316 0%, #fb923c 100%) !important;
+        }
+        
+        /* Cards et éléments harmonisés */
+        .card {
+            background-color: #ffffff !important;
+            border: 1px solid #e5e5e5 !important;
+        }
+        .card-title {
+            color: #1a1a1a !important;
+        }
+        .divider {
+            border-color: #e5e5e5 !important;
+        }
+        
+        /* Formulaires harmonisés */
+        .input, .textarea, .select {
+            border-color: #d1d5db !important;
+        }
+        .input:focus, .textarea:focus, .select:focus {
+            border-color: #f97316 !important;
+            box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1) !important;
+        }
+        
+        /* Liens harmonisés */
+        .link {
+            color: #f97316 !important;
+        }
+        .link:hover {
+            color: #ea580c !important;
+        }
+        
+        /* Badges harmonisés - seulement pour les badges génériques */
+        .badge-primary {
+            background-color: #f97316 !important;
+            color: white !important;
+        }
+        .badge-outline {
+            border-color: #f97316 !important;
+            color: #f97316 !important;
+        }
+        
+        /* Badges de statut - gardent leurs couleurs sémantiques */
+        .badge-success {
+            background-color: #16a34a !important;
+            color: white !important;
+        }
+        .badge-warning {
+            background-color: #f59e0b !important;
+            color: white !important;
+        }
+        .badge-error {
+            background-color: #dc2626 !important;
+            color: white !important;
+        }
+        .badge-info {
+            background-color: #0ea5e9 !important;
+            color: white !important;
+        }
+        
         .gradient-bg {
-            background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+            background: linear-gradient(135deg, #f97316 0%, #fb923c 100%);
         }
         .glass-effect {
             backdrop-filter: blur(10px);
@@ -953,9 +1078,15 @@
                     {% endif %}
                 </ul>
             </div>
-            <a href="{% url 'products:home' %}" class="btn btn-ghost text-xl font-bold gradient-text hover-scale transition-transform" aria-label="Retour à l'accueil">
-                <i class="fas fa-store text-primary animate-pulse-slow" aria-hidden="true"></i>
-                Boutique
+            <a href="{% url 'products:home' %}" class="btn btn-ghost text-xl font-bold gradient-text hover-scale transition-transform flex items-center space-x-3" aria-label="Retour à l'accueil">
+                {% if company_logo %}
+                    <div class="h-8 w-auto max-w-32">
+                        <img src="{{ company_logo.url }}" alt="{{ company_name|default:'Logo' }}" class="h-full w-auto object-contain">
+                    </div>
+                {% else %}
+                    <i class="fas fa-store text-primary animate-pulse-slow" aria-hidden="true"></i>
+                {% endif %}
+                <span class="hidden sm:block">{{ company_name|default:"Boutique" }}</span>
             </a>
         </div>
         
@@ -1053,7 +1184,29 @@
     </main>
 
     <!-- Footer -->
-    <footer class="footer footer-center p-10 bg-base-200 text-base-content" role="contentinfo" aria-label="Pied de page">
+    <footer class="footer footer-center p-10 bg-secondary text-secondary-content" role="contentinfo" aria-label="Pied de page">
+        <!-- Informations de l'entreprise -->
+        <div class="mb-6">
+            <h3 class="text-lg font-bold mb-2">{{ company_name|default:"Boutique E-commerce" }}</h3>
+            {% if company_description %}
+                <p class="text-sm opacity-80 mb-2">{{ company_description }}</p>
+            {% endif %}
+            <div class="text-sm opacity-70 space-y-1">
+                {% if company_address %}
+                    <p><i class="fas fa-map-marker-alt mr-2"></i>{{ company_address }}</p>
+                {% endif %}
+                {% if company_phone %}
+                    <p><i class="fas fa-phone mr-2"></i>{{ company_phone }}</p>
+                {% endif %}
+                {% if company_email %}
+                    <p><i class="fas fa-envelope mr-2"></i>{{ company_email }}</p>
+                {% endif %}
+                {% if company_website %}
+                    <p><i class="fas fa-globe mr-2"></i><a href="{{ company_website }}" class="link link-hover" target="_blank">{{ company_website }}</a></p>
+                {% endif %}
+            </div>
+        </div>
+        
         <div class="grid grid-flow-col gap-4">
             <a href="{% url 'products:home' %}" class="link link-hover">Accueil</a>
             <a href="{% url 'products:home' %}" class="link link-hover">Produits</a>
@@ -1069,7 +1222,7 @@
             </div>
         </div>
         <div>
-            <p class="text-sm">© 2024 Boutique E-commerce. Tous droits réservés.</p>
+            <p class="text-sm">© 2024 {{ company_name|default:"Boutique E-commerce" }}. Tous droits réservés.</p>
         </div>
     </footer>
 
