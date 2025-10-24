@@ -11,7 +11,6 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
-from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -21,12 +20,18 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config('SECRET_KEY')
+SECRET_KEY = 'django-insecure-your-secret-key-here-change-this-in-production'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', default=False, cast=bool)
+DEBUG = True
 
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=lambda v: [s.strip() for s in v.split(',')])
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    '127.0.0.1:8001',
+    'elitemobile.pythonanywhere.com',
+    'www.elitemobile.pythonanywhere.com',
+]
 
 
 # Application definition
@@ -113,14 +118,22 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': config('DB_ENGINE'),
-        'NAME': config('DB_NAME'),
-        'USER': config('DB_USER'),
-        'PASSWORD': config('DB_PASSWORD'),
-        'HOST': config('DB_HOST'),
-        'PORT': config('DB_PORT'),
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+# Configuration pour PythonAnywhere (optionnel - base de données MySQL)
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'votre_nom$nom_db',
+#         'USER': 'votre_nom',
+#         'PASSWORD': 'votre_mot_de_passe',
+#         'HOST': 'votre_nom.mysql.pythonanywhere-services.com',
+#         'PORT': '3306',
+#     }
+# }
 
 
 # Password validation
@@ -156,36 +169,31 @@ USE_TZ = True
 # Session Configuration
 SESSION_COOKIE_AGE = 1209600  # 2 semaines
 SESSION_COOKIE_HTTPONLY = True
-SESSION_COOKIE_SECURE = not DEBUG  # True en production avec HTTPS
+SESSION_COOKIE_SECURE = False  # False pour PythonAnywhere gratuit
+SESSION_COOKIE_SAMESITE = 'Lax'  # Lax pour PythonAnywhere gratuit
 SESSION_SAVE_EVERY_REQUEST = True
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 
 # CSRF Configuration
 CSRF_COOKIE_HTTPONLY = True  # Sécurisé par défaut
-CSRF_COOKIE_SECURE = not DEBUG  # True en production avec HTTPS
+CSRF_COOKIE_SECURE = False  # False pour PythonAnywhere gratuit
+CSRF_COOKIE_SAMESITE = 'Lax'  # Lax pour PythonAnywhere gratuit
 CSRF_USE_SESSIONS = False  # Utilise les cookies par défaut
 
 # Encryption Configuration
-ENCRYPTION_KEY = config('ENCRYPTION_KEY', default=None)
+ENCRYPTION_KEY = '35KGt3qnoTw5GC4uwpqRwhh-gz9zbzRaSkiqbIKGLqM='
 
 # Email Configuration
-# Configuration Email pour le développement
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # Pour le développement
-#EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'  # Pour la production
-#EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
-#EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
-#EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
-#EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
-#EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
-#DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@onlineshopgn.com')
+# Configuration Email pour la production
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'  # À configurer selon votre fournisseur
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'baldelenz@gmail.com'  # À remplacer par votre email
+EMAIL_HOST_PASSWORD = 'ymdd vwyy mtnb pizh'  # À remplacer par votre mot de passe d'application
+DEFAULT_FROM_EMAIL = 'noreply@onlineshopgn.com'
 
-# Security Settings
-SECURE_BROWSER_XSS_FILTER = True
-SECURE_CONTENT_TYPE_NOSNIFF = True
-X_FRAME_OPTIONS = 'DENY'
-SECURE_HSTS_SECONDS = 31536000 if not DEBUG else 0
-SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-SECURE_HSTS_PRELOAD = True
+
 
 # Custom Error Pages (actives en développement et production)
 # Note: En mode DEBUG, Django affiche ses propres pages d'erreur détaillées
@@ -199,7 +207,7 @@ RATE_LIMIT_MAX_REQUESTS = 100
 RATE_LIMIT_TIME_WINDOW = 60  # seconds
 
 # IP Whitelist for Admin (optional)
-ADMIN_IP_WHITELIST = []
+
 
 # Logging Configuration
 LOGGING = {
@@ -210,30 +218,45 @@ LOGGING = {
             'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
             'style': '{',
         },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },
     },
     'handlers': {
         'file': {
-            'level': 'WARNING',
+            'level': 'INFO',
             'class': 'logging.FileHandler',
-            'filename': 'security.log',
+            'filename': BASE_DIR / 'logs' / 'django.log',
             'formatter': 'verbose',
         },
         'security_file': {
             'level': 'WARNING',
             'class': 'logging.FileHandler',
-            'filename': 'security_attacks.log',
+            'filename': BASE_DIR / 'logs' / 'security.log',
+            'formatter': 'verbose',
+        },
+        'error_file': {
+            'level': 'ERROR',
+            'class': 'logging.FileHandler',
+            'filename': BASE_DIR / 'logs' / 'error.log',
             'formatter': 'verbose',
         },
     },
     'loggers': {
         'django': {
             'handlers': ['file'],
-            'level': 'WARNING',
+            'level': 'INFO',
             'propagate': True,
         },
         'security': {
             'handlers': ['security_file'],
             'level': 'WARNING',
+            'propagate': True,
+        },
+        'django.request': {
+            'handlers': ['error_file'],
+            'level': 'ERROR',
             'propagate': True,
         },
     },
@@ -247,6 +270,9 @@ STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# Configuration des fichiers statiques et médias pour la production
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
@@ -283,22 +309,24 @@ else:
     CACHES = {
         'default': {
             'BACKEND': 'django_redis.cache.RedisCache',
-            'LOCATION': config('REDIS_URL', default='redis://127.0.0.1:6379/1'),
+            'LOCATION': 'redis://127.0.0.1:6379/1',
             'OPTIONS': {
                 'CLIENT_CLASS': 'django_redis.client.DefaultClient',
                 'CONNECTION_POOL_KWARGS': {
-                    'max_connections': 50,
+                    'max_connections': 100,
                     'retry_on_timeout': True,
+                    'socket_keepalive': True,
+                    'socket_keepalive_options': {},
                 },
                 'COMPRESSOR': 'django_redis.compressors.zlib.ZlibCompressor',
                 'SERIALIZER': 'django_redis.serializers.json.JSONSerializer',
             },
-            'KEY_PREFIX': 'online_shop',
+            'KEY_PREFIX': 'online_shop_prod',
             'TIMEOUT': 300,  # 5 minutes par défaut
         },
         'sessions': {
             'BACKEND': 'django_redis.cache.RedisCache',
-            'LOCATION': config('REDIS_URL', default='redis://127.0.0.1:6379/2'),
+            'LOCATION': 'redis://127.0.0.1:6379/2',
             'OPTIONS': {
                 'CLIENT_CLASS': 'django_redis.client.DefaultClient',
             },
@@ -307,7 +335,7 @@ else:
         },
         'search': {
             'BACKEND': 'django_redis.cache.RedisCache',
-            'LOCATION': config('REDIS_URL', default='redis://127.0.0.1:6379/3'),
+            'LOCATION': 'redis://127.0.0.1:6379/3',
             'OPTIONS': {
                 'CLIENT_CLASS': 'django_redis.client.DefaultClient',
             },
@@ -316,7 +344,7 @@ else:
         },
         'analytics': {
             'BACKEND': 'django_redis.cache.RedisCache',
-            'LOCATION': config('REDIS_URL', default='redis://127.0.0.1:6379/4'),
+            'LOCATION': 'redis://127.0.0.1:6379/4',
             'OPTIONS': {
                 'CLIENT_CLASS': 'django_redis.client.DefaultClient',
             },
@@ -331,10 +359,8 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 
 # CORS configuration
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "http://localhost:8000",
-    "http://127.0.0.1:8000",
+    "http://elitemobile.pythonanywhere.com",
+    "http://www.elitemobile.pythonanywhere.com",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -343,7 +369,33 @@ CORS_ALLOW_CREDENTIALS = True
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Performance settings
-CONN_MAX_AGE = 60  # Connexions de base de données persistantes
+CONN_MAX_AGE = 300  # 5 minutes - Connexions de base de données persistantes
+
+# Configuration de rate limiting
+RATELIMIT_ENABLE = True
+RATELIMIT_USE_CACHE = 'default'
+
+# Configuration de monitoring
+ENABLE_MONITORING = True
+MONITORING_API_KEY = None  # À configurer si nécessaire
+
+# Configuration de backup
+BACKUP_ENABLED = True
+BACKUP_SCHEDULE = '0 2 * * *'  # Tous les jours à 2h du matin
+BACKUP_RETENTION_DAYS = 30
+
+# Configuration de sécurité supplémentaire - Désactivée
+# SECURE_CROSS_ORIGIN_OPENER_POLICY = None  # Déjà désactivé plus haut
+# SECURE_FRAME_DENY = False  # Déjà désactivé plus haut
+
+# Configuration de performance pour la production
+USE_TZ = True
+USE_I18N = True
+USE_L10N = True
+
+# Configuration de session pour la production
+SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
+SESSION_CACHE_ALIAS = 'sessions'
 
 AUTH_USER_MODEL = 'users.User'
 
